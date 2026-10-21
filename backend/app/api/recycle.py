@@ -12,8 +12,9 @@ from fastapi.responses import Response
 from sqlmodel import Session, select
 
 from ..database import get_session
-from ..models import (AssetItem, AssetSnapshot, Countdown, EntryIndex, LedgerRecord,
-                      LifeEvent, MediaAsset, Todo, Trip, User)
+from ..models import (AssetItem, AssetSnapshot, Countdown, CycleRecord, EntryIndex,
+                      IntimacyRecord, LedgerRecord, LifeEvent, MediaAsset, SleepRecord,
+                      Todo, Trip, User)
 from ..services import entry_service, recycle_service
 from ..utils.errors import not_found, ok
 from .deps import get_current_user
@@ -56,6 +57,10 @@ def export_full(session: Session = Depends(get_session),
         "asset_items": [dump(r) for r in rows(AssetItem)],
         "asset_snapshots": [dump(r) for r in rows(AssetSnapshot)],
         "todos": [dump(r) for r in rows(Todo)],
+        # 健康数据单独成组导出：私密记录不进手札流，但用户有权一次性带走
+        "cycle_records": [dump(r) for r in rows(CycleRecord)],
+        "intimacy_records": [dump(r) for r in rows(IntimacyRecord)],
+        "sleep_records": [dump(r) for r in rows(SleepRecord)],
         "media": [{"id": m.id, "owner_type": m.owner_type, "owner_id": m.owner_id,
                    "mime": m.mime, "size": m.size, "created_at": m.created_at}
                   for m in rows(MediaAsset) if m.status == "normal"],

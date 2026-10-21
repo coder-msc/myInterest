@@ -334,6 +334,55 @@ class AssetItemUpdate(BaseModel):
     repay_date: Optional[Date] = None
 
 
+# ---------- 健康（值得记 · 健康：周期 / 亲密 / 睡眠）----------
+class CycleCreate(BaseModel):
+    start_date: Date
+    end_date: Optional[Date] = None
+    flow: str = "medium"
+    symptoms: list[str] = Field(default_factory=list)
+    note: Optional[str] = Field(default=None, max_length=200)
+
+
+class CycleUpdate(BaseModel):
+    start_date: Optional[Date] = None
+    end_date: Optional[Date] = None
+    flow: Optional[str] = None
+    symptoms: Optional[list[str]] = None
+    note: Optional[str] = Field(default=None, max_length=200)
+
+
+class IntimacyCreate(BaseModel):
+    happen_date: Date
+    happen_time: Optional[str] = Field(default=None, pattern=r"^([01]\d|2[0-3]):[0-5]\d$")
+    kind: str = "partner"
+    protection: str = "na"
+    note: Optional[str] = Field(default=None, max_length=200)
+
+
+class IntimacyUpdate(BaseModel):
+    happen_date: Optional[Date] = None
+    happen_time: Optional[str] = Field(default=None, pattern=r"^([01]\d|2[0-3]):[0-5]\d$")
+    kind: Optional[str] = None
+    protection: Optional[str] = None
+    note: Optional[str] = Field(default=None, max_length=200)
+
+
+class SleepCreate(BaseModel):
+    sleep_date: Date
+    bed_time: str = Field(pattern=r"^([01]\d|2[0-3]):[0-5]\d$")
+    wake_time: str = Field(pattern=r"^([01]\d|2[0-3]):[0-5]\d$")
+    quality: int = Field(default=3, ge=1, le=5)
+    note: Optional[str] = Field(default=None, max_length=200)
+
+
+class SleepUpdate(BaseModel):
+    sleep_date: Optional[Date] = None
+    bed_time: Optional[str] = Field(default=None, pattern=r"^([01]\d|2[0-3]):[0-5]\d$")
+    wake_time: Optional[str] = Field(default=None, pattern=r"^([01]\d|2[0-3]):[0-5]\d$")
+    quality: Optional[int] = Field(default=None, ge=1, le=5)
+    note: Optional[str] = Field(default=None, max_length=200)
+
+
 # ---------- 待办（值得记 · 待办）----------
 class TodoCreate(BaseModel):
     title: str = Field(min_length=1, max_length=60)

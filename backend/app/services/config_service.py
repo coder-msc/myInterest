@@ -238,6 +238,9 @@ SPECS: dict[str, dict] = {
     "module_trips_enabled": {
         "category": "人生手札", "type": _BOOL, "default": True,
         "label": "模块灰度：旅游", "help": "关闭后足迹·旅游入口隐藏、接口返回 403，已产生的数据保留。"},
+    "module_health_enabled": {
+        "category": "人生手札", "type": _BOOL, "default": True,
+        "label": "模块灰度：健康", "help": "关闭后「值得记 → 健康」入口隐藏、接口返回 403，已有记录保留。"},
     "module_todo_enabled": {
         "category": "人生手札", "type": _BOOL, "default": True,
         "label": "模块灰度：待办", "help": "关闭后「值得记 → 待办」入口隐藏、接口返回 403，已产生的待办保留。"},

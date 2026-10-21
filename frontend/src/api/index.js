@@ -111,6 +111,23 @@ export const apiCreateTrip = (payload) => post('/api/trips', payload)
 export const apiUpdateTrip = (id, payload) => patch(`/api/trips/${id}`, payload)
 export const apiDeleteTrip = (id) => del(`/api/trips/${id}`)
 
+// ---------- 值得记 · 健康（周期 / 亲密 / 睡眠） ----------
+export const apiHealthOverview = (month) => get('/api/health/overview', month ? { month } : {})
+export const apiHealthCycle = () => get('/api/health/cycle')
+export const apiCreateCycle = (payload) => post('/api/health/cycle', payload)
+export const apiUpdateCycle = (id, payload) => patch(`/api/health/cycle/${id}`, payload)
+export const apiDeleteCycle = (id) => del(`/api/health/cycle/${id}`)
+
+export const apiIntimacy = (params = {}) => get('/api/health/intimacy', params)
+export const apiCreateIntimacy = (payload) => post('/api/health/intimacy', payload)
+export const apiUpdateIntimacy = (id, payload) => patch(`/api/health/intimacy/${id}`, payload)
+export const apiDeleteIntimacy = (id) => del(`/api/health/intimacy/${id}`)
+
+export const apiSleep = (params = {}) => get('/api/health/sleep', params)
+export const apiCreateSleep = (payload) => post('/api/health/sleep', payload)
+export const apiUpdateSleep = (id, payload) => patch(`/api/health/sleep/${id}`, payload)
+export const apiDeleteSleep = (id) => del(`/api/health/sleep/${id}`)
+
 // ---------- 值得记 · 待办 ----------
 export const apiTodos = (params = {}) => get('/api/todos', params)
 export const apiCreateTodo = (payload) => post('/api/todos', payload)

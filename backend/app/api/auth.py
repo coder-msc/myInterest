@@ -13,9 +13,10 @@ from fastapi import APIRouter, BackgroundTasks, Depends, Request
 from sqlmodel import Session, select
 
 from ..database import get_session
-from ..models import (AssetItem, AssetSnapshot, Countdown, EntryIndex, Feedback,
-                      Holding, LedgerCategory, LedgerRecord, LifeEvent, Lot, MediaAsset,
-                      ReminderMessage, Todo, TreeholeReport, Trip, User, UserSetting)
+from ..models import (AssetItem, AssetSnapshot, Countdown, CycleRecord, EntryIndex,
+                      Feedback, Holding, IntimacyRecord, LedgerCategory, LedgerRecord,
+                      LifeEvent, Lot, MediaAsset, ReminderMessage, SleepRecord, Todo,
+                      TreeholeReport, Trip, User, UserSetting)
 from ..schemas import (BindEmailIn, EmailLoginIn, ProfileIn, RefreshIn,
                        SendCodeIn, WxLoginIn)
 from ..services import (config_service, feishu_service, mail_service, sms_service,
@@ -338,7 +339,7 @@ def _migrate_journal(session: Session, src_id: int, dst_id: int) -> None:
     """
     for model in (EntryIndex, LedgerRecord, Trip, LifeEvent, Countdown,
                   ReminderMessage, AssetItem, AssetSnapshot, MediaAsset, Todo,
-                  Feedback):
+                  CycleRecord, IntimacyRecord, SleepRecord, Feedback):
         for row in session.exec(select(model).where(model.user_id == src_id)).all():
             row.user_id = dst_id
             session.add(row)
@@ -431,7 +432,7 @@ def delete_my_account(bg: BackgroundTasks,
     handbooks = 0
     for model in (EntryIndex, LedgerRecord, LedgerCategory, Trip, LifeEvent,
                   Countdown, ReminderMessage, AssetItem, AssetSnapshot, Todo,
-                  TreeholeReport):
+                  CycleRecord, IntimacyRecord, SleepRecord, TreeholeReport):
         rows = session.exec(select(model).where(model.user_id == user.id)).all()
         for r in rows:
             session.delete(r)

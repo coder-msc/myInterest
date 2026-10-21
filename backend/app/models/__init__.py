@@ -7,6 +7,7 @@ from .dividend_schedule import DividendSchedule
 from .entry_index import EntryIndex
 from .exchange_rate import ExchangeRate
 from .feedback import Feedback
+from .health import CycleRecord, IntimacyRecord, SleepRecord
 from .holding import Holding
 from .ledger import LedgerCategory, LedgerRecord
 from .life_event import LifeEvent
@@ -51,4 +52,7 @@ __all__ = [
     "TreeholePost",
     "TreeholeReport",
     "Todo",
+    "CycleRecord",
+    "IntimacyRecord",
+    "SleepRecord",
 ]

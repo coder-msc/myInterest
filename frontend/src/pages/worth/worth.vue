@@ -183,8 +183,13 @@
       </block>
     </block>
 
+    <!-- ===== 健康（周期 / 亲密 / 睡眠） ===== -->
+    <block v-else-if="tab === 'health'">
+      <HealthPanel ref="healthRef" />
+    </block>
+
     <!-- ===== 大事件 ===== -->
-    <block v-else>
+    <block v-else-if="tab === 'event'">
       <view v-if="eventLoading && !eventGroups.length" class="loading-text">牛马拉磨中…</view>
 
       <view v-else-if="!eventGroups.length" class="empty">
@@ -400,17 +405,20 @@ import { mediaUrl } from '@/utils/config'
 import WebLayout from '@/components/WebLayout.vue'
 import CustomTab from '@/components/CustomTab.vue'
 import CountdownSheet from '@/components/CountdownSheet.vue'
+import HealthPanel from '@/components/HealthPanel.vue'
 
 /** 顶部大项。新增模块时在这里加一项，并在下方加对应的内容块即可。 */
 const segments = [
   { key: 'countdown', label: '计时', emoji: '🎯' },
   { key: 'trip', label: '旅游', emoji: '🧳' },
   { key: 'todo', label: '待办', emoji: '✅' },
+  { key: 'health', label: '健康', emoji: '🌿' },
   { key: 'event', label: '大事件', emoji: '🎉' },
 ]
 
 const tab = ref('countdown')
 const scrollTo = ref('')
+const healthRef = ref(null)
 const cdLoading = ref(false)
 const tripLoading = ref(false)
 const eventLoading = ref(false)
@@ -739,6 +747,11 @@ function ensureTabData(key, force = false) {
 
 /** 首屏只等当前分段，其余分段空闲时预取，滑动过去就是现成的 */
 function refresh(force = true) {
+  if (tab.value === 'health') {
+    // 健康面板自己管数据，页面刷新时让它重取当前分段
+    if (force) healthRef.value && healthRef.value.reload()
+    return
+  }
   ensureTabData(tab.value, force)
   if (tab.value !== 'trip' && loaded.trip) loadTrips()
   if (tab.value !== 'todo' && loaded.todo) loadTodos()
@@ -997,9 +1010,10 @@ onShow(() => {
   prefetch()
 })
 onPullDownRefresh(async () => {
-  refresh()
+  const jobs = [loadCountdowns(), loadTrips(), loadTodos(), loadEvents()]
+  if (healthRef.value) jobs.push(healthRef.value.reload())
   try {
-    await Promise.all([loadCountdowns(), loadTrips(), loadTodos(), loadEvents()])
+    await Promise.all(jobs)
   } finally {
     uni.stopPullDownRefresh()
   }

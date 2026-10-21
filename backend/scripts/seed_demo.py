@@ -723,6 +723,60 @@ def seed_todos(session: Session, user: User) -> None:
     print(f"  ✓ 待办 {len(sample)} 条（含 1 条已完成）")
 
 
+def seed_health(session: Session, user: User) -> None:
+    """造健康演示数据：3 个周期、近 7 天睡眠、4 条亲密记录（含三种类型）。"""
+    from datetime import timedelta
+
+    from app.models import CycleRecord, IntimacyRecord, SleepRecord
+
+    for model in (CycleRecord, IntimacyRecord, SleepRecord):
+        for row in session.exec(select(model).where(model.user_id == user.id)).all():
+            session.delete(row)
+    session.commit()
+
+    today = date.today()
+
+    def d(offset: int) -> str:
+        return (today + timedelta(days=offset)).isoformat()
+
+    # 三次经期，间隔 28 天，经期 5 天；最近一次在 6 天前（已结束）
+    for start_offset in (-62, -34, -6):
+        session.add(CycleRecord(
+            user_id=user.id, start_date=d(start_offset),
+            end_date=d(start_offset + 4), flow="medium",
+            symptoms='["痛经", "疲惫"]'))
+    session.commit()
+
+    sleep_sample = [
+        (0, "23:40", "07:10", 4, None),
+        (-1, "00:20", "07:30", 3, "刷手机太晚了"),
+        (-2, "23:10", "06:50", 5, None),
+        (-3, "01:10", "08:00", 2, "加班到很晚"),
+        (-4, "23:30", "07:20", 4, None),
+        (-5, "22:50", "07:00", 5, None),
+        (-6, "00:40", "07:40", 3, None),
+    ]
+    from app.services.health_service import sleep_minutes
+    for offset, bed, wake, quality, note in sleep_sample:
+        session.add(SleepRecord(
+            user_id=user.id, sleep_date=d(offset), bed_time=bed, wake_time=wake,
+            duration_min=sleep_minutes(bed, wake), quality=quality, note=note))
+    session.commit()
+
+    intimacy_sample = [
+        (-2, "22:40", "partner", "condom", None),
+        (-9, "23:10", "self", "na", None),
+        (-15, "00:20", "partner", "pill", None),
+        (-24, "21:30", "multi", "condom", "纪念日"),
+    ]
+    for offset, clock, kind, protection, note in intimacy_sample:
+        session.add(IntimacyRecord(
+            user_id=user.id, happen_date=d(offset), happen_time=clock,
+            kind=kind, protection=protection, note=note))
+    session.commit()
+    print("  ✓ 健康 3 个周期 / 7 天睡眠 / 4 条亲密记录")
+
+
 def stamp(hours_ago: int) -> str:
     from datetime import datetime, timedelta
     return (datetime.now() - timedelta(hours=hours_ago)).strftime("%Y-%m-%d %H:%M:%S")
@@ -775,6 +829,9 @@ def main() -> None:
 
         print("\n>>> 写入待办演示数据...")
         seed_todos(session, user)
+
+        print("\n>>> 写入健康演示数据...")
+        seed_health(session, user)
 
     if args.crawl:
         os.environ.pop("XI_CRAWL_OFFLINE", None)
