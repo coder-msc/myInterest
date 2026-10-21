@@ -5,7 +5,9 @@ FastAPI 会自动完成「取 token → 校验 → 查用户 → 查封禁」，
 路由函数里拿到的 user 一定是合法登录用户，无需再判空。
 三级依赖层层嵌套：get_current_user → get_admin_user → require_super_admin。
 """
-from fastapi import Depends
+from typing import Optional
+
+from fastapi import Depends, Query
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlmodel import Session
 
@@ -47,3 +49,37 @@ def require_super_admin(user: User = Depends(get_admin_user)) -> User:
     if user.role != "super_admin":
         raise AppError(Codes.FORBIDDEN, "该操作仅超级管理员可执行", status=403)
     return user
+
+
+def get_media_user(
+    t: Optional[str] = Query(default=None, description="查询参数形式的 token（供 <image src> 使用）"),
+    credentials: HTTPAuthorizationCredentials | None = Depends(_bearer),
+    session: Session = Depends(get_session),
+) -> User:
+    """媒体读取专用：<image src> 无法携带 Authorization 头，允许用 ?t=<token> 替代。
+
+    仅用于只读的图片原件接口；其他接口一律只认标准 Bearer 头。
+    """
+    token = credentials.credentials if credentials is not None else t
+    if not token:
+        raise AppError(Codes.UNAUTHORIZED, "未登录或缺少 token", status=401)
+    user_id = decode_token(token, "access")
+    user = session.get(User, user_id)
+    if user is None:
+        raise AppError(Codes.TOKEN_INVALID, "账号不存在", status=401)
+    if user.status == "banned":
+        raise AppError(Codes.FORBIDDEN, "账号已封禁，请联系管理员", status=403)
+    return user
+
+
+def require_module(flag_key: str):
+    """模块灰度开关依赖（PRD §7.5）：开关关闭时接口返回 403，已产生数据保留。
+
+    用法：@router.get("", dependencies=[Depends(require_module("module_ledger_enabled"))])
+    """
+    def _dep(user: User = Depends(get_current_user)) -> User:
+        from ..services import config_service
+        if not config_service.get_bool(flag_key):
+            raise AppError(Codes.FORBIDDEN, "该模块暂未开放", status=403)
+        return user
+    return _dep

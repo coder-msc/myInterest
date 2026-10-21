@@ -14,3 +14,16 @@ export const BASE_URL = ''
 
 export const TOKEN_KEY = 'xi_token'
 export const USER_KEY = 'xi_user'
+
+/**
+ * 媒体地址：本地存储返回的是 /api/media/{id}/raw（需要鉴权），
+ * 而 <image src> 无法携带 Authorization 头，因此改用 ?t=<token> 查询参数。
+ * 七牛外链是完整 https 地址，原样返回。
+ */
+export function mediaUrl(url) {
+  if (!url) return ''
+  if (/^https?:\/\//.test(url)) return url
+  const token = uni.getStorageSync(TOKEN_KEY)
+  if (!token) return BASE_URL + url
+  return `${BASE_URL}${url}${url.includes('?') ? '&' : '?'}t=${encodeURIComponent(token)}`
+}

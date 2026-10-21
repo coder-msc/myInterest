@@ -32,7 +32,7 @@ async def lifespan(_app: FastAPI):
         task.cancel()
 
 
-app = FastAPI(title="息计 API", version="0.2.0", lifespan=lifespan)
+app = FastAPI(title="纯牛马人生手札 API", version="0.3.0", lifespan=lifespan)
 
 # H5 开发跨域
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_credentials=False,
@@ -85,8 +85,9 @@ async def validation_handler(_request: Request, exc: RequestValidationError):
 
 
 # ---------- 路由 ----------
-from .api import (accounts, admin, auth, calendar, community, dividends, holdings, lots,  # noqa: E402
-                  schedules, settings, stats, system)
+from .api import (accounts, admin, assets, auth, calendar, community, countdowns,  # noqa: E402
+                  dividends, events, holdings, journal, ledger, lots, media,
+                  notifications, recycle, schedules, settings, stats, system, trips)
 
 app.include_router(auth.router)
 app.include_router(holdings.router)
@@ -100,6 +101,16 @@ app.include_router(accounts.router)
 app.include_router(system.router)
 app.include_router(community.router)
 app.include_router(admin.router)
+# 人生手札（纯牛马）
+app.include_router(media.router)
+app.include_router(journal.router)
+app.include_router(ledger.router)
+app.include_router(countdowns.router)
+app.include_router(trips.router)
+app.include_router(events.router)
+app.include_router(assets.router)
+app.include_router(notifications.router)
+app.include_router(recycle.router)
 
 
 @app.get("/api/health")

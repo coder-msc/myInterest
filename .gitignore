@@ -18,6 +18,7 @@ backend/data/
 backups/
 .env
 .env.*
+backend/server.log
 
 # OS / IDE
 .DS_Store

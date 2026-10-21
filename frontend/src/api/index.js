@@ -1,5 +1,5 @@
 /** API 模块：与 PC 端 api/index.js 对齐 */
-import { get, post, patch, del, put } from '@/utils/request'
+import { get, post, patch, del, put, upload } from '@/utils/request'
 
 // ---------- 认证 ----------
 // 密码登录体系已下线：邮箱验证码（登录/注册合一）+ 微信登录（仅小程序）
@@ -74,3 +74,77 @@ export const apiRates = (date) => get('/api/rates', date ? { date } : {})
 // ---------- 账户管理 ----------
 export const apiAccounts = () => get('/api/accounts')
 export const apiAccountsMeta = (accounts_meta) => put('/api/accounts/meta', { accounts_meta })
+
+// ================= 纯牛马人生手札 =================
+// ---------- 手札流 ----------
+export const apiJournalHome = (params = {}) => get('/api/journal/home', params)
+export const apiJournalFeed = (params = {}) => get('/api/journal/feed', params)
+export const apiJournalSearch = (q) => get('/api/journal/search', { q })
+export const apiJournalCounts = () => get('/api/journal/counts')
+export const apiJournalStats = () => get('/api/journal/stats')
+export const apiJournalModules = () => get('/api/journal/modules')
+export const apiRebuildIndex = () => post('/api/journal/rebuild-index')
+
+// ---------- 账本 ----------
+export const apiLedger = (params = {}) => get('/api/ledger', params)
+export const apiLedgerStats = (params = {}) => get('/api/ledger/stats', params)
+export const apiLedgerDetail = (id) => get(`/api/ledger/${id}`)
+export const apiCreateLedger = (payload) => post('/api/ledger', payload)
+export const apiUpdateLedger = (id, payload) => patch(`/api/ledger/${id}`, payload)
+export const apiDeleteLedger = (id) => del(`/api/ledger/${id}`)
+export const apiLedgerCategories = () => get('/api/ledger/categories')
+export const apiAddLedgerCategory = (name, emoji) => post('/api/ledger/categories', { name, emoji })
+export const apiDeleteLedgerCategory = (id) => del(`/api/ledger/categories/${id}`)
+
+// ---------- 日子（倒计时） ----------
+export const apiCountdowns = (params = {}) => get('/api/countdowns', params)
+export const apiCountdown = (id) => get(`/api/countdowns/${id}`)
+export const apiCountdownPreview = (id) => get(`/api/countdowns/${id}/preview`)
+export const apiCreateCountdown = (payload) => post('/api/countdowns', payload)
+export const apiUpdateCountdown = (id, payload) => patch(`/api/countdowns/${id}`, payload)
+export const apiDeleteCountdown = (id) => del(`/api/countdowns/${id}`)
+
+// ---------- 足迹 · 旅游 ----------
+export const apiTrips = () => get('/api/trips')
+export const apiTrip = (id) => get(`/api/trips/${id}`)
+export const apiCreateTrip = (payload) => post('/api/trips', payload)
+export const apiUpdateTrip = (id, payload) => patch(`/api/trips/${id}`, payload)
+export const apiDeleteTrip = (id) => del(`/api/trips/${id}`)
+
+// ---------- 足迹 · 大事件 ----------
+export const apiEvents = () => get('/api/events')
+export const apiEvent = (id) => get(`/api/events/${id}`)
+export const apiCreateEvent = (payload) => post('/api/events', payload)
+export const apiUpdateEvent = (id, payload) => patch(`/api/events/${id}`, payload)
+export const apiDeleteEvent = (id) => del(`/api/events/${id}`)
+
+// ---------- 家庭资产 ----------
+export const apiAssets = () => get('/api/assets')
+export const apiAssetTrend = () => get('/api/assets/trend')
+export const apiCreateAssetItem = (payload) => post('/api/assets/items', payload)
+export const apiUpdateAssetItem = (id, payload) => patch(`/api/assets/items/${id}`, payload)
+export const apiDeleteAssetItem = (id) => del(`/api/assets/items/${id}`)
+export const apiTakeAssetSnapshot = () => post('/api/assets/snapshot')
+
+// ---------- 媒体 ----------
+export const apiUploadMedia = (filePath, ownerType = 'unanchored', ownerId = null) =>
+  upload('/api/media/upload', filePath, {
+    owner_type: ownerType,
+    ...(ownerId ? { owner_id: String(ownerId) } : {}),
+  })
+export const apiUnanchoredMedia = () => get('/api/media/unanchored')
+export const apiAttachMedia = (asset_ids, owner_type, owner_id) =>
+  post('/api/media/attach', { asset_ids, owner_type, owner_id })
+export const apiDeleteMedia = (id) => del(`/api/media/${id}`)
+
+// ---------- 提醒中心 ----------
+export const apiNotifications = (params = {}) => get('/api/notifications', params)
+export const apiUnreadCount = () => get('/api/notifications/unread')
+export const apiReadNotification = (id) => post(`/api/notifications/${id}/read`)
+export const apiReadAllNotifications = () => post('/api/notifications/read-all')
+export const apiDeleteNotification = (id) => del(`/api/notifications/${id}`)
+
+// ---------- 回收站 / 导出 ----------
+export const apiRecycleBin = () => get('/api/recycle-bin')
+export const apiRestoreRecycle = (type, id) => post(`/api/recycle-bin/${type}/${id}/restore`)
+export const apiExportFull = () => get('/api/export/full')

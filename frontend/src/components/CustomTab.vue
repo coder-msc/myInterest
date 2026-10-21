@@ -1,4 +1,4 @@
-<!-- CustomTab.vue —— H5 端自定义底部导航（参考 eatWhat custom-tab：emoji 图标 + 文字）
+<!-- CustomTab.vue —— H5 端自定义底部导航（emoji 图标 + 文字）
   用法：tab 页模板末尾 <CustomTab current="/pages/xxx/xxx" />（仅 H5 条件编译引入）
 -->
 <template>
@@ -21,9 +21,10 @@ const props = defineProps({
 })
 
 const tabs = [
-  { path: '/pages/index/index', label: '总览', emoji: '🏠' },
-  { path: '/pages/holdings/holdings', label: '持仓', emoji: '💼' },
-  { path: '/pages/calendar/calendar', label: '日历', emoji: '📅' },
+  { path: '/pages/journal/journal', label: '手札', emoji: '🏠' },
+  { path: '/pages/ledger/ledger', label: '账本', emoji: '💰' },
+  { path: '/pages/worth/worth', label: '值得记', emoji: '🎯' },
+  { path: '/pages/discover/discover', label: '发现', emoji: '🔍' },
   { path: '/pages/mine/mine', label: '我的', emoji: '👤' },
 ]
 
@@ -39,8 +40,8 @@ function go(path) {
   bottom: 0; left: 0; right: 0;
   height: 112rpx;
   padding-bottom: env(safe-area-inset-bottom);
-  background: #fff;
-  border-top: 1rpx solid #f1f5f9;
+  background: #FFFFFF;
+  border-top: 1rpx solid #F6EFE7;
   display: flex;
   z-index: 999;
 }
@@ -49,10 +50,10 @@ function go(path) {
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
   gap: 4rpx;
-  color: #94a3b8;
+  color: #9C9187;
 }
-.tab-item.on { color: #1e3a8a; }
-.tab-emoji { font-size: 40rpx; line-height: 1; }
+.tab-item.on { color: #D97742; }
+.tab-emoji { font-size: 38rpx; line-height: 1; }
 .tab-label { font-size: 22rpx; }
 .tab-item.on .tab-label { font-weight: 600; }
 /* PC 宽屏走 WebLayout 顶部导航，隐藏底部栏 */

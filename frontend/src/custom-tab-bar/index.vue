@@ -16,13 +16,14 @@
 import { ref } from 'vue'
 
 const list = [
-  { pagePath: '/pages/index/index', text: '总览', emoji: '🏠' },
-  { pagePath: '/pages/holdings/holdings', text: '持仓', emoji: '💼' },
-  { pagePath: '/pages/calendar/calendar', text: '日历', emoji: '📅' },
+  { pagePath: '/pages/journal/journal', text: '手札', emoji: '🏠' },
+  { pagePath: '/pages/ledger/ledger', text: '账本', emoji: '💰' },
+  { pagePath: '/pages/worth/worth', text: '值得记', emoji: '🎯' },
+  { pagePath: '/pages/discover/discover', text: '发现', emoji: '🔍' },
   { pagePath: '/pages/mine/mine', text: '我的', emoji: '👤' },
 ]
 
-const current = ref('/pages/index/index')
+const current = ref('/pages/journal/journal')
 
 function switchTab(path) {
   if (current.value === path) return
@@ -44,8 +45,8 @@ if (pages.length) {
   left: 0;
   right: 0;
   height: 112rpx;
-  background: #fff;
-  border-top: 1rpx solid #f1f5f9;
+  background: #FFFFFF;
+  border-top: 1rpx solid #F6EFE7;
   display: flex;
   align-items: center;
   justify-content: space-around;
@@ -59,10 +60,10 @@ if (pages.length) {
   align-items: center;
   justify-content: center;
   gap: 4rpx;
-  color: #94a3b8;
+  color: #9C9187;
 }
-.tab-item.active { color: #1e3a8a; }
-.tab-emoji { font-size: 40rpx; line-height: 1; }
+.tab-item.active { color: #D97742; }
+.tab-emoji { font-size: 38rpx; line-height: 1; }
 .tab-text { font-size: 22rpx; }
 .tab-item.active .tab-text { font-weight: 600; }
 </style>

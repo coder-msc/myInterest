@@ -1,7 +1,7 @@
 <template>
   <view class="page">
     <!-- #ifdef H5 -->
-    <WebLayout title="攒息" />
+    <WebLayout title="投资总览" subtitle="持仓与分红的整体视图" />
     <!-- #endif -->
 
     <!-- ========== 深色主卡 ========== -->
@@ -276,10 +276,10 @@ function goSettings() {
   uni.navigateTo({ url: '/pages/index/metrics' })
 }
 function goRecord() {
-  uni.switchTab({ url: '/pages/holdings/holdings' })
+  uni.navigateTo({ url: '/pages/holdings/holdings' })
 }
 function goHoldings() {
-  uni.switchTab({ url: '/pages/holdings/holdings' })
+  uni.navigateTo({ url: '/pages/holdings/holdings' })
 }
 
 // ---------- 加载 ----------

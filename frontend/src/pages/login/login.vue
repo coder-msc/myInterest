@@ -1,9 +1,9 @@
 <template>
   <view class="login-page">
     <view class="hero">
-      <view class="logo">攒</view>
-      <view class="brand">攒息</view>
-      <view class="slogan">时间的朋友 · 记录每一笔分红</view>
+      <view class="logo">牛</view>
+      <view class="brand">纯牛马人生手札</view>
+      <view class="slogan">认真活着，随手记着</view>
     </view>
 
     <view class="login-card">
@@ -82,7 +82,7 @@ async function submitEmail() {
     const data = await apiEmailLogin(emailForm.email, emailForm.code)
     setAuth(data.access_token, data.user)
     uni.showToast({ title: data.is_new_user ? '注册并登录成功' : '登录成功', icon: 'success' })
-    setTimeout(() => uni.reLaunch({ url: '/pages/index/index' }), 400)
+    setTimeout(() => uni.reLaunch({ url: '/pages/journal/journal' }), 400)
   } catch (e) {
     // 错误已统一处理
   } finally {
@@ -118,7 +118,7 @@ async function onWxLogin() {
     setAuth(data.access_token, data.user)
     uni.showToast({ title: data.is_new_user ? '登录成功' : '欢迎回来', icon: 'success' })
     // 微信新用户引导绑定邮箱（对齐 eatWhat redirect=bind）
-    const url = data.is_new_user ? '/pages/mine/mine?bind=1' : '/pages/index/index'
+    const url = data.is_new_user ? '/pages/mine/mine?bind=1' : '/pages/journal/journal'
     setTimeout(() => uni.reLaunch({ url }), 400)
   } catch (e) {
     // 错误 toast 已由 request 统一处理
@@ -129,22 +129,22 @@ async function onWxLogin() {
 </script>
 
 <style scoped>
-.login-page { min-height: 100vh; background: linear-gradient(180deg, #1e3a8a 0%, #3b82f6 42%, #f8fafc 42%); }
+.login-page { min-height: 100vh; background: linear-gradient(180deg, #D97742 0%, #E8A96B 42%, #FBF7F2 42%); }
 .hero { text-align: center; padding: 110rpx 0 70rpx; color: #fff; }
 .logo {
   width: 120rpx; height: 120rpx; line-height: 120rpx; margin: 0 auto;
   background: rgba(255,255,255,0.18); border: 2rpx solid rgba(255,255,255,0.5);
   border-radius: 30rpx; font-size: 60rpx; font-weight: 700;
 }
-.brand { font-size: 44rpx; font-weight: 700; margin-top: 24rpx; }
-.slogan { font-size: 26rpx; opacity: 0.85; margin-top: 12rpx; }
+.brand { font-size: 44rpx; font-weight: 700; margin-top: 24rpx; letter-spacing: 2rpx; }
+.slogan { font-size: 26rpx; opacity: 0.9; margin-top: 12rpx; }
 .login-card {
   background: #fff; border-radius: 28rpx; margin: 0 40rpx;
-  padding: 44rpx 40rpx 50rpx; box-shadow: 0 12rpx 40rpx rgba(30,58,138,0.12);
+  padding: 44rpx 40rpx 50rpx; box-shadow: 0 12rpx 40rpx rgba(185,92,46,0.14);
 }
-.field { padding: 26rpx 0; border-bottom: 1rpx solid #f1f5f9; }
-.f-label { display: block; font-size: 24rpx; color: #94a3b8; margin-bottom: 12rpx; }
-.f-input { font-size: 30rpx; height: 44rpx; }
+.field { padding: 26rpx 0; border-bottom: 1rpx solid #F6EFE7; }
+.f-label { display: block; font-size: 24rpx; color: #9C9187; margin-bottom: 12rpx; }
+.f-input { font-size: 30rpx; height: 44rpx; align-items: center; }
 .submit { margin-top: 50rpx; }
 
 /* 验证码行 */
@@ -154,9 +154,9 @@ async function onWxLogin() {
 .btn-code {
   flex-shrink: 0; min-width: 180rpx; height: 60rpx; line-height: 60rpx;
   font-size: 24rpx; padding: 0 16rpx; margin: 0;
-  background: #1e3a8a; color: #fff; border-radius: 12rpx; border: none;
+  background: #D97742; color: #fff; border-radius: 12rpx; border: none;
 }
-.btn-code[disabled] { background: #94a3b8; }
+.btn-code[disabled] { background: #DCC8B8; }
 .btn-code::after { border: none; }
 
 /* 微信一键登录块（仅小程序渲染） */
@@ -172,11 +172,11 @@ async function onWxLogin() {
 
 .divider { display: flex; align-items: center; margin: 34rpx 0 6rpx; }
 .divider::before, .divider::after {
-  content: ''; flex: 1; height: 1rpx; background: #e2e8f0;
+  content: ''; flex: 1; height: 1rpx; background: #EDE3D8;
 }
 .divider-text {
-  padding: 0 20rpx; font-size: 24rpx; color: #94a3b8;
+  padding: 0 20rpx; font-size: 24rpx; color: #9C9187;
 }
 
-.hint { text-align: center; margin-top: 28rpx; font-size: 26rpx; color: #94a3b8; }
+.hint { text-align: center; margin-top: 28rpx; font-size: 26rpx; color: #9C9187; }
 </style>

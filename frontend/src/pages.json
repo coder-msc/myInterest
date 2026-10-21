@@ -1,8 +1,48 @@
 {
   "pages": [
     {
+      "path": "pages/journal/journal",
+      "style": { "navigationBarTitleText": "纯牛马人生手札", "enablePullDownRefresh": true }
+    },
+    {
+      "path": "pages/ledger/ledger",
+      "style": { "navigationBarTitleText": "账本", "enablePullDownRefresh": true }
+    },
+    {
+      "path": "pages/worth/worth",
+      "style": { "navigationBarTitleText": "值得记", "enablePullDownRefresh": true }
+    },
+    {
+      "path": "pages/discover/discover",
+      "style": { "navigationBarTitleText": "发现" }
+    },
+    {
+      "path": "pages/tools/tool",
+      "style": { "navigationBarTitleText": "小工具" }
+    },
+    {
+      "path": "pages/mine/mine",
+      "style": { "navigationBarTitleText": "我的" }
+    },
+    {
+      "path": "pages/assets/assets",
+      "style": { "navigationBarTitleText": "家庭资产", "enablePullDownRefresh": true }
+    },
+    {
+      "path": "pages/notifications/notifications",
+      "style": { "navigationBarTitleText": "提醒中心", "enablePullDownRefresh": true }
+    },
+    {
+      "path": "pages/recycle/recycle",
+      "style": { "navigationBarTitleText": "回收站", "enablePullDownRefresh": true }
+    },
+    {
+      "path": "pages/trips/detail",
+      "style": { "navigationBarTitleText": "行程详情" }
+    },
+    {
       "path": "pages/index/index",
-      "style": { "navigationBarTitleText": "总览", "enablePullDownRefresh": true }
+      "style": { "navigationBarTitleText": "投资总览", "enablePullDownRefresh": true }
     },
     {
       "path": "pages/holdings/holdings",
@@ -11,10 +51,6 @@
     {
       "path": "pages/calendar/calendar",
       "style": { "navigationBarTitleText": "分红日历", "enablePullDownRefresh": true }
-    },
-    {
-      "path": "pages/mine/mine",
-      "style": { "navigationBarTitleText": "我的" }
     },
     {
       "path": "pages/stats/stats",
@@ -43,22 +79,23 @@
   ],
   "tabBar": {
     "custom": true,
-    "color": "#94a3b8",
-    "selectedColor": "#1e3a8a",
-    "backgroundColor": "#ffffff",
+    "color": "#9C9187",
+    "selectedColor": "#D97742",
+    "backgroundColor": "#FFFFFF",
     "borderStyle": "white",
     "list": [
-      { "pagePath": "pages/index/index", "text": "总览" },
-      { "pagePath": "pages/holdings/holdings", "text": "持仓" },
-      { "pagePath": "pages/calendar/calendar", "text": "日历" },
+      { "pagePath": "pages/journal/journal", "text": "手札" },
+      { "pagePath": "pages/ledger/ledger", "text": "账本" },
+      { "pagePath": "pages/worth/worth", "text": "值得记" },
+      { "pagePath": "pages/discover/discover", "text": "发现" },
       { "pagePath": "pages/mine/mine", "text": "我的" }
     ]
   },
   "globalStyle": {
-    "navigationBarTextStyle": "white",
-    "navigationBarTitleText": "攒息",
-    "navigationBarBackgroundColor": "#1e3a8a",
-    "backgroundColor": "#f8fafc",
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "纯牛马人生手札",
+    "navigationBarBackgroundColor": "#FBF7F2",
+    "backgroundColor": "#FBF7F2",
     "backgroundTextStyle": "dark"
   }
 }

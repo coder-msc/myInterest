@@ -1,20 +1,22 @@
 <template>
-  <!-- 仅 H5 端 ≥768px 渲染顶部导航；移动端保持原生 TabBar -->
+  <!-- 仅 H5 端 ≥768px 渲染顶部导航；移动端保持自定义 TabBar -->
   <!-- #ifdef H5 -->
+  <!-- 占位块：顶栏是 fixed，靠它在文档流里让出 60px，避免遮住页面顶部内容 -->
+  <view v-if="showDesktop" class="web-spacer"></view>
   <view v-if="showDesktop" class="web-topbar">
     <view class="topbar-left">
-      <view class="brand" @click="go('/pages/index/index')">
-        <view class="logo">攒</view>
+      <view class="brand" @click="go('/pages/journal/journal')">
+        <view class="logo">牛</view>
         <view class="brand-text">
-          <view class="brand-name">攒息</view>
-          <view class="brand-sub">时间的朋友</view>
+          <view class="brand-name">纯牛马人生手札</view>
+          <view class="brand-sub">认真活着，随手记着</view>
         </view>
       </view>
       <nav class="nav">
         <view v-for="item in menus" :key="item.path"
               :class="['nav-item', current === item.path ? 'active' : '']"
               @click="go(item.path)">
-          <SvgIcon :name="item.icon" :size="16" :stroke="2" />
+          <SvgIcon :name="item.icon" :size="30" :stroke="2" />
           <text>{{ item.label }}</text>
         </view>
       </nav>
@@ -44,30 +46,28 @@ defineProps({
 const showDesktop = ref(false)
 const current = ref('')
 const menus = [
-  { path: '/pages/index/index', label: '总览看板', icon: 'home' },
-  { path: '/pages/holdings/holdings', label: '持仓管理', icon: 'holdings' },
-  { path: '/pages/dividends/list', label: '分红记录', icon: 'record' },
-  { path: '/pages/calendar/calendar', label: '分红日历', icon: 'calendar' },
-  { path: '/pages/stats/stats', label: '统计分析', icon: 'stats' },
+  { path: '/pages/journal/journal', label: '手札', icon: 'home' },
+  { path: '/pages/ledger/ledger', label: '账本', icon: 'record' },
+  { path: '/pages/worth/worth', label: '值得记', icon: 'calendar' },
+  { path: '/pages/discover/discover', label: '发现', icon: 'stats' },
   { path: '/pages/mine/mine', label: '我的', icon: 'mine' },
 ]
 
 const user = computed(() => userStore.user || {})
 const nickname = computed(() => user.value.nickname || user.value.username || '用户')
-const avatarText = computed(() => (nickname.value || 'U').charAt(0).toUpperCase())
+const avatarText = computed(() => user.value.avatar || (nickname.value || 'U').charAt(0).toUpperCase())
 
 function checkWidth() {
   // #ifdef H5
   showDesktop.value = window.innerWidth >= 768
-  // 自定义 TabBar 通过 CSS 控制显示/隐藏，无需 API 调用
   // #endif
 }
 
 function go(path) {
   if (current.value === path) return
-  uni.reLaunch({ url: path })
+  uni.switchTab({ url: path, fail: () => uni.reLaunch({ url: path }) })
 }
-function goMine() { uni.reLaunch({ url: '/pages/mine/mine' }) }
+function goMine() { go('/pages/mine/mine') }
 
 onMounted(() => {
   checkWidth()
@@ -93,40 +93,42 @@ onShow(() => {
 
 <style>
 /* #ifdef H5 */
+.web-spacer { height: 60px; }
 .web-topbar {
   position: fixed; top: 0; left: 0; right: 0; height: 60px; z-index: 999;
-  background: #fff; border-bottom: 1px solid #e2e8f0;
+  background: rgba(255, 255, 255, 0.94); backdrop-filter: blur(8px);
+  border-bottom: 1px solid #EDE3D8;
   display: flex; align-items: center; justify-content: space-between;
-  padding: 0 28px; box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+  padding: 0 28px;
 }
 .topbar-left { display: flex; align-items: center; gap: 32px; }
 .brand { display: flex; align-items: center; gap: 10px; cursor: pointer; }
 .logo {
-  width: 34px; height: 34px; border-radius: 8px; background: #1e3a8a;
-  color: #fff; font-weight: 700; font-size: 18px;
+  width: 34px; height: 34px; border-radius: 10px;
+  background: linear-gradient(135deg, #D97742, #B85C2E);
+  color: #fff; font-weight: 700; font-size: 17px;
   display: flex; align-items: center; justify-content: center;
 }
 .brand-text { line-height: 1.2; }
-.brand-name { font-weight: 700; font-size: 16px; color: #1e3a8a; letter-spacing: 1px; }
-.brand-sub { font-size: 11px; color: #94a3b8; }
+.brand-name { font-weight: 700; font-size: 15px; color: #2F2A26; letter-spacing: 0.5px; }
+.brand-sub { font-size: 11px; color: #9C9187; }
 .nav { display: flex; align-items: center; gap: 4px; }
 .nav-item {
   display: flex; align-items: center; gap: 6px; padding: 8px 14px;
-  border-radius: 8px; color: #64748b; font-size: 14px; cursor: pointer;
+  border-radius: 10px; color: #6B625A; font-size: 14px; cursor: pointer;
   transition: all 0.15s; white-space: nowrap;
 }
-.nav-item:hover { background: #f1f5f9; color: #1e3a8a; }
-.nav-item.active { background: #1e3a8a; color: #fff; }
+.nav-item:hover { background: #F6EFE7; color: #B85C2E; }
+.nav-item.active { background: #FDF1E7; color: #B85C2E; font-weight: 600; }
 .topbar-right { display: flex; align-items: center; gap: 16px; }
 .user-box { display: flex; align-items: center; gap: 10px; cursor: pointer; }
 .avatar {
-  width: 34px; height: 34px; border-radius: 50%; background: #dbeafe;
-  color: #1e3a8a; font-weight: 600; display: flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border-radius: 50%; background: #FDF1E7;
+  color: #B85C2E; font-weight: 600; display: flex; align-items: center; justify-content: center;
 }
-.user-name { font-size: 14px; font-weight: 500; }
+.user-name { font-size: 14px; font-weight: 500; color: #2F2A26; }
 
 @media (min-width: 768px) {
-  page { padding-top: 60px; }
   uni-tabbar, .uni-tabbar, uni-tabbar + view { display: none !important; }
 }
 /* #endif */

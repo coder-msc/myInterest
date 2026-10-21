@@ -207,3 +207,128 @@ class SecurityCreateIn(BaseModel):
     name: str = Field(min_length=1, max_length=64)
     currency: Currency = "CNY"
     crawl_enabled: bool = False
+
+
+# ================= 人生手札 =================
+# ---------- 媒体 ----------
+class MediaAttachIn(BaseModel):
+    """把「未归类照片」挂到某条主记录（先存照片、稍后归类）。"""
+    asset_ids: list[int] = Field(default_factory=list, max_length=60)
+    owner_type: Literal["ledger", "trip", "event", "countdown"]
+    owner_id: int
+
+
+# ---------- 账本 ----------
+class LedgerCreate(BaseModel):
+    direction: Literal["expense", "income"] = "expense"
+    amount: float = Field(gt=0, le=9999999.99)
+    category: str = Field(min_length=1, max_length=20)
+    account: Optional[str] = Field(default=None, max_length=20)
+    occurred_on: Date
+    note: Optional[str] = Field(default=None, max_length=50)
+    media_id: Optional[int] = None
+
+
+class LedgerUpdate(BaseModel):
+    direction: Optional[Literal["expense", "income"]] = None
+    amount: Optional[float] = Field(default=None, gt=0, le=9999999.99)
+    category: Optional[str] = Field(default=None, min_length=1, max_length=20)
+    account: Optional[str] = Field(default=None, max_length=20)
+    occurred_on: Optional[Date] = None
+    note: Optional[str] = Field(default=None, max_length=50)
+    media_id: Optional[int] = None
+
+
+class LedgerCategoryIn(BaseModel):
+    name: str = Field(min_length=1, max_length=10)
+    emoji: str = Field(default="📦", max_length=8)
+
+
+# ---------- 日子 ----------
+class CountdownCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=20)
+    date: Date
+    repeat_rule: Literal["once", "yearly", "monthly", "yearly_lunar", "anniversary"] = "once"
+    remind_offsets: list[int] = Field(default_factory=lambda: [7, 0])
+    emoji: str = Field(default="🎯", max_length=8)
+    color: Optional[str] = Field(default=None, max_length=20)
+    note: Optional[str] = Field(default=None, max_length=100)
+
+
+class CountdownUpdate(BaseModel):
+    name: Optional[str] = Field(default=None, min_length=1, max_length=20)
+    date: Optional[Date] = None
+    repeat_rule: Optional[Literal["once", "yearly", "monthly", "yearly_lunar", "anniversary"]] = None
+    remind_offsets: Optional[list[int]] = None
+    emoji: Optional[str] = Field(default=None, max_length=8)
+    color: Optional[str] = Field(default=None, max_length=20)
+    note: Optional[str] = Field(default=None, max_length=100)
+    pinned: Optional[bool] = None
+
+
+# ---------- 足迹 · 旅游 ----------
+class TripCreate(BaseModel):
+    title: Optional[str] = Field(default=None, max_length=30)
+    destinations: list[str] = Field(min_length=1, max_length=5)
+    start_date: Date
+    end_date: Date
+    companions: Optional[str] = Field(default=None, max_length=30)
+    content: Optional[str] = Field(default=None, max_length=1000)
+    cost: Optional[float] = Field(default=None, ge=0)
+    cover_media_id: Optional[int] = None
+    media_ids: list[int] = Field(default_factory=list, max_length=60)
+
+
+class TripUpdate(BaseModel):
+    title: Optional[str] = Field(default=None, max_length=30)
+    destinations: Optional[list[str]] = Field(default=None, max_length=5)
+    start_date: Optional[Date] = None
+    end_date: Optional[Date] = None
+    companions: Optional[str] = Field(default=None, max_length=30)
+    content: Optional[str] = Field(default=None, max_length=1000)
+    cost: Optional[float] = Field(default=None, ge=0)
+    cover_media_id: Optional[int] = None
+    media_ids: Optional[list[int]] = None
+
+
+# ---------- 足迹 · 大事件 ----------
+class EventCreate(BaseModel):
+    title: str = Field(min_length=1, max_length=30)
+    event_date: Date
+    category: str = Field(default="里程碑", max_length=20)
+    emoji: str = Field(default="🎉", max_length=8)
+    mood: Optional[str] = Field(default=None, max_length=8)
+    content: Optional[str] = Field(default=None, max_length=2000)
+    tags: list[str] = Field(default_factory=list, max_length=5)
+    media_ids: list[int] = Field(default_factory=list, max_length=30)
+
+
+class EventUpdate(BaseModel):
+    title: Optional[str] = Field(default=None, min_length=1, max_length=30)
+    event_date: Optional[Date] = None
+    category: Optional[str] = Field(default=None, max_length=20)
+    emoji: Optional[str] = Field(default=None, max_length=8)
+    mood: Optional[str] = Field(default=None, max_length=8)
+    content: Optional[str] = Field(default=None, max_length=2000)
+    tags: Optional[list[str]] = Field(default=None, max_length=5)
+    media_ids: Optional[list[int]] = None
+
+
+# ---------- 家庭资产 ----------
+class AssetItemCreate(BaseModel):
+    category: Literal["cash", "property", "vehicle", "other", "liability"]
+    sub_category: Optional[str] = Field(default=None, max_length=20)
+    name: str = Field(min_length=1, max_length=30)
+    amount: float = Field(ge=0)
+    currency: Literal["CNY", "USD", "HKD"] = "CNY"
+    note: Optional[str] = Field(default=None, max_length=100)
+    repay_date: Optional[Date] = None
+
+
+class AssetItemUpdate(BaseModel):
+    sub_category: Optional[str] = Field(default=None, max_length=20)
+    name: Optional[str] = Field(default=None, min_length=1, max_length=30)
+    amount: Optional[float] = Field(default=None, ge=0)
+    currency: Optional[Literal["CNY", "USD", "HKD"]] = None
+    note: Optional[str] = Field(default=None, max_length=100)
+    repay_date: Optional[Date] = None

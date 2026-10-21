@@ -13,7 +13,9 @@ from fastapi import APIRouter, BackgroundTasks, Depends, Request
 from sqlmodel import Session, select
 
 from ..database import get_session
-from ..models import Feedback, Holding, Lot, User, UserSetting
+from ..models import (AssetItem, AssetSnapshot, Countdown, EntryIndex, Feedback,
+                      Holding, LedgerCategory, LedgerRecord, LifeEvent, Lot, MediaAsset,
+                      ReminderMessage, Trip, User, UserSetting)
 from ..schemas import (BindEmailIn, EmailLoginIn, ProfileIn, RefreshIn,
                        SendCodeIn, WxLoginIn)
 from ..services import config_service, mail_service, sms_service, verify_code_service
@@ -362,6 +364,28 @@ def delete_my_account(session: Session = Depends(get_session),
     """
     if user.role in ("admin", "super_admin"):
         raise AppError(Codes.FORBIDDEN, "管理员账号不可自助注销", status=403)
+
+    # 人生手札：照片需先真删文件再删记录，其余按「先删行、后删账号」的顺序处理
+    from ..services.storage import get_storage
+    storage = get_storage()
+    media = session.exec(select(MediaAsset).where(MediaAsset.user_id == user.id)).all()
+    for m in media:
+        try:
+            storage.delete(m.object_key)
+        except Exception:
+            pass
+        session.delete(m)
+    session.flush()
+
+    handbooks = 0
+    for model in (EntryIndex, LedgerRecord, LedgerCategory, Trip, LifeEvent,
+                  Countdown, ReminderMessage, AssetItem, AssetSnapshot):
+        rows = session.exec(select(model).where(model.user_id == user.id)).all()
+        for r in rows:
+            session.delete(r)
+        handbooks += len(rows)
+    session.flush()
+
     lots = session.exec(select(Lot).where(Lot.user_id == user.id)).all()
     for lot in lots:
         session.delete(lot)

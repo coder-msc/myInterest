@@ -15,9 +15,12 @@
 幂等：重复运行前会清空 demo 用户的 holdings/lots 及相关预案，再重建。
 """
 import argparse
+import calendar
+import json
 import os
 import secrets
 import sys
+from datetime import date
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -431,10 +434,238 @@ def create_pending_schedules(session: Session) -> int:
     return n
 
 
+def seed_journal(session: Session, user: User) -> None:
+    """造人生手札演示数据：账本 / 足迹（旅游 + 大事件）/ 日子 / 家庭资产。
+
+    主记录与 entry_index 索引同事务写入（PRD §4.2 硬约束），因此这里只 flush 不 commit，
+    最后统一 commit —— 保证手札流里看到的每一条都能点开。
+    """
+    from app.models import (AssetItem, AssetSnapshot, Countdown, EntryIndex,
+                            LedgerCategory, LedgerRecord, LifeEvent, Trip)
+    from app.services import countdown_service, entry_service, ledger_service
+
+    uid = user.id
+
+    # ---------- 清空 demo 用户旧的手札数据 ----------
+    for model in (EntryIndex, LedgerRecord, Trip, LifeEvent, Countdown,
+                  AssetItem, AssetSnapshot):
+        for row in session.exec(select(model).where(model.user_id == uid)).all():
+            session.delete(row)
+    for row in session.exec(select(LedgerCategory)
+                            .where(LedgerCategory.user_id == uid)).all():
+        session.delete(row)
+    session.commit()
+
+    ledger_service.ensure_categories(session, uid)
+    ledger_service.add_category(session, uid, "工资", "💰")
+    ledger_service.add_category(session, uid, "副业", "💻")
+
+    today = date.today()
+
+    def day_of(month_offset: int, day: int) -> str:
+        idx = today.year * 12 + (today.month - 1) + month_offset
+        y, m = idx // 12, idx % 12 + 1
+        return date(y, m, min(day, calendar.monthrange(y, m)[1])).isoformat()
+
+    # ---------- 账本：近 3 个月的固定支出 + 日常流水 ----------
+    ledger_rows: list[tuple[str, str, float, str, str, str]] = []
+    for off in (-2, -1, 0):
+        ledger_rows += [
+            (day_of(off, 1), "expense", 4200.0, "居住", "银行卡", "房租"),
+            (day_of(off, 10), "income", 18500.0, "工资", "银行卡", "到手工资"),
+            (day_of(off, 12), "expense", 320.0, "交通", "微信", "地铁通勤充值"),
+            (day_of(off, 15), "expense", 186.5, "居住", "支付宝", "水电燃气"),
+            (day_of(off, 18), "expense", 1299.0, "学习", "支付宝", "在线课程年费"),
+        ]
+    daily = [
+        (-2, 2, 38.0, "餐饮", "微信", "楼下麻辣烫"),
+        (-2, 4, 168.0, "购物", "支付宝", "夏季拖鞋 + 洗衣液"),
+        (-2, 7, 26.0, "餐饮", "微信", "公司楼下咖啡"),
+        (-2, 9, 89.0, "娱乐", "微信", "看了场电影"),
+        (-2, 14, 260.0, "医疗", "支付宝", "牙科洗牙"),
+        (-2, 20, 520.0, "人情", "微信", "同事结婚随礼"),
+        (-2, 24, 45.5, "餐饮", "微信", "加班夜宵"),
+        (-1, 2, 32.0, "餐饮", "微信", "便利店早饭"),
+        (-1, 5, 420.0, "购物", "支付宝", "换了个机械键盘"),
+        (-1, 8, 68.0, "餐饮", "微信", "周末小火锅"),
+        (-1, 11, 1200.0, "人情", "银行卡", "给爸妈的生活费"),
+        (-1, 17, 58.0, "交通", "微信", "打车去机场"),
+        (-1, 23, 199.0, "娱乐", "支付宝", "演出门票"),
+        (-1, 27, 38.0, "餐饮", "微信", "牛肉面"),
+        (0, 1, 88.0, "餐饮", "微信", "国庆后第一顿好的"),
+        (0, 3, 240.0, "购物", "支付宝", "换季外套"),
+        (0, 6, 26.0, "餐饮", "微信", "豆浆油条"),
+        (0, 9, 480.0, "娱乐", "支付宝", "朋友聚会 AA"),
+        (0, 12, 128.0, "交通", "微信", "打车 + 停车费"),
+        (0, 14, 45.0, "餐饮", "微信", "楼下小炒"),
+        (0, 16, 620.0, "医疗", "支付宝", "体检套餐"),
+        (0, 18, 66.0, "餐饮", "微信", "加班点的外卖"),
+    ]
+    for off, dd, amount, cat, acct, note in daily:
+        if off == 0 and dd > today.day:
+            continue
+        ledger_rows.append((day_of(off, dd), "expense", amount, cat, acct, note))
+    ledger_rows.append((day_of(-1, 19), "income", 3000.0, "副业", "银行卡", "接了个外包小活"))
+
+    n_ledger = 0
+    for occurred_on, direction, amount, category, account, note in sorted(ledger_rows):
+        r = LedgerRecord(user_id=uid, direction=direction, amount=amount,
+                         category=category, account=account, occurred_on=occurred_on,
+                         note=note)
+        session.add(r)
+        session.flush()
+        entry_service._from_ledger(session, r)
+        n_ledger += 1
+
+    # ---------- 足迹 · 旅游 ----------
+    trips = [
+        {"title": "成都 · 重庆 六日", "destinations": ["成都", "重庆"],
+         "start_date": "2026-05-01", "end_date": "2026-05-06",
+         "companions": "老婆", "cost": 6800.0,
+         "content": "宽窄巷子人挤人，但火锅是真的顶。重庆轻轨穿楼那一刻，全车人都在拍。"},
+        {"title": "青岛看海", "destinations": ["青岛"],
+         "start_date": "2026-08-14", "end_date": "2026-08-17",
+         "companions": "大学室友", "cost": 3200.0,
+         "content": "八大关走了两万步，晚上在栈桥边喝到微醺。海风比空调舒服。"},
+        {"title": "大理躺平四天", "destinations": ["大理"],
+         "start_date": "2025-10-02", "end_date": "2025-10-05",
+         "companions": "一个人", "cost": 2400.0,
+         "content": "什么都不干，就是在洱海边坐着。回来之后发现，工作其实也没那么急。"},
+        {"title": "日本关西（计划中）", "destinations": ["大阪", "京都", "奈良"],
+         "start_date": "2026-11-08", "end_date": "2026-11-15",
+         "companions": "老婆", "cost": 15000.0,
+         "content": "机票酒店已订，行程待定。目标是岚山看红叶，顺便把年假用完。"},
+    ]
+    n_trip = 0
+    for spec in trips:
+        t = Trip(user_id=uid, title=spec["title"],
+                 destinations=json.dumps(spec["destinations"], ensure_ascii=False),
+                 start_date=spec["start_date"], end_date=spec["end_date"],
+                 companions=spec["companions"], cost=spec["cost"],
+                 content=spec["content"])
+        session.add(t)
+        session.flush()
+        entry_service._from_trip(session, t)
+        n_trip += 1
+
+    # ---------- 足迹 · 大事件 ----------
+    events = [
+        ("第一次出国", "2024-09-10", "里程碑", "✈️", "🤩", ["第一次"],
+         "护照办了三年，终于用上了。落地那一刻有点不真实。"),
+        ("拿到驾照", "2025-07-01", "里程碑", "🚗", "😌", ["学车"],
+         "科目二挂了两次，第三次一把过。教练说我是他带过最倔的。"),
+        ("还清第一笔贷款", "2025-12-31", "财务", "💰", "🥳", ["还债"],
+         "最后一笔转出去，盯着余额看了很久。无债一身轻是真的。"),
+        ("跑完人生第一个半马", "2026-03-22", "健康", "🏃", "😤", ["跑步"],
+         "21 公里，最后 3 公里全靠意志力。奖牌挂在了书桌前。"),
+        ("搬进新家", "2026-06-18", "家庭", "🏠", "🥰", ["搬家"],
+         "从看房到交房折腾了两年。第一晚睡在地板上，居然睡得很香。"),
+        ("换工作满一年", "2026-09-01", "工作", "💼", "🙂", ["工作"],
+         "一年过去，从手忙脚乱到能带新人。不算成功，但确实长本事了。"),
+    ]
+    n_event = 0
+    for title, event_date, category, emoji, mood, tags, content in events:
+        e = LifeEvent(user_id=uid, title=title, event_date=event_date,
+                      category=category, emoji=emoji, mood=mood,
+                      content=content, tags=json.dumps(tags, ensure_ascii=False))
+        session.add(e)
+        session.flush()
+        entry_service._from_event(session, e)
+        n_event += 1
+
+    # ---------- 日子 ----------
+    mom_base = "2026-11-05"
+    lm, ld, lt = countdown_service.solar_to_lunar(date.fromisoformat(mom_base))
+    countdowns = [
+        {"name": "发薪日", "base_date": day_of(0, 10), "repeat_rule": "monthly",
+         "remind_offsets": [1, 0], "pinned": 1, "emoji": "💰",
+         "note": "到账后先转 30% 去定投"},
+        {"name": "房租日", "base_date": day_of(0, 1), "repeat_rule": "monthly",
+         "remind_offsets": [1, 0], "pinned": 0, "emoji": "🏠",
+         "note": "别忘开发票"},
+        {"name": "妈妈生日", "base_date": mom_base, "repeat_rule": "yearly_lunar",
+         "remind_offsets": [7, 1, 0], "pinned": 1, "emoji": "🎂",
+         "note": "提前订蛋糕，别只在微信说一句"},
+        {"name": "结婚纪念日", "base_date": "2022-05-20", "repeat_rule": "yearly",
+         "remind_offsets": [30, 7, 0], "pinned": 0, "emoji": "💍",
+         "note": "第五年了，别再送同款香水"},
+        {"name": "周杰伦演唱会", "base_date": "2026-11-07", "repeat_rule": "once",
+         "remind_offsets": [7, 1, 0], "pinned": 0, "emoji": "🎤",
+         "note": "内场票，提前两小时到"},
+        {"name": "毕业纪念日", "base_date": "2018-06-30", "repeat_rule": "anniversary",
+         "remind_offsets": [7, 0], "pinned": 0, "emoji": "🎓",
+         "note": "老同学群里发张旧照片"},
+        {"name": "和老婆在一起", "base_date": "2019-09-21", "repeat_rule": "anniversary",
+         "remind_offsets": [7, 0], "pinned": 0, "emoji": "❤️",
+         "note": "每年这天都吃顿好的"},
+    ]
+    n_cd = 0
+    for spec in countdowns:
+        c = Countdown(user_id=uid, name=spec["name"], base_date=spec["base_date"],
+                      repeat_rule=spec["repeat_rule"],
+                      remind_offsets=json.dumps(spec["remind_offsets"]),
+                      pinned=spec["pinned"], emoji=spec["emoji"],
+                      note=spec["note"],
+                      lunar_month=lm if spec["repeat_rule"] == "yearly_lunar" else None,
+                      lunar_day=ld if spec["repeat_rule"] == "yearly_lunar" else None,
+                      lunar_text=lt if spec["repeat_rule"] == "yearly_lunar" else None)
+        session.add(c)
+        session.flush()
+        entry_service._from_countdown(session, c)
+        n_cd += 1
+
+    # ---------- 家庭资产 ----------
+    assets = [
+        ("cash", "活期", "招商银行活期", 68000.0, "CNY", "日常开销备用"),
+        ("cash", "定期", "定期存款", 120000.0, "CNY", "年化 2.1%"),
+        ("cash", "活期", "美元活期", 3200.0, "USD", "之前换的，一直没动"),
+        ("property", "自住", "自住房", 1850000.0, "CNY", "按最近小区成交价估"),
+        ("vehicle", "代步", "家用车", 98000.0, "CNY", "开了三年"),
+        ("other", "公积金", "公积金余额", 76000.0, "CNY", None),
+        ("liability", "房贷", "房贷余额", 920000.0, "CNY", "还剩 18 年"),
+        ("liability", "消费贷", "信用卡待还", 8600.0, "CNY", "本月账单"),
+    ]
+    n_asset = 0
+    for category, sub, name, amount, currency, note in assets:
+        a = AssetItem(user_id=uid, category=category, sub_category=sub, name=name,
+                      amount=amount, currency=currency, note=note,
+                      repay_date="2026-11-08" if category == "liability" else None)
+        session.add(a)
+        n_asset += 1
+
+    # ---------- 资产盘点快照（趋势用） ----------
+    snapshot_plan = [
+        (-3, 2175000.0, 955000.0),
+        (-2, 2198000.0, 948000.0),
+        (-1, 2224000.0, 936000.0),
+        (0, 2266000.0, 928600.0),
+    ]
+    n_snap = 0
+    for off, total_a, total_l in snapshot_plan:
+        snap_date = day_of(off, 28 if off else min(today.day, 28))
+        s = AssetSnapshot(
+            user_id=uid, snapshot_date=snap_date,
+            total_assets=total_a, total_liabilities=total_l,
+            net_worth=round(total_a - total_l, 2),
+            detail=json.dumps({"cash": "现金与存款", "property": "房产",
+                               "vehicle": "车辆", "other": "其他资产"},
+                              ensure_ascii=False))
+        session.add(s)
+        session.flush()
+        entry_service._from_snapshot(session, s)
+        n_snap += 1
+
+    session.commit()
+    print(f"  ✓ 账本 {n_ledger} 条 · 旅游 {n_trip} 段 · 大事件 {n_event} 条 · "
+          f"日子 {n_cd} 个 · 资产项 {n_asset} 项 · 盘点快照 {n_snap} 次")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="造演示数据")
     parser.add_argument("--crawl", action="store_true",
                         help="造完数据后立即触发一次爬虫")
+    parser.add_argument("--journal-only", action="store_true",
+                        help="只造人生手札（账本/足迹/日子/资产）演示数据")
     args = parser.parse_args()
 
     os.environ.setdefault("XI_CRAWL_OFFLINE", "1")
@@ -445,27 +676,31 @@ def main() -> None:
 
     with Session(engine) as session:
         user = get_or_create_demo_user(session)
-        clean_demo_data(session, user)
+        if not args.journal_only:
+            clean_demo_data(session, user)
 
-        print(f"\n>>> 为 {user.username} 创建 {len(PORTFOLIO)} 只多市场持仓与预案...")
-        total_h, total_l, total_s = 0, 0, 0
-        for spec in PORTFOLIO:
-            h = create_holding_with_lots(session, user, spec)
-            total_h += 1
-            total_l += len(spec["lots"])
-            ns = create_published_schedules(session, spec)
-            total_s += ns
-            print(f"  ✓ {spec['market']:>9} {spec['code']:<8} {spec['name']:<12}"
-                  f"  批次 {len(spec['lots'])} · 预案 {ns}")
-        print(f"合计：持仓 {total_h} · 批次 {total_l} · 已发布预案 {total_s}")
+            print(f"\n>>> 为 {user.username} 创建 {len(PORTFOLIO)} 只多市场持仓与预案...")
+            total_h, total_l, total_s = 0, 0, 0
+            for spec in PORTFOLIO:
+                h = create_holding_with_lots(session, user, spec)
+                total_h += 1
+                total_l += len(spec["lots"])
+                ns = create_published_schedules(session, spec)
+                total_s += ns
+                print(f"  ✓ {spec['market']:>9} {spec['code']:<8} {spec['name']:<12}"
+                      f"  批次 {len(spec['lots'])} · 预案 {ns}")
+            print(f"合计：持仓 {total_h} · 批次 {total_l} · 已发布预案 {total_s}")
 
-        print("\n>>> 写入即将到账/当年已派的已发布预案...")
-        nu = create_upcoming_published(session)
-        print(f"  ✓ 新增 {nu} 条（未来到账 + 当年已派）")
+            print("\n>>> 写入即将到账/当年已派的已发布预案...")
+            nu = create_upcoming_published(session)
+            print(f"  ✓ 新增 {nu} 条（未来到账 + 当年已派）")
 
-        print("\n>>> 写入待确认预案（pending schedules）...")
-        np = create_pending_schedules(session)
-        print(f"  ✓ 新增 {np} 条 pending 预案")
+            print("\n>>> 写入待确认预案（pending schedules）...")
+            np = create_pending_schedules(session)
+            print(f"  ✓ 新增 {np} 条 pending 预案")
+
+        print("\n>>> 写入人生手札演示数据（账本 / 足迹 / 日子 / 家庭资产）...")
+        seed_journal(session, user)
 
     if args.crawl:
         os.environ.pop("XI_CRAWL_OFFLINE", None)

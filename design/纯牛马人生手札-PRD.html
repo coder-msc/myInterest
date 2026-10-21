@@ -1,0 +1,1571 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>纯牛马人生手札 · 产品设计稿 v0.1</title>
+<style>
+:root{
+  --bg:#FBF7F2; --card:#FFFFFF; --ink:#2F2A26; --ink2:#6B625A; --ink3:#9C9187;
+  --line:#EDE3D8; --line2:#F6EFE7;
+  --brand:#D97742; --brand-d:#B85C2E; --brand-l:#FDF1E7;
+  --gold:#E8A33D; --ok:#3F8F6D; --ok-l:#EAF5F0; --warn:#C9861F; --warn-l:#FDF4E3;
+  --danger:#C0555F; --danger-l:#FBEEF0; --info:#5B7FA6; --info-l:#EEF3F8;
+  --radius:16px; --radius-s:10px;
+  --shadow:0 1px 2px rgba(80,60,40,.05), 0 8px 24px -12px rgba(80,60,40,.14);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Segoe UI",sans-serif;
+  font-size:15px; line-height:1.75; -webkit-font-smoothing:antialiased;
+}
+a{color:var(--brand-d)}
+/* ---------- 顶栏 ---------- */
+.topbar{
+  position:sticky; top:0; z-index:50; backdrop-filter:blur(12px);
+  background:rgba(251,247,242,.88); border-bottom:1px solid var(--line);
+}
+.topbar-in{max-width:1140px;margin:0 auto;padding:10px 22px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.topbar b{font-size:15px;white-space:nowrap}
+.topbar b span{color:var(--brand)}
+.topbar nav{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;flex:1}
+.topbar nav::-webkit-scrollbar{display:none}
+.topbar nav a{
+  white-space:nowrap;font-size:13px;color:var(--ink2);text-decoration:none;
+  padding:5px 11px;border-radius:999px;border:1px solid transparent;
+}
+.topbar nav a:hover{background:var(--brand-l);color:var(--brand-d);border-color:#F0D9C6}
+/* ---------- 版心 ---------- */
+.wrap{max-width:1140px;margin:0 auto;padding:26px 22px 90px}
+.hero{
+  background:linear-gradient(135deg,#FFF6EC 0%,#FDF0E4 55%,#FAF3E6 100%);
+  border:1px solid #F2E1CE; border-radius:22px; padding:34px 34px 30px; box-shadow:var(--shadow);
+  position:relative; overflow:hidden;
+}
+.hero:after{
+  content:"";position:absolute;right:-60px;top:-70px;width:240px;height:240px;border-radius:50%;
+  background:radial-gradient(circle,rgba(232,163,61,.20),rgba(232,163,61,0) 68%);
+}
+.hero h1{margin:0 0 6px;font-size:32px;letter-spacing:-.5px}
+.hero h1 em{font-style:normal;color:var(--brand)}
+.hero .tag{font-size:16px;color:var(--brand-d);font-weight:600;margin-bottom:14px}
+.hero p{margin:0;color:var(--ink2);max-width:800px}
+.hero-meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:20px}
+.pill{font-size:12px;padding:5px 12px;border-radius:999px;background:#fff;border:1px solid var(--line);color:var(--ink2)}
+.pill.b{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:600}
+.pill.w{background:var(--warn-l);border-color:#F0DCB4;color:#8A6220}
+section{
+  background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+  padding:26px 30px 28px;margin:20px 0;box-shadow:var(--shadow);scroll-margin-top:72px;
+}
+h2{margin:0 0 4px;font-size:22px;letter-spacing:-.3px;display:flex;align-items:baseline;gap:10px}
+h2 .no{
+  font-size:12px;font-weight:700;color:#fff;background:var(--brand);
+  padding:3px 9px;border-radius:8px;letter-spacing:.5px;flex:none;
+}
+h2 .sub{font-size:13px;font-weight:400;color:var(--ink3)}
+h3{font-size:17px;margin:26px 0 8px;padding-left:11px;border-left:3px solid var(--brand);line-height:1.4}
+h4{font-size:14.5px;margin:18px 0 6px;color:var(--brand-d)}
+h5{font-size:13px;margin:14px 0 4px;color:var(--ink2);text-transform:uppercase;letter-spacing:.6px}
+p{margin:8px 0}
+ul,ol{margin:8px 0;padding-left:22px}
+li{margin:4px 0}
+code{
+  background:#F7F1E9;border:1px solid var(--line);border-radius:6px;
+  padding:1px 6px;font-size:12.5px;font-family:ui-monospace,"SFMono-Regular",Consolas,monospace;color:#8A5A2B;
+}
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13.5px}
+th,td{border:1px solid var(--line);padding:9px 11px;text-align:left;vertical-align:top}
+th{background:var(--line2);font-weight:600;color:var(--ink);font-size:13px;white-space:nowrap}
+tbody tr:nth-child(even){background:#FDFBF8}
+td code{font-size:12px}
+.note{
+  border-left:3px solid var(--gold);background:var(--warn-l);
+  padding:11px 15px;border-radius:0 var(--radius-s) var(--radius-s) 0;margin:14px 0;font-size:14px;
+}
+.note.ok{border-color:var(--ok);background:var(--ok-l)}
+.note.info{border-color:var(--info);background:var(--info-l)}
+.note.danger{border-color:var(--danger);background:var(--danger-l)}
+.note b{color:inherit}
+.tag{display:inline-block;font-size:11.5px;padding:2px 8px;border-radius:6px;font-weight:600;letter-spacing:.3px;vertical-align:1px}
+.tag.p0{background:var(--brand-l);color:var(--brand-d);border:1px solid #EFD7C3}
+.tag.p1{background:var(--info-l);color:#42658B;border:1px solid #D8E4F0}
+.tag.x{background:#F3F0EC;color:#8C837A;border:1px solid var(--line)}
+.tag.new{background:var(--danger-l);color:#A04049;border:1px solid #F0D5D8}
+.tag.keep{background:var(--ok-l);color:#2F7156;border:1px solid #CFE7DC}
+.tag.chg{background:var(--warn-l);color:#8A6220;border:1px solid #F0DCB4}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.box{border:1px solid var(--line);border-radius:var(--radius-s);padding:14px 16px;background:#FDFBF8}
+.box b{display:block;margin-bottom:4px;font-size:14px}
+.box small{color:var(--ink3);font-size:12.5px;line-height:1.6;display:block}
+/* ---------- 手机原型 ---------- */
+.demo{
+  background:linear-gradient(160deg,#F7F1E8,#F1E7DA);border:1px solid var(--line);
+  border-radius:var(--radius);padding:22px;margin:18px 0;display:flex;gap:26px;flex-wrap:wrap;align-items:flex-start;
+}
+.demo-side{flex:1;min-width:260px}
+.demo-side h4{margin-top:0}
+.phone{
+  width:306px;flex:none;background:#1E1A17;border-radius:38px;padding:9px;
+  box-shadow:0 18px 40px -18px rgba(60,42,26,.5), 0 0 0 1px rgba(0,0,0,.4);
+}
+.phone-in{background:#FFFDFB;border-radius:30px;overflow:hidden;position:relative;height:612px;display:flex;flex-direction:column}
+.p-status{
+  height:30px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 18px;font-size:11px;color:var(--ink3);flex:none;background:#FFFDFB;
+}
+.p-status .nav-title{font-weight:600;color:var(--ink2);font-size:12px}
+.p-body{flex:1;overflow:auto;position:relative;scrollbar-width:none}
+.p-body::-webkit-scrollbar{display:none}
+.screen{display:none;padding:8px 16px 24px;animation:fade .22s ease}
+.screen.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.p-tabbar{
+  flex:none;height:56px;border-top:1px solid var(--line);background:#fff;
+  display:flex;align-items:center;position:relative;z-index:3;
+}
+.p-tab{flex:1;text-align:center;cursor:pointer;color:#B4A99E;user-select:none}
+.p-tab i{display:block;font-style:normal;font-size:19px;line-height:1.25}
+.p-tab span{display:block;font-size:10px}
+.p-tab.on{color:var(--brand)}
+.p-tab.on span{font-weight:700}
+.fab{
+  position:absolute;right:14px;bottom:64px;width:46px;height:46px;border-radius:50%;
+  background:var(--brand);color:#fff;font-size:25px;line-height:44px;text-align:center;
+  box-shadow:0 8px 18px -6px rgba(217,119,66,.7);cursor:pointer;z-index:4;user-select:none;
+}
+.fab:active{transform:scale(.94)}
+.sheet{
+  position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:20px 20px 0 0;
+  box-shadow:0 -10px 30px -12px rgba(60,42,26,.3);padding:14px 16px 18px;z-index:5;
+  transform:translateY(105%);transition:transform .25s cubic-bezier(.2,.8,.3,1);
+}
+.sheet.on{transform:none}
+.sheet-title{font-size:13px;font-weight:700;margin-bottom:10px;display:flex;justify-content:space-between}
+.sheet-title span:last-child{color:var(--ink3);font-weight:400;cursor:pointer}
+.sheet-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.sheet-item{
+  border:1px solid var(--line);border-radius:12px;padding:10px 11px;font-size:12.5px;
+  background:#FDFBF8;cursor:pointer;
+}
+.sheet-item b{display:block;font-size:13px}
+.sheet-item small{color:var(--ink3);font-size:10.5px}
+/* 手机内的通用小件 */
+.mcard{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 13px;margin-bottom:10px}
+.mcard.tint{background:linear-gradient(135deg,#FFF3E6,#FDF6EC);border-color:#F1DFCB}
+.mrow{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.mnum{font-size:21px;font-weight:700;letter-spacing:-.5px}
+.mnum.up{color:var(--ok)} .mnum.down{color:var(--danger)}
+.mlabel{font-size:11px;color:var(--ink3)}
+.mline{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid var(--line2)}
+.mline:last-child{border-bottom:0}
+.mico{
+  width:32px;height:32px;border-radius:10px;background:var(--brand-l);flex:none;
+  display:flex;align-items:center;justify-content:center;font-size:16px;
+}
+.mico.g{background:var(--ok-l)} .mico.b{background:var(--info-l)} .mico.w{background:var(--warn-l)}
+.mtxt{flex:1;min-width:0}
+.mtxt b{display:block;font-size:13px;font-weight:600}
+.mtxt small{display:block;font-size:10.5px;color:var(--ink3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mamt{font-size:13.5px;font-weight:700;white-space:nowrap}
+.mamt.up{color:var(--ok)} .mamt.down{color:var(--ink)}
+.thumbs{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-top:8px}
+.thumbs img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:9px;background:#EFE6DA;display:block}
+.seg{display:flex;background:#F3EEE7;border-radius:10px;padding:3px;margin:8px 0 12px}
+.seg div{flex:1;text-align:center;font-size:12px;padding:5px 0;border-radius:8px;cursor:pointer;color:var(--ink2)}
+.seg div.on{background:#fff;color:var(--brand-d);font-weight:700;box-shadow:0 1px 3px rgba(80,60,40,.1)}
+.hidden{display:none!important}
+.cd-ring{
+  width:132px;height:132px;border-radius:50%;margin:6px auto 10px;display:flex;
+  flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  background:conic-gradient(var(--brand) 0deg, var(--brand) var(--deg,120deg), #F1E7DC var(--deg,120deg));
+  position:relative;
+}
+.cd-ring:before{content:"";position:absolute;inset:9px;border-radius:50%;background:#fff}
+.cd-ring b{position:relative;font-size:30px;letter-spacing:-1px}
+.cd-ring small{position:relative;font-size:10.5px;color:var(--ink3)}
+/* 表单 demo */
+.fdemo{background:#FDFBF8;border:1px solid var(--line);border-radius:var(--radius-s);padding:16px 18px}
+.ftype{display:flex;gap:8px;margin-bottom:12px}
+.ftype button{
+  flex:1;padding:9px;border-radius:10px;border:1px solid var(--line);background:#fff;
+  font-size:13.5px;cursor:pointer;color:var(--ink2);font-family:inherit;
+}
+.ftype button.on{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:700}
+.amount-in{display:flex;align-items:baseline;gap:6px;border-bottom:2px solid var(--line);padding:8px 2px;margin-bottom:14px}
+.amount-in span{font-size:20px;color:var(--ink3)}
+.amount-in input{
+  flex:1;border:0;background:transparent;font-size:30px;font-weight:700;font-family:inherit;
+  outline:none;color:var(--ink);min-width:0;
+}
+.chips{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:14px}
+.chip{
+  padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:#fff;
+  font-size:13px;cursor:pointer;user-select:none;
+}
+.chip.on{background:var(--brand-l);border-color:#EBCBAF;color:var(--brand-d);font-weight:700}
+.btn{
+  display:inline-block;padding:10px 20px;border-radius:11px;border:1px solid var(--brand);
+  background:var(--brand);color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;
+}
+.btn.ghost{background:#fff;color:var(--brand-d)}
+.btn.sm{padding:6px 13px;font-size:12.5px;border-radius:8px}
+.toast{
+  margin-top:12px;padding:10px 14px;border-radius:10px;font-size:13.5px;display:none;
+}
+.toast.on{display:block}
+.toast.err{background:var(--danger-l);color:#98383F;border:1px solid #F0D5D8}
+.toast.suc{background:var(--ok-l);color:#2C6B52;border:1px solid #CFE7DC}
+/* 倒计时状态机 */
+.st-btns{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0 14px}
+.st-btns button{
+  padding:6px 13px;border-radius:999px;border:1px solid var(--line);background:#fff;
+  font-size:12.5px;cursor:pointer;font-family:inherit;color:var(--ink2);
+}
+.st-btns button.on{background:var(--ink);border-color:var(--ink);color:#fff}
+tr.hl{background:#FFF6EC!important;outline:2px solid #EFD7C3}
+.stage{background:var(--line2);border-radius:var(--radius-s);padding:18px;text-align:center;border:1px solid var(--line)}
+.stage .big{font-size:15px;font-weight:700}
+.stage .desc{font-size:12.5px;color:var(--ink3);margin-top:4px}
+.tone{font-size:13.5px;background:#fff;border:1px dashed var(--line);border-radius:10px;padding:12px 14px;margin-top:12px}
+.tone i{color:var(--brand-d);font-style:normal;font-weight:600}
+.split{border-top:1px dashed var(--line);margin:22px 0}
+.anchor-list{columns:2;column-gap:26px}
+@media(max-width:640px){.anchor-list{columns:1}.hero{padding:24px 20px}.wrap{padding:16px 14px 70px}section{padding:20px 18px}}
+footer{text-align:center;color:var(--ink3);font-size:12.5px;padding:26px 0 10px}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-in">
+    <b>纯牛马<span>人生手札</span> · 设计稿 v0.1</b>
+    <nav>
+      <a href="#s1">产品契约</a><a href="#s2">背景与目标</a><a href="#s3">范围</a>
+      <a href="#s4">数据模型</a><a href="#s5">信息架构</a><a href="#s6">功能需求</a>
+      <a href="#s7">共享规则</a><a href="#s8">落地对照</a><a href="#s9">分期路线</a>
+      <a href="#s10">风险</a><a href="#s11">待定问题</a>
+    </nav>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- ============ HERO ============ -->
+<div class="hero">
+  <h1>纯牛马<em>人生手札</em></h1>
+  <div class="tag">工资去哪儿了、钱放在哪、去过哪、经历过什么、还有什么日子在等你 —— 一个 App 全记下。</div>
+  <p>本稿是在现有「攒息」仓库内做<strong>产品二次定位</strong>的设计方案：复用已打磨好的账号体系、三端脚手架、运营后台与定时任务，把原本只服务投资分红的骨架，改造成一个覆盖记账、旅游、家庭资产、人生大事件、重要日子倒计时的<strong>个人人生记录工具</strong>，移动端优先。</p>
+  <div class="hero-meta">
+    <span class="pill b">设计评审稿 · 未编码</span>
+    <span class="pill">2026-10-20</span>
+    <span class="pill">范围：在现有仓库内改造</span>
+    <span class="pill">端：H5 + 微信小程序优先</span>
+    <span class="pill w">2 项默认决策待你确认</span>
+  </div>
+</div>
+
+<!-- ============ 决策速览 ============ -->
+<section style="background:linear-gradient(180deg,#FFFDFB,#FDF8F2)">
+  <h2><span class="no">0</span>关键决策速览 <span class="sub">一屏看完这次改造的骨架</span></h2>
+  <table>
+    <thead><tr><th style="width:130px">议题</th><th style="width:190px">决策</th><th>理由与影响</th></tr></thead>
+    <tbody>
+      <tr>
+        <td>现有投资分红域</td>
+        <td><b>收编为「家庭资产」子能力</b> <span class="tag keep">已确认</span></td>
+        <td>不删、不与新品并列。持仓 / 批次 / 分红 / 税率 / 汇率换算 / 爬虫估值 全部下沉为「家庭资产 → 投资」的一层子页。已打磨的爬虫与三端工作量不浪费，但入口层级变深，认知上从「主角」变「配角」。</td>
+      </tr>
+      <tr>
+        <td>MVP 模块</td>
+        <td><b>手札流 / 账本 / 足迹 / 日子 / 家庭资产</b> <span class="tag keep">已确认</span></td>
+        <td>五大模块全部纳入 MVP，但<strong>分 5 批交付</strong>（见 §9），不并行开工。首批选「日子」跑通全链路（见 §9 理由）。</td>
+      </tr>
+      <tr>
+        <td>端策略</td>
+        <td><b>移动端优先，PC 端暂停面向用户页面</b> <span class="tag x">默认，待确认</span></td>
+        <td>PC 端只保留运营后台（后台是刚需，且已完工）。PC 面向用户的总览/持仓/日历页暂停维护但不删除，等移动端跑通再决定回收或补齐。</td>
+      </tr>
+      <tr>
+        <td>产品调性</td>
+        <td><b>自嘲玩梗 + 温暖底色</b> <span class="tag x">默认，待确认</span></td>
+        <td>与现有蓝色金融风明显区隔。但<strong>分模块调节语气</strong>：手札/日子/足迹走玩梗温暖，家庭资产走克制专业 —— 玩梗调性装不下严肃的资产数字。</td>
+      </tr>
+      <tr>
+        <td>数据模型</td>
+        <td><b>各模块独立主表 + 统一「条目索引层」</b> <span class="tag new">本稿核心决策</span></td>
+        <td>本节详述于 §4。用一个轻量索引行解决首页时间线与全局搜索，避免被逼成万能字段表。</td>
+      </tr>
+      <tr>
+        <td>最大新增成本</td>
+        <td><b>媒体（照片）上传与存储</b> <span class="tag new">必须新建</span></td>
+        <td>全项目目前<strong>一张图片都不能上传</strong>。旅游和大事件两个模块全靠照片，这是第一个必须先行的地基。</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ============ 1 产品契约 ============ -->
+<section id="s1">
+  <h2><span class="no">1</span>产品契约 <span class="sub">用户、任务、触发、完成条件、共同对象</span></h2>
+
+  <h3>1.1 主要用户</h3>
+  <p>25–40 岁的城市打工人，自嘲为「牛马」。有记录意愿但没记录习惯：账记三天就断、旅游照片烂在相册、家庭资产散在 Excel 和几个券商 App 里、纪念日只靠手机日历的默认提醒。</p>
+  <p>他们的共同点是<strong>不想要一个专业工具，想要一个「随手扔进去就行」的容器</strong>。所以本产品的成败标准是录入摩擦，不是分析深度。</p>
+
+  <h3>1.2 核心任务与触发时机</h3>
+  <table>
+    <thead><tr><th style="width:110px">模块</th><th style="width:180px">用户要完成的事</th><th>触发时机</th></tr></thead>
+    <tbody>
+      <tr><td>账本</td><td>记下一笔收支，并且月底知道钱花哪了</td><td>付款后 5 分钟内；或睡前一次性补记</td></tr>
+      <tr><td>日子</td><td>不忘记重要的日子，并提前有心理准备</td><td>知道某个日子时一次性设定；之后靠提醒被动触发</td></tr>
+      <tr><td>家庭资产</td><td>知道「我家到底有多少钱」</td><td>低频：季度盘点，或发生大额变动时</td></tr>
+      <tr><td>足迹 · 旅游</td><td>一趟行程结束后，留下可回看的记录</td><td>行程进行中随手拍；结束后整理</td></tr>
+      <tr><td>足迹 · 大事件</td><td>给人生节点留一个不会被冲走的存档</td><td>事件发生的当下或几天内</td></tr>
+    </tbody>
+  </table>
+
+  <h3>1.3 完成条件（用户可见的「做完了」证据）</h3>
+  <ul>
+    <li>任意一条记录提交后，<strong>立刻出现在首页手札流顶部</strong>；</li>
+    <li>该记录在对应模块内可被检索、可被编辑、可被删除；</li>
+    <li>倒计时类记录进入临期区间后，<strong>站内消息中心出现提醒</strong>；</li>
+    <li>月底打开账本，能看到本月支出总额与分类构成，无需手工汇总。</li>
+  </ul>
+
+  <h3>1.4 共同对象：手札条目（Entry）</h3>
+  <div class="note info">
+    <b>这是整个产品的支点。</b>五个模块产出的东西长得完全不一样（一笔 -18.5 元的早餐、一次 7 天的川西行程、一个「距离发薪还有 3 天」的倒计时），但对用户来说它们是同一件事：<strong>「我的人生里又多了一条」</strong>。手札条目就是这条「一」，是首页时间线、全局搜索、数据导出三处功能的统一原料。
+  </div>
+
+  <h3>1.5 语气基线（写文案的规尺）</h3>
+  <p>玩梗要玩在<strong>情绪位置</strong>（空状态、加载、成功、删除确认），不要玩在<strong>数据位置</strong>（金额、日期、资产净值必须精确直白）。</p>
+  <table>
+    <thead><tr><th style="width:130px">位置</th><th>文案示例</th><th style="width:150px">原则</th></tr></thead>
+    <tbody>
+      <tr><td>手札流空状态</td><td>「这里比你的钱包还干净。去记第一笔吧。」</td><td rowspan="4">情绪位：可玩梗，但必须给出下一步动作，不做纯吐槽</td></tr>
+      <tr><td>账本空状态</td><td>「你这个月还没花过钱 —— 除非你是在装。」</td></tr>
+      <tr><td>加载中</td><td>「牛马拉磨中…」</td></tr>
+      <tr><td>记账成功</td><td>「又活过一天 +1」</td></tr>
+      <tr><td>倒计时临近</td><td>「距离发薪日还有 3 天，撑住。」</td><td>情绪位：可玩梗，且要与数据一致</td></tr>
+      <tr><td>资产净值</td><td>「家庭净资产 ¥1,286,400.00」——不加任何修饰</td><td>数据位：零玩梗</td></tr>
+      <tr><td>删除确认</td><td>「真的删？它可不会记仇。」</td><td>情绪位：玩梗但必须把「可恢复」说清楚</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ============ 2 背景与目标 ============ -->
+<section id="s2">
+  <h2><span class="no">2</span>背景与目标 <span class="sub">为什么要改造，以及改成什么样才算成</span></h2>
+
+  <h3>2.1 观察到的问题</h3>
+  <p>一个人的生活数据天然是碎的：钱在记账 App、照片在相册、资产在 Excel、纪念日在手机日历、人生大事在朋友圈。用户不是不想记，是<strong>没有一个地方值得他记</strong> —— 现有工具要么太专业（记账 App 的复式记账、券商 App 的持仓分析），要么太散（备忘录、相册）。</p>
+
+  <h3>2.2 现有资产（改造的地基）</h3>
+  <p>仓库里已经有一套完整但方向跑偏的骨架：三端脚手架已通、邮箱验证码与微信一键登录已完工、服务层数据隔离范式已成、运营后台 8 个页面已上、配置中心是元数据驱动的（加配置项不用建表）、定时任务与爬虫调度在跑、61 项后端测试全绿。</p>
+  <p><strong>转向的判断：这套骨架的价值不在业务逻辑，而在「壳」。</strong>壳的价值远大于里面装的分红业务，所以改造方向是保留壳、换内核。</p>
+
+  <h3>2.3 产品决策与期望的可见结果</h3>
+  <p>由 2.1 与 2.2 推出：把「攒息」的专业外壳换成「人生手札」的随手容器，同时把已有的投资能力收编为资产模块的一个子能力，而不是丢掉。</p>
+  <p>期望的<strong>可观察</strong>结果（非量化指标，作为验收时的自我检查）：</p>
+  <ul>
+    <li>用户从打开 App 到完成一笔记账，操作不超过 3 次点击 + 1 次金额输入；</li>
+    <li>首页首屏内能同时看到：本月支出、最近一条足迹、最近一个即将到来的日子；</li>
+    <li>删除任何一条记录后，可在回收站找回，无需联系客服；</li>
+    <li>新用户首次登录后，未填写任何数据时，五个模块的空状态都能告诉他「先做什么」。</li>
+  </ul>
+</section>
+
+<!-- ============ 3 范围 ============ -->
+<section id="s3">
+  <h2><span class="no">3</span>范围 <span class="sub">P0 做什么、P1 留什么、明确不做什么</span></h2>
+
+  <h3>3.1 最小完整闭环（P0）</h3>
+  <p>入口条件：用户已登录（复用现有邮箱验证码 / 微信一键登录）。<br>
+  P0 动作：创建一条任意模块的记录 → 记录进入手札流 → 可在模块内管理 → 倒计时类进入提醒通道 → 可删除并恢复。</p>
+  <table>
+    <thead><tr><th style="width:100px">模块</th><th style="width:80px">优先级</th><th>本稿覆盖内容</th></tr></thead>
+    <tbody>
+      <tr><td>手札流（首页）</td><td><span class="tag p0">P0</span></td><td>时间线聚合、月度小结卡、快捷新增、置顶倒计时</td></tr>
+      <tr><td>账本</td><td><span class="tag p0">P0</span></td><td>快速记一笔、月视图、分类统计、编辑/删除</td></tr>
+      <tr><td>足迹 · 旅游</td><td><span class="tag p0">P0</span></td><td>行程卡、照片集、目的地与城市计数、花费关联</td></tr>
+      <tr><td>足迹 · 大事件</td><td><span class="tag p0">P0</span></td><td>事件卡、按年归档时间线、正文与照片</td></tr>
+      <tr><td>日子</td><td><span class="tag p0">P0</span></td><td>倒计时、重复规则（年/月/农历）、多档提醒、置顶</td></tr>
+      <tr><td>家庭资产</td><td><span class="tag p0">P0</span></td><td>资产/负债分类、净值、盘快照、收编的投资子能力</td></tr>
+      <tr><td>媒体中心</td><td><span class="tag p0">P0</span></td><td>照片上传/压缩/删除、私有可见性</td></tr>
+      <tr><td>提醒中心</td><td><span class="tag p0">P0</span></td><td>站内消息、小程序订阅消息（倒计时）、邮件提醒（复用现有 SMTP）</td></tr>
+      <tr><td>回收站</td><td><span class="tag p0">P0</span></td><td>统一 30 天软删除与恢复</td></tr>
+    </tbody>
+  </table>
+
+  <h3>3.2 P1 支持（本期不做，但结构上留位）</h3>
+  <ul>
+    <li>账本：预算与超支预警、多币种记账、账单自动导入（支付宝/微信账单解析）；</li>
+    <li>足迹：地图足迹热力图、按同行人/标签筛选、行程与账本自动互相关联；</li>
+    <li>日子：农历节气的自动预置（春节/中秋）、与家庭成员共享同一批日子；</li>
+    <li>家庭资产：资产自动估值刷新、资产负债的定期快照趋势图、投资收益率归因；</li>
+    <li>通用：数据导出（JSON / CSV）、年度回顾报告（可分享图片）、PC 端补齐。</li>
+  </ul>
+
+  <h3>3.3 明确不做（避免范围蔓延）</h3>
+  <table>
+    <thead><tr><th style="width:150px">排除项</th><th>原因</th></tr></thead>
+    <tbody>
+      <tr><td>好友 / 关注 / 动态流</td><td>产品定位是「私人手札」，一旦引入社交，隐私边界、内容审核、举报处理都会变成新负担，且会稀释「随手记」的私密感。</td></tr>
+      <tr><td>AI 自动生成内容</td><td>人生记录的价值在于「是我写的」。AI 代写会直接消解这个价值，且引入不必要的成本与合规问题。</td></tr>
+      <tr><td>与他人共享的家庭账本</td><td>现有数据模型是严格的「一人一账号、各看各的」，改造为多人共享需要重做整个权限与可见性模型。<strong>这是本稿最大的待定项，见 §11。</strong></td></tr>
+      <tr><td>第三方数据同步（银行/券商直连）</td><td>合规与成本都远超收益；资产模块采用手工录入 + 现有爬虫辅助估值。</td></tr>
+      <tr><td>专业财务分析（复式记账/报表/税务）</td><td>现有分红域已经够专业了，新品要往轻的方向走，不叠加专业负担。</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ============ 4 数据模型 ============ -->
+<section id="s4">
+  <h2><span class="no">4</span>产品模型：统一记录 vs 独立模型 <span class="sub">本稿最关键的一个取舍</span></h2>
+
+  <h3>4.1 两条极端路线的代价</h3>
+  <table>
+    <thead><tr><th style="width:170px">路线</th><th>它的样子</th><th>为什么不能选</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><b>A. 完全统一模型</b><br><small>所有模块共用一张「记录表」+ 万能字段</small></td>
+        <td>一条记录 = 标题 + 时间 + 若干自定义键值对。记账的金额、资产的市值、行程的目的地全塞进键值对里。</td>
+        <td>统计会变得不可做。账本的「本月餐饮支出合计」需要遍历所有记录并解析文本字段；资产的「净值趋势」需要跨表拼装。查询性能与代码可维护性双输，这是把关系型数据库当文档库用。</td>
+      </tr>
+      <tr>
+        <td><b>B. 完全独立模型</b><br><small>五个模块各管各的，互不相识</small></td>
+        <td>每张表都是干净利落的强类型字段，各模块自己一套增删改查。</td>
+        <td>首页手札流要「按时间倒序，把五张表混在一起分页」。跨表排序 + 跨表分页是这个方案里最脏的部分，且每加一个模块就要改一次首页。全局搜索、数据导出同理。</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>4.2 本稿决策：混合模型</h3>
+  <div class="note ok">
+    <b>决策：各模块保留独立主表（保证统计能做），另加一个轻量「条目索引层」作为手札流与全局搜索的唯一数据源。</b>
+  </div>
+  <p>分工如下：</p>
+  <table>
+    <thead><tr><th style="width:150px">层</th><th style="width:230px">存放什么</th><th>服务于谁</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><b>模块主表</b><br><span class="tag keep">强类型</span></td>
+        <td>该模块自己的完整字段。记账有金额/分类/账户；资产有市值/币种/负债；行程有目的地/起止日期/同行人。</td>
+        <td>模块内的统计、筛选、编辑、导出。这是各模块的<strong>唯一事实来源</strong>。</td>
+      </tr>
+      <tr>
+        <td><b>条目索引层</b><br><span class="tag new">轻量</span></td>
+        <td>只有公共属性：归属用户、条目类型（账本/旅游/大事件/日子/资产快照）、发生时间、标题、摘要、封面图、标签、关联主表记录号。</td>
+        <td>首页手札流的时间线、全局搜索、年度回顾、数据导出清单。<strong>是索引不是副本 —— 不回写、不做统计依据</strong>。</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h4>关键约束（防止索引层腐化）</h4>
+  <ul>
+    <li><strong>单向写入</strong>：只有「创建/编辑/删除模块记录」这一个动作会同步索引层，索引层永不反向修改主表；</li>
+    <li><strong>可重建</strong>：索引层任何时候都能由五张主表全量重建。因此它存的是「索引」而非「数据」，即使写坏也能修；</li>
+    <li><strong>不做统计</strong>：任何金额合计、趋势曲线都必须回主表算。索引层里的数字只用于展示，不参与计算；</li>
+    <li><strong>不计入回收站逻辑</strong>：回收站由主表控制，索引层随主表的软删除状态同步隐藏。</li>
+  </ul>
+
+  <h4>为什么这个设计能省事</h4>
+  <p>它把「跨表 union 分页」这个最难的问题，转化成「单表单条件分页」这个最简单的问题。首页手札流只需要查索引层，不需要知道账本字段长什么样；而账本要算月支出时，也完全不需要管首页。</p>
+
+  <div class="note">
+    <b>反过来说，代价是写入路径变长：</b>每条记录创建时要多写一行索引。这在一个服务端串行处理的应用里成本极低，但必须保证「主表写入与索引写入在同一个事务里」—— 否则会出现手札流里有条目但点进去 404 的脏数据。这一条会写进 §7 共享规则。
+  </div>
+</section>
+
+<!-- ============ 5 信息架构 ============ -->
+<section id="s5">
+  <h2><span class="no">5</span>移动端信息架构 <span class="sub">底部 5 个 tab，以及「家庭资产为什么不占 tab」</span></h2>
+
+  <h3>5.1 底部导航</h3>
+  <table>
+    <thead><tr><th style="width:60px">位置</th><th style="width:150px">tab</th><th>承载什么</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>🏠 <b>手札</b></td><td>首页时间线，聚合五模块条目 + 月度小结 + 置顶的临近日子。这是产品的门面。</td></tr>
+      <tr><td>2</td><td>💰 <b>账本</b></td><td>记账流水、月视图、分类统计。使用频率最高的模块，给最好的位置。</td></tr>
+      <tr><td>3</td><td>📸 <b>足迹</b></td><td>段内切换「旅游 / 大事件」。两者都是「翻回来看」的内容型模块，合并成一个 tab 更紧凑，也呼应现有移动端「相关模块合并进一个页面用 segment 切换」的既有设计约定。</td></tr>
+      <tr><td>4</td><td>🎯 <b>日子</b></td><td>倒计时与纪念日列表 + 月历视图（月历组件可复用现有分红日历的月历交互）。</td></tr>
+      <tr><td>5</td><td>👤 <b>我的</b></td><td>账号与设置、<strong>家庭资产入口</strong>、家庭资产/投资子页、提醒中心、回收站、数据导出。</td></tr>
+    </tbody>
+  </table>
+
+  <div class="note info">
+    <b>家庭资产为什么不占 tab：</b>它的使用频率是「季度级」，而五个 tab 是高频入口。低频功能占 tab 会浪费最贵的资源，也会让用户觉得「这个 App 还得管钱，很累」。因此它挂在「我的」下，同时在手札首页用一张小卡片做快捷入口 —— <strong>入口存在感保留，但不必占用 tab。</strong>
+  </div>
+
+  <h3>5.2 页面清单（移动端）</h3>
+  <table>
+    <thead><tr><th style="width:150px">页面</th><th style="width:90px">层级</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td>手札流</td><td>tab 1</td><td>时间线 + 月度小结 + 快捷新增 + 筛选（按类型）</td></tr>
+      <tr><td>账本</td><td>tab 2</td><td>月视图 + 流水列表 + 分类构成</td></tr>
+      <tr><td>快速记一笔</td><td>弹层</td><td>金额键盘 → 分类 → 保存，可加照片与账户</td></tr>
+      <tr><td>账本统计</td><td>二级</td><td>分类占比、月对月对比</td></tr>
+      <tr><td>足迹</td><td>tab 3</td><td>segment：旅游 / 大事件</td></tr>
+      <tr><td>行程详情</td><td>二级</td><td>照片集、正文、花费、同行人</td></tr>
+      <tr><td>大事件详情</td><td>二级</td><td>照片、正文、心情</td></tr>
+      <tr><td>日子</td><td>tab 4</td><td>segment：倒计时列表 / 月历</td></tr>
+      <tr><td>新增日子</td><td>二级</td><td>名称、日期、重复规则、提醒档位</td></tr>
+      <tr><td>我的</td><td>tab 5</td><td>账号、家庭资产入口、提醒中心、回收站、导出、设置</td></tr>
+      <tr><td>家庭资产</td><td>二级</td><td>净值卡、资产分类、负债、快照趋势</td></tr>
+      <tr><td>家庭资产 · 投资</td><td>三级</td><td><span class="tag chg">收编</span>原有持仓 / 批次 / 分红记录 / 分红日历 / 预案</td></tr>
+      <tr><td>提醒中心</td><td>二级</td><td>站内消息列表 + 已读状态</td></tr>
+      <tr><td>回收站</td><td>二级</td><td>按模块分组的已删除条目 + 恢复</td></tr>
+    </tbody>
+  </table>
+
+  <h3>5.3 交互原型（可点击）</h3>
+  <p>下面是可切换的五屏原型。点底部 tab 切换页面，点右下角 ＋ 看快捷新增的分发逻辑，「我的」里可以进入家庭资产（验证「资产不占 tab」的路径是否顺畅）。侧栏的按钮可以切换空状态，用来检查五个模块的第一屏引导文案。</p>
+
+  <div class="demo">
+    <div class="phone">
+      <div class="phone-in">
+        <div class="p-status">
+          <span>9:41</span>
+          <span class="nav-title" id="navTitle">手札</span>
+          <span>📶 🔋</span>
+        </div>
+        <div class="p-body">
+
+          <!-- 手札流 -->
+          <div class="screen on" id="sc-journal">
+            <div class="mcard tint">
+              <div class="mlabel">2026 年 10 月 · 你已存活 20 天</div>
+              <div class="mnum" id="journalTotal">¥3,842.60</div>
+              <div class="mlabel">本月支出 · 比上月少花 ¥612</div>
+            </div>
+            <div id="journalEmpty" class="hidden mcard" style="text-align:center;padding:34px 14px">
+              <div style="font-size:34px">🪣</div>
+              <div style="font-weight:700;margin-top:6px">这里比你的钱包还干净</div>
+              <div class="mlabel" style="margin-top:4px">去记第一笔吧，哪怕只是今天的奶茶</div>
+            </div>
+            <div id="journalList">
+              <div class="mcard">
+                <div class="mlabel" style="margin-bottom:6px">今天 · 10月20日</div>
+                <div class="mline">
+                  <div class="mico">🍜</div>
+                  <div class="mtxt"><b>午饭 · 兰州拉面</b><small>餐饮 · 现金</small></div>
+                  <div class="mamt down">-18.5</div>
+                </div>
+                <div class="mline">
+                  <div class="mico g">🎉</div>
+                  <div class="mtxt"><b>搬进新家一周年</b><small>日子 · 已提醒</small></div>
+                  <div class="mamt" style="color:var(--brand)">第 1 年</div>
+                </div>
+              </div>
+              <div class="mcard">
+                <div class="mlabel" style="margin-bottom:6px">10月13日 · 周一</div>
+                <div class="mline">
+                  <div class="mico b">📸</div>
+                  <div class="mtxt"><b>川西 · 四姑娘山</b><small>旅游 · 4 天 · 同行 2 人</small></div>
+                  <div class="mamt">7 张</div>
+                </div>
+                <div class="thumbs">
+                  <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=casual%20smartphone%20travel%20photo%2C%20seaside%20sunset%20with%20silhouette%2C%20warm%20golden%20tones%2C%20realistic&image_size=square" alt="旅行照片" loading="lazy">
+                  <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=night%20city%20skyline%20viewed%20from%20an%20apartment%20window%2C%20warm%20window%20lights%2C%20casual%20phone%20photo%2C%20realistic&image_size=square" alt="城市夜景" loading="lazy">
+                  <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=home-cooked%20dinner%20on%20a%20wooden%20table%20lit%20by%20warm%20lamp%20light%2C%20casual%20phone%20snapshot%2C%20realistic&image_size=square" alt="家常晚餐" loading="lazy">
+                </div>
+              </div>
+              <div class="mcard">
+                <div class="mlabel" style="margin-bottom:6px">10月8日 · 周三</div>
+                <div class="mline">
+                  <div class="mico w">⭐</div>
+                  <div class="mtxt"><b>升职 · 从牛马变成资深牛马</b><small>大事件 · 职业</small></div>
+                  <div class="mamt">2026</div>
+                </div>
+              </div>
+              <div class="mcard" style="border-style:dashed;text-align:center;color:var(--ink3);font-size:12.5px">
+                没有更早的了 · 你的人生还很长
+              </div>
+            </div>
+          </div>
+
+          <!-- 账本 -->
+          <div class="screen" id="sc-ledger">
+            <div class="mcard tint">
+              <div class="mlabel">10 月支出</div>
+              <div class="mnum down">¥3,842.60</div>
+              <div class="mline" style="border:0;padding-top:8px">
+                <div class="mtxt"><div class="mlabel">收入 ¥8,600.00</div></div>
+                <div class="mamt up">结余 ¥4,757.40</div>
+              </div>
+            </div>
+            <div class="mcard">
+              <div class="mlabel" style="margin-bottom:8px">分类构成</div>
+              <div class="mline"><div class="mico">🍜</div><div class="mtxt"><b>餐饮</b></div><div class="mamt">¥1,240</div></div>
+              <div class="mline"><div class="mico">🏠</div><div class="mtxt"><b>居住</b></div><div class="mamt">¥1,800</div></div>
+              <div class="mline"><div class="mico">🚇</div><div class="mtxt"><b>交通</b></div><div class="mamt">¥486</div></div>
+              <div class="mline"><div class="mico">🛒</div><div class="mtxt"><b>购物</b></div><div class="mamt">¥316</div></div>
+            </div>
+            <div class="mlabel" style="margin:12px 0 6px">今日流水</div>
+            <div class="mcard" style="padding:0 13px">
+              <div class="mline"><div class="mico">🍜</div><div class="mtxt"><b>兰州拉面</b><small>12:30 · 现金</small></div><div class="mamt down">-18.50</div></div>
+              <div class="mline"><div class="mico g">💼</div><div class="mtxt"><b>工资到账</b><small>09:02 · 银行卡</small></div><div class="mamt up">+8,600.00</div></div>
+            </div>
+          </div>
+
+          <!-- 足迹 -->
+          <div class="screen" id="sc-footprint">
+            <div class="seg">
+              <div class="on" onclick="segFoot(this,'fp-trip')">📸 旅游</div>
+              <div onclick="segFoot(this,'fp-event')">⭐ 大事件</div>
+            </div>
+            <div id="fp-trip">
+              <div class="mlabel" style="margin-bottom:6px">去过 7 座城市 · 3 趟行程</div>
+              <div class="mcard">
+                <div class="mrow"><b style="font-size:14px">川西 · 四姑娘山</b><span class="mlabel">2026.10.13-16</span></div>
+                <div class="thumbs">
+                  <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=realistic%20mountain%20landscape%20photo%20of%20snow%20peaks%20in%20western%20sichuan%2C%20autumn%20colors%2C%20clear%20sky&image_size=square" alt="四姑娘山" loading="lazy">
+                  <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=candid%20photo%20of%20two%20friends%20hiking%20on%20a%20mountain%20trail%2C%20backpacks%2C%20warm%20afternoon%20light&image_size=square" alt="徒步同行" loading="lazy">
+                  <img src="https://trae-api-cn.mchost.guru/api/ide/v1/text_to_image?prompt=realistic%20photo%20of%20a%20tibetan%20village%20at%20dusk%20with%20prayer%20flags%2C%20warm%20tones&image_size=square" alt="藏寨" loading="lazy">
+                </div>
+                <div class="mlabel" style="margin-top:8px">4 天 · 同行 2 人 · 花费 ¥2,180</div>
+              </div>
+              <div class="mcard">
+                <div class="mrow"><b style="font-size:14px">青岛 · 啤酒节</b><span class="mlabel">2026.08.02-05</span></div>
+                <div class="mlabel">3 天 · 同行 4 人 · 花费 ¥1,760</div>
+              </div>
+            </div>
+            <div id="fp-event" class="hidden">
+              <div class="mlabel" style="margin-bottom:6px">2026 年 · 4 件大事</div>
+              <div class="mcard">
+                <div class="mline"><div class="mico w">⭐</div><div class="mtxt"><b>升职 · 从牛马变成资深牛马</b><small>2026.10.08 · 职业</small></div></div>
+                <div class="mline"><div class="mico">🏡</div><div class="mtxt"><b>搬进新家</b><small>2026.10.20 · 家庭</small></div></div>
+                <div class="mline"><div class="mico g">🐱</div><div class="mtxt"><b>养了一只猫，取名「加班」</b><small>2026.06.11 · 家庭</small></div></div>
+              </div>
+              <div class="mcard" style="border-style:dashed;text-align:center;color:var(--ink3);font-size:12.5px">
+                人生大事，值得留一笔。哪怕只是「今天没加班」。
+              </div>
+            </div>
+          </div>
+
+          <!-- 日子 -->
+          <div class="screen" id="sc-days">
+            <div class="seg">
+              <div class="on" onclick="segFoot(this,'dy-list')">🎯 倒计时</div>
+              <div onclick="segFoot(this,'dy-cal')">📅 月历</div>
+            </div>
+            <div id="dy-list">
+              <div class="mcard tint" style="text-align:center">
+                <div class="cd-ring" style="--deg:290deg">
+                  <b>3</b><small>天后 · 11月10日</small>
+                </div>
+                <div style="font-weight:700;font-size:15px">发薪日</div>
+                <div class="mlabel">距离发薪日还有 3 天，撑住。</div>
+              </div>
+              <div class="mcard" style="padding:0 13px">
+                <div class="mline"><div class="mico">🎂</div><div class="mtxt"><b>妈妈生日</b><small>还有 12 天 · 每年农历</small></div><div class="mamt">12</div></div>
+                <div class="mline"><div class="mico g">💍</div><div class="mtxt"><b>结婚纪念日</b><small>还有 41 天 · 每年</small></div><div class="mamt">41</div></div>
+                <div class="mline"><div class="mico b">🏖</div><div class="mtxt"><b>年假 · 自驾西北</b><small>还有 96 天 · 一次性</small></div><div class="mamt">96</div></div>
+                <div class="mline"><div class="mico w">📄</div><div class="mtxt"><b>房贷还款日</b><small>还有 21 天 · 每月</small></div><div class="mamt">21</div></div>
+              </div>
+              <div id="daysEmpty" class="hidden mcard" style="text-align:center;padding:30px 14px">
+                <div style="font-size:32px">🗓</div>
+                <div style="font-weight:700;margin-top:6px">重要的日子没人替你记，除了我</div>
+                <div class="mlabel" style="margin-top:4px">设一个，我提前提醒你</div>
+              </div>
+            </div>
+            <div id="dy-cal" class="hidden">
+              <div class="mcard" style="padding:8px 10px">
+                <div class="mrow"><b>2026 年 11 月</b><span class="mlabel">◀ ▶</span></div>
+                <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-top:8px;text-align:center;font-size:11px;color:var(--ink3)">
+                  <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-top:4px;text-align:center;font-size:12px">
+                  <span></span><span></span><span></span><span></span><span></span><span></span><span>1</span>
+                  <span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span>
+                  <span>9</span><span style="background:var(--brand-l);color:var(--brand-d);font-weight:700;border-radius:8px">10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span>
+                  <span>16</span><span>17</span><span>18</span><span>19</span><span>20</span><span>21</span><span>22</span>
+                  <span>23</span><span>24</span><span>25</span><span>26</span><span>27</span><span>28</span><span>29</span>
+                  <span>30</span><span></span><span></span><span></span><span></span><span></span><span></span>
+                </div>
+              </div>
+              <div class="mcard" style="border-style:dashed;text-align:center;color:var(--ink3);font-size:12.5px">
+                点日期看当天有什么日子 · 月历组件复用现有分红日历的交互
+              </div>
+            </div>
+          </div>
+
+          <!-- 我的 -->
+          <div class="screen" id="sc-mine">
+            <div class="mcard tint">
+              <div class="mline">
+                <div class="mico" style="width:46px;height:46px;border-radius:50%;font-size:22px">🐮</div>
+                <div class="mtxt"><b>资深牛马</b><small>niuba@163.com</small></div>
+                <div class="mamt" style="color:var(--brand)">›</div>
+              </div>
+            </div>
+            <div class="mcard" style="padding:0 13px">
+              <div class="mline" onclick="showScreen('sc-assets',true,'家庭资产')" style="cursor:pointer">
+                <div class="mico g">🏦</div>
+                <div class="mtxt"><b>家庭资产</b><small>净值、投资、负债</small></div>
+                <div class="mamt" style="color:var(--ink3)">¥1,286,400 ›</div>
+              </div>
+              <div class="mline"><div class="mico w">🔔</div><div class="mtxt"><b>提醒中心</b><small>2 条未读</small></div><div class="mamt" style="color:var(--ink3)">›</div></div>
+              <div class="mline"><div class="mico b">🗑</div><div class="mtxt"><b>回收站</b><small>30 天内可恢复</small></div><div class="mamt" style="color:var(--ink3)">›</div></div>
+            </div>
+            <div class="mcard" style="padding:0 13px">
+              <div class="mline"><div class="mico">📤</div><div class="mtxt"><b>导出我的数据</b><small>JSON / CSV</small></div><div class="mamt" style="color:var(--ink3)">›</div></div>
+              <div class="mline"><div class="mico">⚙️</div><div class="mtxt"><b>设置</b><small>登录方式、通知</small></div><div class="mamt" style="color:var(--ink3)">›</div></div>
+            </div>
+          </div>
+
+          <!-- 家庭资产（非 tab，从「我的」进入） -->
+          <div class="screen" id="sc-assets">
+            <div class="mcard tint">
+              <div class="mlabel">家庭净资产 · 2026.10 快照</div>
+              <div class="mnum">¥1,286,400.00</div>
+              <div class="mlabel">较上季 +¥42,180</div>
+            </div>
+            <div class="mcard" style="padding:0 13px">
+              <div class="mline"><div class="mico g">📈</div><div class="mtxt"><b>投资持仓</b><small>股票 / 基金 / 债 · 含分红</small></div><div class="mamt">¥486,200 ›</div></div>
+              <div class="mline"><div class="mico b">🏠</div><div class="mtxt"><b>房产</b><small>自住</small></div><div class="mamt">¥920,000 ›</div></div>
+              <div class="mline"><div class="mico">🏦</div><div class="mtxt"><b>存款与现金</b><small>活期 / 定期</small></div><div class="mamt">¥183,400 ›</div></div>
+              <div class="mline"><div class="mico w">📉</div><div class="mtxt"><b>负债</b><small>房贷 / 消费贷</small></div><div class="mamt down">-¥303,200 ›</div></div>
+            </div>
+            <div class="mcard" style="border-style:dashed;font-size:12.5px;color:var(--ink3)">
+              点「投资持仓」进入原「攒息」的持仓 / 批次 / 分红记录 / 分红日历 —— 收编后的三层结构。
+            </div>
+            <div class="mlabel" style="text-align:center;margin-top:10px">
+              <span style="cursor:pointer;color:var(--brand-d)" onclick="showScreen('sc-mine',true,'我的')">‹ 返回我的</span>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="fab" onclick="toggleSheet(true)">＋</div>
+
+        <div class="sheet" id="sheet">
+          <div class="sheet-title"><span>记点什么？</span><span onclick="toggleSheet(false)">✕</span></div>
+          <div class="sheet-grid">
+            <div class="sheet-item" onclick="toggleSheet(false)"><b>💰 记一笔</b><small>收支流水</small></div>
+            <div class="sheet-item" onclick="toggleSheet(false)"><b>🎯 记一个日子</b><small>倒计时 / 纪念日</small></div>
+            <div class="sheet-item" onclick="toggleSheet(false)"><b>📸 记一趟</b><small>旅游行程</small></div>
+            <div class="sheet-item" onclick="toggleSheet(false)"><b>⭐ 记一件大事</b><small>人生节点</small></div>
+            <div class="sheet-item" onclick="toggleSheet(false)"><b>🏦 盘点资产</b><small>家庭资产快照</small></div>
+            <div class="sheet-item" onclick="toggleSheet(false)"><b>🖼 只传照片</b><small>先存着，稍后归类</small></div>
+          </div>
+        </div>
+
+        <div class="p-tabbar" id="pTabbar">
+          <div class="p-tab on" data-sc="sc-journal" data-t="手札"><i>🏠</i><span>手札</span></div>
+          <div class="p-tab" data-sc="sc-ledger" data-t="账本"><i>💰</i><span>账本</span></div>
+          <div class="p-tab" data-sc="sc-footprint" data-t="足迹"><i>📸</i><span>足迹</span></div>
+          <div class="p-tab" data-sc="sc-days" data-t="日子"><i>🎯</i><span>日子</span></div>
+          <div class="p-tab" data-sc="sc-mine" data-t="我的"><i>👤</i><span>我的</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="demo-side">
+      <h4>这个原型在验证三件事</h4>
+      <ul>
+        <li><b>五个 tab 的第一屏是否都「不需要教」</b> —— 每个模块第一屏都必须同时有：一眼能懂的数字/图形 + 一个明确的下一步。</li>
+        <li><b>「＋」的分发逻辑是否成立</b> —— 六个入口里最值得注意的第六项「只传照片」：先存图、稍后归类，这是降低录入摩擦的关键设计（详见 §6.1 M8）。</li>
+        <li><b>家庭资产不占 tab 是否可行</b> —— 从「我的」点进去只要两步，且手札首页会有快捷卡片兜底，说明层级下沉不会真的埋掉它。</li>
+      </ul>
+      <div class="split"></div>
+      <h4>检查空状态文案</h4>
+      <p style="font-size:13.5px;color:var(--ink2)">新用户第一次打开时，五个模块都应给出「下一步动作」而不是纯吐槽。</p>
+      <p>
+        <button class="btn ghost sm" onclick="toggleJournalEmpty()">切换手札流空状态</button>
+        <button class="btn ghost sm" onclick="toggleDaysEmpty()">切换日子空状态</button>
+      </p>
+      <div class="note info" style="font-size:13px">
+        原型为交互示意，视觉细节以设计规范为准；照片为占位示意图。
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 6 功能需求 ============ -->
+<section id="s6">
+  <h2><span class="no">6</span>功能需求 <span class="sub">M1–M10，每个模块按「目的 → 布局 → 触发 → 规则 → 结果 → 状态 → 异常」展开</span></h2>
+
+  <!-- M1 -->
+  <h3>M1 手札流（首页） <span class="tag p0">P0</span></h3>
+  <h4>目的</h4>
+  <p>让用户打开 App 的第一眼，就看到「我的人生最近发生了什么」。它不产生数据，只聚合数据，因此它的质量取决于其他模块，而不取决于自身。</p>
+  <h4>布局（自上而下）</h4>
+  <ol>
+    <li><b>月度小结卡</b>：本月支出总额 + 与上月对比；若本月有新增足迹或大事件，追加一行「本月你还去了 X、经历了 Y」。</li>
+    <li><b>置顶日子条</b>：取用户置顶的倒计时中最临近的 1 条，以横向条呈现。没有置顶时，自动取最近的 1 条。</li>
+    <li><b>时间线</b>：按发生时间倒序的条目卡片，每条只展示「封面图 + 类型徽章 + 标题 + 一行摘要」。</li>
+    <li><b>家庭资产快捷卡</b>：若用户已建立资产数据，在时间线中每 10 条插一张轻量卡片，展示当前净值（低频入口的兜底存在感）。</li>
+  </ol>
+  <h4>触发</h4>
+  <p>进入 tab 即加载；下拉刷新；从任意模块新增/编辑/删除记录后回到首页时需自动刷新（因为索引层已同步）。</p>
+  <h4>处理规则</h4>
+  <ul>
+    <li>时间线来源<strong>只有条目索引层</strong>（§4），不直接查各模块主表；</li>
+    <li>分页：每页 20 条，滚动到底自动加载下一页；</li>
+    <li>筛选：按类型（账本 / 足迹 / 日子 / 资产快照）分段筛选，默认「全部」；</li>
+    <li>排序：固定按「发生时间」倒序。<strong>不支持按创建时间排序</strong> —— 用户补记一笔上周的支出时，它应该出现在上周的位置，而不是今天的位置。</li>
+  </ul>
+  <h4>结果与状态变化</h4>
+  <p>读取无副作用。但有两个例外需要明确：条目的可见性跟随其主记录的软删除状态（删除后立即从流中消失，恢复后回到原位）。</p>
+  <h4>异常</h4>
+  <table>
+    <thead><tr><th style="width:120px">场景</th><th>表现</th></tr></thead>
+    <tbody>
+      <tr><td>全空</td><td>显示空状态 + 主行动按钮（「记第一笔」）。文案见 §1.5。</td></tr>
+      <tr><td>加载失败</td><td>显示错误态 + 「再试一次」，不显示空白页。保留上一次成功数据（若有）。</td></tr>
+      <tr><td>分页到底</td><td>显示「没有更早的了 · 你的人生还很长」，而不是空白。</td></tr>
+      <tr><td>索引层与主表不一致</td><td>点进条目发现主记录不存在时，前端展示「这条记录已不存在」并静默移除该条目。这是索引层可重建（§4）必须配套的兜底。</td></tr>
+    </tbody>
+  </table>
+
+  <!-- M2 账本 -->
+  <h3>M2 账本 <span class="tag p0">P0</span></h3>
+  <h4>目的</h4>
+  <p>用最低摩擦记下每一笔，并自动给出「钱花到哪了」。产品的日活主要靠它。</p>
+  <h4>布局</h4>
+  <p>顶部月度汇总卡（支出 / 收入 / 结余）→ 分类构成条 → 当日流水列表（按日分组）。快速记一笔为<strong>全屏弹层</strong>，不跳页面。</p>
+  <h4>快速记一笔的处理规则（核心）</h4>
+  <ul>
+    <li>进入弹层后<strong>金额输入框默认聚焦</strong>，直接弹数字键盘，用户不需要先点一下；</li>
+    <li>金额键盘上方固定一个「支出 / 收入」切换，默认<strong>支出</strong>；</li>
+    <li>分类以横向 chips 呈现，默认选中<strong>上一次使用的分类</strong>（而非「餐饮」）—— 连续记账场景下这能省掉一次点击；</li>
+    <li>日期默认今天，可回溯，<strong>不可选未来日期</strong>；</li>
+    <li>备注、照片、账户三个字段折叠在「更多」里，默认不展开，保证主路径只有「金额 → 分类 → 保存」三步。</li>
+  </ul>
+  <h4>字段</h4>
+  <table>
+    <thead><tr><th style="width:110px">字段</th><th style="width:90px">必填</th><th>规则</th></tr></thead>
+    <tbody>
+      <tr><td>金额</td><td>是</td><td>大于 0，最多 2 位小数，上限 9,999,999.99。为 0 或空时不允许保存。</td></tr>
+      <tr><td>收支类型</td><td>是</td><td>支出 / 收入，默认支出。</td></tr>
+      <tr><td>分类</td><td>是</td><td>预置：餐饮 / 交通 / 居住 / 购物 / 人情 / 娱乐 / 医疗 / 学习 / 其他。可自定义，自定义分类最多 20 个。</td></tr>
+      <tr><td>日期</td><td>是</td><td>默认今天；可选过去任意日期；不可选未来。</td></tr>
+      <tr><td>账户</td><td>否</td><td>现金 / 微信 / 支付宝 / 银行卡 / 其他。</td></tr>
+      <tr><td>备注</td><td>否</td><td>最多 50 字。</td></tr>
+      <tr><td>照片</td><td>否</td><td>最多 1 张（小票），规则见 §7.3。</td></tr>
+    </tbody>
+  </table>
+  <h4>状态</h4>
+  <p>账目只有两个状态：<strong>已记录</strong> 与 <strong>已删除（回收站）</strong>。不做草稿态 —— 记账这件事没有「写一半」的合理场景，草稿会制造「我到底记了没有」的焦虑。</p>
+  <h4>异常</h4>
+  <ul>
+    <li>重复提交：保存按钮点击后立即置为不可用，直到请求返回；</li>
+    <li>保存失败：弹层<strong>不关闭</strong>，输入内容保留，顶部提示失败原因并允许重试；</li>
+    <li>分类为空的自定义分类：删除分类时，已归属该分类的账目自动落入「其他」，不阻断删除。</li>
+  </ul>
+
+  <h4>交互 Demo：快速记一笔的校验与反馈</h4>
+  <div class="demo" style="display:block">
+    <div class="fdemo" style="max-width:520px">
+      <div class="ftype">
+        <button class="on" id="ftOut" onclick="setFlow('out')">支出</button>
+        <button id="ftIn" onclick="setFlow('in')">收入</button>
+      </div>
+      <div class="amount-in"><span id="curSym">-¥</span><input id="amtInput" type="text" inputmode="decimal" placeholder="0.00" oninput="clearToast()"></div>
+      <div class="chips" id="chipBox">
+        <div class="chip on" onclick="pickChip(this)">🍜 餐饮</div>
+        <div class="chip" onclick="pickChip(this)">🚇 交通</div>
+        <div class="chip" onclick="pickChip(this)">🏠 居住</div>
+        <div class="chip" onclick="pickChip(this)">🛒 购物</div>
+        <div class="chip" onclick="pickChip(this)">🎁 人情</div>
+        <div class="chip" onclick="pickChip(this)">🎮 娱乐</div>
+        <div class="chip" onclick="pickChip(this)">+ 自定义</div>
+      </div>
+      <div class="mrow">
+        <span style="font-size:13px;color:var(--ink2)">🖼 加张照片 <span class="mlabel">（可选，小票用）</span></span>
+        <span class="mlabel">今天</span>
+      </div>
+      <div style="margin-top:14px">
+        <button class="btn" onclick="submitFlow()">保存</button>
+        <span class="mlabel" style="margin-left:10px">保存后立刻出现在手札流顶部</span>
+      </div>
+      <div class="toast" id="flowToast"></div>
+    </div>
+  </div>
+  <p class="mlabel" style="margin-top:-6px">试试：不填金额直接保存、金额填 0、金额填合法值，看三种反馈。</p>
+
+  <!-- M3 足迹·旅游 -->
+  <h3>M3 足迹 · 旅游 <span class="tag p0">P0</span></h3>
+  <h4>目的</h4>
+  <p>让照片从「相册里再也不打开的第 8,000 张」变成「一个可以被翻回去的行程」。这是全产品情绪价值最高的模块。</p>
+  <h4>布局</h4>
+  <p>列表页为卡片流（封面图占卡片上半部）；详情页为「封面大图 → 基本信息 → 照片瀑布 → 正文 → 花费」。列表顶部有一行统计：「去过 7 座城市 · 3 趟行程」。</p>
+  <h4>处理规则</h4>
+  <ul>
+    <li>创建行程时，<strong>目的地（城市）为必填</strong>，起止日期必填；标题可由「城市 + 日期」自动生成，允许用户改写；</li>
+    <li>行程进行中可随时追加照片，此时行程状态为<strong>进行中</strong>，在列表里排在最前并带一个「进行中」标记；</li>
+    <li>行程结束后可补写正文与花费，状态转为<strong>已结束</strong>；</li>
+    <li>「去过 N 座城市」按<strong>去重后的城市数</strong>统计，同城多次行程只计一次。</li>
+  </ul>
+  <h4>字段</h4>
+  <table>
+    <thead><tr><th style="width:110px">字段</th><th style="width:90px">必填</th><th>规则</th></tr></thead>
+    <tbody>
+      <tr><td>标题</td><td>否</td><td>默认「城市 + 起止月日」，最多 30 字。</td></tr>
+      <tr><td>目的地</td><td>是</td><td>多选城市，最多 5 个，可输入自定义。</td></tr>
+      <tr><td>起止日期</td><td>是</td><td>同日行程允许（当日往返）；结束日期不早于开始日期。</td></tr>
+      <tr><td>同行人</td><td>否</td><td>自由文本，最多 30 字。<strong>本期不做联系人体系</strong>，避免引入用户间关系。</td></tr>
+      <tr><td>封面图</td><td>否</td><td>未设时，自动取照片集中的第一张；无照片时使用按城市名生成的纯色占位卡。</td></tr>
+      <tr><td>照片集</td><td>否</td><td>最多 20 张，规则见 §7.3。</td></tr>
+      <tr><td>正文</td><td>否</td><td>最多 1000 字。</td></tr>
+      <tr><td>花费</td><td>否</td><td>手工填写；也可关联账本中该时间段内的「旅游」分类合计（P1）。</td></tr>
+    </tbody>
+  </table>
+  <h4>异常</h4>
+  <ul>
+    <li>照片上传中关闭页面：已上传成功的照片保留，未完成的丢弃，行程本身仍可保存（照片是可选增强，不应阻断主流程）；</li>
+    <li>单次上传超过上限：超出部分被拒绝并提示「最多 20 张，已保留前 20 张」；</li>
+    <li>行程被删除：照片一并进入回收站，30 天内可随行程恢复。</li>
+  </ul>
+
+  <!-- M4 大事件 -->
+  <h3>M4 足迹 · 人生大事件 <span class="tag p0">P0</span></h3>
+  <h4>目的</h4>
+  <p>给人生节点一个不会被平台冲走的存档。与旅游的区别在于：旅游是「一段时间」，大事件是「一个时刻」。</p>
+  <h4>布局</h4>
+  <p>按年份分组的时间线（2026 / 2025 / 2024…），每组右侧显示当年事件数。事件卡为横向三行：emoji 图标 + 标题 + 日期与类型。</p>
+  <h4>处理规则</h4>
+  <ul>
+    <li>事件日期<strong>允许选未来</strong>（例如「下个月入职新公司」），未来事件的卡片以虚线框区分；</li>
+    <li>类型预置：工作 / 学业 / 家庭 / 健康 / 财务 / 里程碑 / 自定义，自定义类型自带一个 emoji 选择；</li>
+    <li>心情 emoji 为可选字段，用于列表页的视觉点缀，不参与任何统计；</li>
+    <li>默认单条事件不可设为公开 —— 本产品无公开概念，全部内容仅本人可见（见 §7.4）。</li>
+  </ul>
+  <h4>字段</h4>
+  <table>
+    <thead><tr><th style="width:110px">字段</th><th style="width:90px">必填</th><th>规则</th></tr></thead>
+    <tbody>
+      <tr><td>标题</td><td>是</td><td>最多 30 字。</td></tr>
+      <tr><td>日期</td><td>是</td><td>可未来。</td></tr>
+      <tr><td>类型</td><td>是</td><td>预置 6 类 + 自定义；自定义需选 emoji。</td></tr>
+      <tr><td>正文</td><td>否</td><td>最多 2000 字。</td></tr>
+      <tr><td>照片</td><td>否</td><td>最多 9 张。</td></tr>
+      <tr><td>心情</td><td>否</td><td>单个 emoji。</td></tr>
+      <tr><td>标签</td><td>否</td><td>最多 5 个，用于全局搜索。</td></tr>
+    </tbody>
+  </table>
+
+  <!-- M5 日子 -->
+  <h3>M5 日子（重要日子倒计时） <span class="tag p0">P0</span></h3>
+  <h4>目的</h4>
+  <p>让用户「不忘记」，并「提前有准备」。这是全产品技术链路最短、却覆盖了全部基建（创建 → 状态 → 提醒 → 手札流 → 删除）的模块，因此被选为第一个交付批次。</p>
+  <h4>布局</h4>
+  <p>两个 segment：倒计时列表 / 月历。列表顶部为「最临近的日子」大卡（环形进度），下方为普通列表项；月历页点日期查看当天日子。</p>
+  <h4>重复规则</h4>
+  <table>
+    <thead><tr><th style="width:120px">规则</th><th>行为</th></tr></thead>
+    <tbody>
+      <tr><td>一次性</td><td>日期过后进入「已过去」，排序沉底，保留在列表供回看。</td></tr>
+      <tr><td>每年（公历）</td><td>日期过后自动滚动到下一年的同月同日，卡片显示「第 N 年」。</td></tr>
+      <tr><td>每月</td><td>日期过后自动滚动到下一月同日；当目标日为 29/30/31 而该月无此日时，取该月最后一天。</td></tr>
+      <tr><td>每年（农历）</td><td>按农历日期换算为当年的公历日期。农历换算在本地完成，不依赖网络。</td></tr>
+    </tbody>
+  </table>
+  <div class="note">
+    <b>农历是需要单独说明的一条：</b>它影响倒计时的天数计算与提醒触发。若本地换算出错，用户会错过生日这类最重要的日子。因此农历换算必须与公历日期<strong>同时展示</strong>（卡片上同时显示「农历九月十六」和换算后的公历日期），让用户能一眼核对。
+  </div>
+  <h4>提醒档位</h4>
+  <p>可多选：提前 30 天 / 提前 7 天 / 提前 1 天 / 当天。默认勾选「提前 7 天」与「当天」。提醒的送达方式见 §7.2。</p>
+  <h4>状态与视觉</h4>
+  <table>
+    <thead><tr><th style="width:130px">状态</th><th style="width:110px">判定</th><th>列表表现</th></tr></thead>
+    <tbody>
+      <tr><td>普通</td><td>剩余 &gt; 30 天</td><td>常规列表项，数字为剩余天数。</td></tr>
+      <tr><td>临近</td><td>剩余 8–30 天</td><td>数字用品牌色，不加额外装饰。</td></tr>
+      <tr><td>紧迫</td><td>剩余 1–7 天</td><td>卡片底色转为浅暖色，文案带情绪（见 §1.5）。</td></tr>
+      <tr><td>就是今天</td><td>剩余 0 天</td><td>置顶显示，全站最高视觉优先级。</td></tr>
+      <tr><td>已过去</td><td>已过且为一次性</td><td>灰显并沉底，显示「已过去 N 天」。</td></tr>
+    </tbody>
+  </table>
+  <h4>置顶</h4>
+  <p>最多置顶 3 个。置顶的日子优先出现在列表顶部与首页置顶条；置顶位已满时提示「最多置顶 3 个，先取消一个吧」。</p>
+  <h4>字段</h4>
+  <table>
+    <thead><tr><th style="width:110px">字段</th><th style="width:90px">必填</th><th>规则</th></tr></thead>
+    <tbody>
+      <tr><td>名称</td><td>是</td><td>最多 20 字。</td></tr>
+      <tr><td>日期</td><td>是</td><td>一次性可任意日期；重复规则下只需填首个日期。</td></tr>
+      <tr><td>重复规则</td><td>是</td><td>一次性 / 每年 / 每月 / 每年农历，默认一次性。</td></tr>
+      <tr><td>提醒档位</td><td>否</td><td>多选，默认「提前 7 天 + 当天」。</td></tr>
+      <tr><td>配色 / emoji</td><td>否</td><td>用于列表辨识。</td></tr>
+      <tr><td>备注</td><td>否</td><td>最多 100 字。</td></tr>
+    </tbody>
+  </table>
+
+  <h4>交互 Demo：状态与提醒策略联动</h4>
+  <p>切换下面的状态，看卡片表现与提醒策略如何同步变化。这张表是 §7.2 提醒规则的局部视图。</p>
+  <div class="demo" style="display:block">
+    <div class="st-btns">
+      <button class="on" data-st="30" onclick="setStage('30',this)">剩余 30 天</button>
+      <button data-st="7" onclick="setStage('7',this)">剩余 7 天</button>
+      <button data-st="1" onclick="setStage('1',this)">剩余 1 天</button>
+      <button data-st="0" onclick="setStage('0',this)">就是今天</button>
+      <button data-st="-3" onclick="setStage('-3',this)">已过去 3 天（一次性）</button>
+    </div>
+    <div class="stage">
+      <div class="big" id="stageBig">发薪日 · 距离还有 30 天</div>
+      <div class="desc" id="stageDesc">状态：临近 · 卡片数字用品牌色</div>
+    </div>
+    <div class="tone" id="stageTone">文案基调：<i>「距离发薪日还有 30 天。」</i>（克制，不加情绪）</div>
+    <table style="margin-top:14px" id="stageTable">
+      <thead><tr><th style="width:130px">触发档位</th><th style="width:120px">是否触发提醒</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr data-st="30"><td>提前 30 天</td><td>触发</td><td>今日进入 T-30 区间，写入站内消息；若用户已授权订阅消息则同时下发。</td></tr>
+        <tr data-st="7"><td>提前 7 天</td><td>—</td><td>未到 T-7，本档位不触发。</td></tr>
+        <tr data-st="1"><td>提前 1 天</td><td>—</td><td>未到 T-1，本档位不触发。</td></tr>
+        <tr data-st="0"><td>当天</td><td>—</td><td>当天 08:00 触发（按用户时区）。</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- M6 家庭资产 -->
+  <h3>M6 家庭资产 <span class="tag p0">P0</span> <span class="tag chg">含收编</span></h3>
+  <h4>目的</h4>
+  <p>回答「我家到底有多少钱」。它是低频模块，但提供了全产品最重的数据价值，也是现有投资域唯一的合法去处。</p>
+  <h4>布局</h4>
+  <p>顶层为净值卡（净资产 + 环比变化）→ 资产分类清单（可分项展开）→ 负债清单 → 快照趋势。</p>
+  <h4>分类与规则</h4>
+  <table>
+    <thead><tr><th style="width:130px">分类</th><th>录入方式</th></tr></thead>
+    <tbody>
+      <tr><td>现金与存款</td><td>手工填写总额（活期 / 定期分项可选）。</td></tr>
+      <tr><td>投资持仓</td><td><span class="tag chg">收编</span>由原「攒息」的持仓与批次自动汇总，市值按最新可得数据估值；失败时保留上一次成功估值并标注「估值时间」。</td></tr>
+      <tr><td>房产 / 车辆</td><td>手工填写估值，可标注「自住 / 投资」。</td></tr>
+      <tr><td>其他资产</td><td>自定义名称 + 金额。</td></tr>
+      <tr><td>负债</td><td>房贷 / 车贷 / 消费贷 / 其他，手工填写余额，可记录还款日（还款日可一键生成一个「日子」条目）。</td></tr>
+    </tbody>
+  </table>
+  <ul>
+    <li><strong>净资产 = 资产合计 − 负债合计</strong>，多币种资产按当日汇率折算为人民币后合并；</li>
+    <li><strong>快照</strong>：用户每次「盘点」生成一份带日期的快照，用于趋势图。系统不自动生成快照 —— 自动快照会让曲线被无意义的波动（当日行情）污染；</li>
+    <li>投资持仓的明细（持仓 / 批次 / 分红记录 / 分红日历 / 预案）位于三级页面，复用现有能力，入口在「投资持仓」项上。</li>
+  </ul>
+  <h4>与投资域调性的隔离</h4>
+  <div class="note">
+    家庭资产整块<strong>不使用玩梗文案</strong>。进入这一层后，界面回到克制的专业风格（沿用现有蓝色系与现有卡片结构）。这是 §0 决策「分模块调节语气」的具体落点 —— 同一个 App 里允许两种语气，靠模块边界切换。
+  </div>
+  <h4>异常</h4>
+  <ul>
+    <li>估值为空（新用户尚未录入持仓）：投资项显示「暂未录入，去添加」，不显示 0；</li>
+    <li>汇率缺失：使用兜底汇率并在净值卡上标注「按兜底汇率折算」；</li>
+    <li>负债为 0：显示「无负债」而非留空。</li>
+  </ul>
+
+  <!-- M7 我的 -->
+  <h3>M7 我的 <span class="tag p0">P0</span></h3>
+  <h4>目的</h4>
+  <p>账号、设置与三个低频入口的收容所（家庭资产 / 提醒中心 / 回收站）。</p>
+  <h4>内容</h4>
+  <table>
+    <thead><tr><th style="width:150px">分组</th><th>项</th></tr></thead>
+    <tbody>
+      <tr><td>账号</td><td>昵称、emoji 头像、绑定 / 换绑邮箱（复用现有逻辑）</td></tr>
+      <tr><td>数据</td><td>家庭资产、提醒中心、回收站、导出我的数据</td></tr>
+      <tr><td>设置</td><td>通知偏好（各类提醒开关）、登录方式、关于</td></tr>
+      <tr><td>危险区</td><td>注销账号（复用现有的二次确认+级联删除）</td></tr>
+    </tbody>
+  </table>
+  <p><strong>注销必须写清楚一件事</strong>：现有账号注销会级联删除全部用户数据。改造后这句话的分量变重了 —— 用户删的不再是分红记录，而是他几年的人生记录。因此注销确认页必须显式列出将被删除的条目数量（如「将永久删除 1,286 条记录、347 张照片」），并要求二次确认。</p>
+
+  <!-- M8 媒体 -->
+  <h3>M8 媒体中心 <span class="tag new">新增</span> <span class="tag p0">P0</span></h3>
+  <h4>目的</h4>
+  <p>照片是本产品从「表单」变成「手札」的关键。没有照片，旅游和大事件两个模块几乎不成立。</p>
+  <h4>规则</h4>
+  <ul>
+    <li><strong>上传即压缩</strong>：上传前在客户端压缩到最长边 1920px，超过则按质量递减压缩，保证单张一般不超过 1MB；</li>
+    <li><strong>硬上限</strong>：单张原图不超过 10MB，超出拒绝并提示；</li>
+    <li><strong>数量上限</strong>：账目 1 张 / 事件 9 张 / 行程 20 张（按模块配置化，见 §7.5）；</li>
+    <li><strong>格式</strong>：仅接受 jpg / jpeg / png / webp / heic；</li>
+    <li><strong>可见性</strong>：所有照片<strong>仅本人可访问</strong>，不允许通过公开链接直接访问，访问需带身份校验；</li>
+    <li><strong>删除联动</strong>：删除所属条目时照片一并进入回收站；回收站到期清理时才真正删除文件。</li>
+  </ul>
+  <h4>「先存照片，稍后归类」</h4>
+  <div class="note info">
+    <b>这是降低录入摩擦的核心设计。</b>快捷新增里有第六个入口「只传照片」：用户可以先批量把照片扔进来（例如行程中随手拍），系统把它们存为「未归类的照片」，之后在手札流里慢慢归类到行程或事件。<strong>如果没有这个入口，用户在路上就不会打开 App</strong>，因为他们没时间想「这属于哪次行程」。
+  </div>
+  <h4>异常</h4>
+  <ul>
+    <li>上传中断：已成功的保留，失败的可单张重试；</li>
+    <li>上传失败但用户已保存条目：条目不回滚，照片位显示「图片加载失败」占位，可重新上传；</li>
+    <li>照片被判为不支持格式：拒绝并列出文件名，允许用户跳过继续。</li>
+  </ul>
+
+  <!-- M9 提醒 -->
+  <h3>M9 提醒与通知中心 <span class="tag new">新增</span> <span class="tag p0">P0</span></h3>
+  <h4>目的</h4>
+  <p>让倒计时真正有用。同时<strong>诚实地收窄承诺</strong> —— 移动端的推送能力有硬限制，产品文案不能承诺「微信必达」。</p>
+  <h4>通道与能力边界</h4>
+  <table>
+    <thead><tr><th style="width:150px">通道</th><th style="width:100px">可靠性</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td>站内消息中心</td><td><strong>100% 必做</strong></td><td>所有提醒都先写入站内消息，这是唯一的可靠通道，也是兜底。</td></tr>
+      <tr><td>小程序订阅消息</td><td>有限</td><td>微信要求<strong>每次下发前由用户逐次授权</strong>（一次性订阅）。因此只用于「倒计时提醒」，且在用户创建/编辑提醒时引导授权。用户拒绝授权不影响功能，只少一条通道。</td></tr>
+      <tr><td>H5</td><td>无推送</td><td>H5 无官方推送通道。仅做「进入 App 时的红点」与站内消息。</td></tr>
+      <tr><td>邮件</td><td>可选</td><td><span class="tag keep">复用</span>现有 SMTP 基建（含「未配置 SMTP 时验证码打印到日志」的开发期兜底）。用户可在设置里开启，用于每日提醒汇总。</td></tr>
+    </tbody>
+  </table>
+  <div class="note danger">
+    <b>产品文案规则（硬性）：</b>任何界面、引导、宣传中都<strong>不得</strong>出现「准时提醒」「保证送达」这类表述。设置页应明确写出：「微信消息需要你每次授权，站内消息一定会有。」向用户诚实交代限制，比事后被投诉「说好提醒却没错过」便宜得多。
+  </div>
+  <h4>消息中心</h4>
+  <ul>
+    <li>列表按时间倒序，未读在前；</li>
+    <li>点开一条消息跳到对应日子的详情；</li>
+    <li>支持「全部已读」；单条可删除；</li>
+    <li>提醒中心保留最近 90 天消息，更早的自动清理（倒计时本身不会因此丢失）。</li>
+  </ul>
+  <h4>提醒发送规则</h4>
+  <table>
+    <thead><tr><th style="width:130px">档位</th><th style="width:150px">发送时刻</th><th>备注</th></tr></thead>
+    <tbody>
+      <tr><td>提前 30 天</td><td>目标日前 30 天，08:00</td><td>用于大额准备（旅行、还款）。</td></tr>
+      <tr><td>提前 7 天</td><td>目标日前 7 天，08:00</td><td>默认档位。</td></tr>
+      <tr><td>提前 1 天</td><td>目标日前 1 天，08:00</td><td>默认不勾选。</td></tr>
+      <tr><td>当天</td><td>目标日当天，08:00</td><td>默认档位。</td></tr>
+    </tbody>
+  </table>
+  <p>同一日子在同一天只发一条（多档位重叠时按最晚触发的档位合并），避免用户在 T-7 与 T-1 收到重复内容。发送时刻按用户所在时区，默认 +08:00。</p>
+
+  <!-- M10 后台 -->
+  <h3>M10 运营后台 <span class="tag chg">改造</span> <span class="tag p0">P0</span></h3>
+  <h4>目的</h4>
+  <p>后台的定位不变（对用户业务数据只读 + 写操作留痕），只是把看板的口径从「分红」换成「手札」。</p>
+  <h4>调整内容</h4>
+  <table>
+    <thead><tr><th style="width:160px">页面</th><th style="width:100px">动作</th><th>变化</th></tr></thead>
+    <tbody>
+      <tr><td>看板</td><td><span class="tag chg">改口径</span></td><td>用户数 / DAU / MAU 保留；新增各模块条目总数、照片总数与占用空间；下线分红相关计数（或移入资产子看板）。</td></tr>
+      <tr><td>用户数据查看</td><td><span class="tag chg">扩展</span></td><td>在现有「该用户持仓与分红只读汇总」基础上，扩展为「该用户全部条目只读汇总」，按模块分组。</td></tr>
+      <tr><td>配置管理</td><td><span class="tag chg">加配置项</span></td><td>新增：单张图片上限、各模块照片数上限、提醒总开关、模块灰度开关。配置中心是元数据驱动的，加项不用建表。</td></tr>
+      <tr><td>预案审核 / 证券 / 爬虫</td><td><span class="tag keep">保留</span></td><td>原样保留，服务于资产模块的投资子能力。</td></tr>
+      <tr><td>公告 / 日志 / 登录方式</td><td><span class="tag keep">保留</span></td><td>原样保留。</td></tr>
+    </tbody>
+  </table>
+  <h4>新增：模块灰度开关</h4>
+  <p>五个模块各自一个开关键。任一批次上线后如需回退，只需关闭对应模块 —— 已产生的数据保留但入口隐藏，用户不会看到半成品。这个开关在五批交付的节奏里价值很高。</p>
+</section>
+
+<!-- ============ 7 共享规则 ============ -->
+<section id="s7">
+  <h2><span class="no">7</span>共享规则与异常 <span class="sub">多处引用，只定义一次</span></h2>
+
+  <h3>7.1 条目生命周期与回收站</h3>
+  <table>
+    <thead><tr><th style="width:110px">状态</th><th>含义</th><th>可见性</th></tr></thead>
+    <tbody>
+      <tr><td>正常</td><td>创建后即为此状态。</td><td>模块内可见、手札流可见、可编辑。</td></tr>
+      <tr><td>已删除</td><td>用户主动删除。进入回收站。</td><td>模块内不可见、手札流不可见；回收站可见，可恢复。</td></tr>
+      <tr><td>已销毁</td><td>在回收站停留满 30 天后系统清理。</td><td>不可见、不可恢复。关联照片同时删除。</td></tr>
+    </tbody>
+  </table>
+  <ul>
+    <li>删除统一采用<strong>软删除</strong>，30 天保留期，不做「彻底删除」的用户选项 —— 用户要的是后悔药，不是不可逆的爽感；</li>
+    <li>回收站按模块分组展示，显示「剩余可恢复天数」；</li>
+    <li>恢复后条目回到原模块与原时间位置（因为发生时间字段未被修改）。</li>
+  </ul>
+
+  <h3>7.2 提醒发送的公共规则</h3>
+  <ul>
+    <li>提醒发送是<strong>幂等</strong>的：同一日子的同一档位，在同一天只发送一次，重复执行不产生重复消息；</li>
+    <li>所有提醒先落站内消息（唯一可靠通道），再尝试其他通道；其他通道失败<strong>不影响</strong>站内消息；</li>
+    <li>用户在设置中关闭某类提醒后，该日子已有的提醒档位设置<strong>保留</strong>（不随开关清除），重新打开后恢复生效；</li>
+    <li>被禁用（封禁）状态的账号不发送任何提醒。</li>
+  </ul>
+
+  <h3>7.3 媒体约束（全模块统一）</h3>
+  <table>
+    <thead><tr><th style="width:140px">约束</th><th>值</th></tr></thead>
+    <tbody>
+      <tr><td>单张原图上限</td><td>10 MB（超出拒绝）</td></tr>
+      <tr><td>上传前压缩</td><td>最长边 1920px，压缩后一般 &lt; 1 MB</td></tr>
+      <tr><td>可接受格式</td><td>jpg / jpeg / png / webp / heic</td></tr>
+      <tr><td>数量上限</td><td>账目 1 / 大事件 9 / 行程 20（均为可配置项）</td></tr>
+      <tr><td>可见性</td><td>仅本人可访问，禁止公开直链</td></tr>
+      <tr><td>删除联动</td><td>随所属条目进入回收站，随条目销毁而删除</td></tr>
+    </tbody>
+  </table>
+
+  <h3>7.4 权限与可见性矩阵</h3>
+  <table>
+    <thead><tr><th style="width:150px">角色</th><th>可见什么</th><th>可操作什么</th></tr></thead>
+    <tbody>
+      <tr><td>用户本人</td><td>自己的全部条目与照片</td><td>全部增删改查、导出</td></tr>
+      <tr><td>其他用户</td><td><strong>不可见</strong>（无任何跨用户可见路径）</td><td>—</td></tr>
+      <tr><td>管理员</td><td>看板聚合数据；单用户排查时可见其条目的只读汇总</td><td>不可编辑、不可删除用户内容；封禁 / 解封需 super_admin；所有写操作留痕</td></tr>
+      <tr><td>super_admin</td><td>同上，另可见未脱敏邮箱</td><td>另可维护汇率 / 税率与系统配置</td></tr>
+    </tbody>
+  </table>
+  <div class="note">
+    <b>新的红线：</b>原系统里管理员能看到用户的持仓与分红金额。改造后，用户数据里出现了<strong>私人照片与人生记录</strong>，敏感度完全不同。因此明确规定：<strong>管理员在后台不可查看用户上传的照片原件</strong>，只可见照片数量与占用空间；单用户排查页也不提供照片预览。这条需要写进后台的界面提示与操作日志的分类里。
+  </div>
+
+  <h3>7.5 可配置项（统一走配置中心）</h3>
+  <table>
+    <thead><tr><th style="width:220px">配置项</th><th style="width:110px">默认</th><th>作用</th></tr></thead>
+    <tbody>
+      <tr><td>单张图片上限</td><td>10 MB</td><td>超出即拒绝。</td></tr>
+      <tr><td>各模块照片数量上限</td><td>1 / 9 / 20</td><td>按模块独立配置。</td></tr>
+      <tr><td>回收站保留天数</td><td>30</td><td>到期自动销毁。</td></tr>
+      <tr><td>提醒发送时刻</td><td>08:00</td><td>全局统一，避免用户在奇怪时间被打扰。</td></tr>
+      <tr><td>提醒总开关</td><td>开</td><td>关闭后全站不发提醒（应急用）。</td></tr>
+      <tr><td>模块灰度开关</td><td>全开</td><td>五模块各自独立，用于分批上线与回退。</td></tr>
+    </tbody>
+  </table>
+
+  <h3>7.6 数据导出</h3>
+  <ul>
+    <li>导出范围为<strong>用户本人的全部条目</strong>，格式为 JSON（完整字段）与 CSV（账本流水专用）；</li>
+    <li>照片导出为图片压缩包，导出任务为异步，完成后在提醒中心生成一条「导出完成」消息；</li>
+    <li>导出文件同样仅本人可下载，链接为一次性、有效期 24 小时。</li>
+  </ul>
+</section>
+
+<!-- ============ 8 落地对照 ============ -->
+<section id="s8">
+  <h2><span class="no">8</span>落地对照 <span class="sub">保留什么、改造什么、新建什么</span></h2>
+  <p>本节按<strong>能力</strong>而非代码文件描述，用于评估改造幅度与识别"必须先做的地基"。</p>
+
+  <h3>8.1 直接复用（零改动）<span class="tag keep">保留</span></h3>
+  <div class="grid2">
+    <div class="box"><b>账号体系</b><small>邮箱验证码登录、微信一键登录、emoji 头像、绑定/换绑邮箱、注销级联删除 —— 现有实现已完整，且已有测试覆盖。</small></div>
+    <div class="box"><b>服务层数据隔离范式</b><small>「所有业务操作强制按 user_id 过滤」的写法与约定，新模块照此实现即可，无需重新设计。</small></div>
+    <div class="box"><b>统一响应包络</b><small>成功与失败同为 <code>{code, msg, data}</code>，以及 JSON 响应显式带 charset=utf-8 的处理（避免 Windows 客户端中文乱码）。</small></div>
+    <div class="box"><b>配置中心</b><small>元数据驱动，加配置项即自动出现在后台页面，无需建表迁库 —— §7.5 的新增配置项可以零成本落地。</small></div>
+    <div class="box"><b>运营后台框架</b><small>看板 / 用户 / 公告 / 日志 / 登录方式 等页面与"写操作留痕"的红线机制，全部沿用。</small></div>
+    <div class="box"><b>定时任务调度</b><small>每日执行的时间点调度与幂等执行模式，倒计时提醒与每日汇总直接挂上去。</small></div>
+    <div class="box"><b>汇率与多币种金额处理</b><small>资产模块的多币种折算直接复用现有汇率服务与兜底汇率机制。</small></div>
+    <div class="box"><b>邮件服务</b><small>含「未配置 SMTP 时验证码打印到日志」的开发期兜底 —— 提醒的邮件通道复用同一套。</small></div>
+    <div class="box"><b>爬虫与预案审核流</b><small>A股 / 美股 / 港股 / 基金采集、指定证券采集、实时日志、人工审核队列，原样服务于资产模块的投资子能力。</small></div>
+    <div class="box"><b>演示数据脚本模式</b><small>造数脚本的写法可复用，新增五模块的演示数据（对新版演示与截图很有用）。</small></div>
+  </div>
+
+  <h3>8.2 改造复用（改入口、改文案、改口径）<span class="tag chg">改造</span></h3>
+  <table>
+    <thead><tr><th style="width:170px">现有能力</th><th>改造点</th></tr></thead>
+    <tbody>
+      <tr><td>底部导航（4 项 → 5 项）</td><td>H5 自定义导航与小程序自定义导航同步改为 5 项，文案与 emoji 全部替换（手札 / 账本 / 足迹 / 日子 / 我的）。</td></tr>
+      <tr><td>总览页 → 手札流</td><td>页面逻辑重做（时间线聚合），但<strong>卡片的三层视觉结构保留</strong>，可以少走很多设计返工。</td></tr>
+      <tr><td>持仓页 → 资产 · 投资子页</td><td>页面本身基本不动，但入口层级下沉两层（我的 → 家庭资产 → 投资持仓），需要新增两级容器页。</td></tr>
+      <tr><td>分红日历 → 资产 · 投资 · 分红日历</td><td>月历组件的交互与实现可复用；同时「日子」模块需要一个月历视图 —— <strong>同一个月历能力服务两处不同数据源</strong>，建议抽出可复用的月历组件。</td></tr>
+      <tr><td>分红记录页 → 资产 · 投资 · 分红记录</td><td>原样迁移，仅换入口。PC 端保留的独立入口也一并挪到资产下。</td></tr>
+      <tr><td>我的页</td><td>新增「家庭资产 / 提醒中心 / 回收站 / 导出」四个入口，品牌名与视觉换新。</td></tr>
+      <tr><td>全局主题</td><td>应用名、导航栏标题、主题色从蓝色金融风换为暖色手札风；资产模块内例外地保留蓝色系（§6 M6）。</td></tr>
+      <tr><td>后台看板口径</td><td>分红计数换成手札条目与照片统计（§6 M10）。</td></tr>
+    </tbody>
+  </table>
+
+  <h3>8.3 新增建设<span class="tag new">新增</span></h3>
+  <table>
+    <thead><tr><th style="width:180px">新增项</th><th style="width:100px">规模</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td><b>媒体上传与存储</b></td><td>大</td><td>全项目从零开始的第一块地基。含上传、压缩、私有访问校验、回收站联动、占用统计。不先做这块，旅游与大事件两个模块无法开工。</td></tr>
+      <tr><td><b>条目索引层 + 手札流</b></td><td>中</td><td>§4 的核心决策落地。含索引的同步写入（必须与主记录同事务）、可重建、时间线分页。</td></tr>
+      <tr><td>账本模块</td><td>中</td><td>账目表、分类表、月统计、快速录入弹层、月视图页面。</td></tr>
+      <tr><td>日子模块</td><td>中</td><td>日子表、四种重复规则（含农历换算）、提醒档位、状态计算、月历视图。</td></tr>
+      <tr><td>旅游行程模块</td><td>中</td><td>行程表、照片关联、城市去重统计、详情页瀑布流。</td></tr>
+      <tr><td>大事件模块</td><td>小</td><td>事件表 + 按年归档时间线，结构最简。</td></tr>
+      <tr><td>家庭资产模块</td><td>中</td><td>资产项 / 负债项表、净值计算、快照、投资汇总的接入层。</td></tr>
+      <tr><td>提醒与消息中心</td><td>中</td><td>消息表、幂等发送、多通道分发（站内 / 订阅消息 / 邮件）、消息中心页面。</td></tr>
+      <tr><td>回收站与统一软删除</td><td>中</td><td>跨五个模块的软删除与恢复，含照片联动的存储占用计算。</td></tr>
+      <tr><td>数据导出</td><td>小</td><td>JSON / CSV / 照片压缩包异步导出。</td></tr>
+      <tr><td>后台：内容概览与模块灰度开关</td><td>小</td><td>依赖配置中心，工作量主要在页面。</td></tr>
+    </tbody>
+  </table>
+
+  <div class="note danger">
+    <b>必须先做的三块地基（顺序不可颠倒）：</b>
+    <ul style="margin:6px 0 0">
+      <li><b>① 媒体上传与存储</b> —— 不做它，旅游与大事件无法开工，且后面所有模块的删除/回收站逻辑都要返工；</li>
+      <li><b>② 条目索引层</b> —— 不做它，首页手札流只能靠五表 union，每加一个模块就改一次首页；</li>
+      <li><b>③ 统一软删除与回收站</b> —— 不做它，五个模块会各自长出一套删除逻辑，最后合不起来。</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============ 9 分期路线 ============ -->
+<section id="s9">
+  <h2><span class="no">9</span>分期路线 <span class="sub">五批交付，每批都可用、可回退</span></h2>
+  <table>
+    <thead><tr><th style="width:60px">批次</th><th style="width:200px">交付内容</th><th>为什么这样排</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><b>S0</b><br><small>地基</small></td>
+        <td>媒体上传与存储 · 条目索引层 · 统一软删除与回收站 · 品牌改名与 IA 换血（5 tab） · 「我的」页改版</td>
+        <td>这四件事是后面所有模块的公共依赖，返工代价最高。<b>此批结束后界面看起来仍是"空壳"</b>，但这是必要的。</td>
+      </tr>
+      <tr>
+        <td><b>S1</b><br><small>先跑通链路</small></td>
+        <td><b>日子模块</b> + 提醒与消息中心（先只做站内消息 + 邮件）</td>
+        <td>选它当头阵，是因为它<strong>技术链路最短，却覆盖了全部基建</strong>：创建 → 状态计算 → 提醒触发 → 手札流展示 → 删除与恢复。用它把 S0 的三块地基真正跑通验证一遍，风险最低。<br>同时它不依赖照片，可以验证「无照片模块」的排版是否也立得住。</td>
+      </tr>
+      <tr>
+        <td><b>S2</b><br><small>主模块</small></td>
+        <td><b>账本模块</b> + 手札流月度小结卡</td>
+        <td>使用频率最高、最能带来日活的模块，放在链路已验证之后做。</td>
+      </tr>
+      <tr>
+        <td><b>S3</b><br><small>收编</small></td>
+        <td><b>家庭资产模块</b> + 原投资域整体下沉为「资产 · 投资」子页</td>
+        <td>此批是纯改造（不新建大功能），适合放在连续两个新建模块之间做缓冲，同时它让原「攒息」内容在新产品里正式落位，为下批腾出干净的五 tab 结构。</td>
+      </tr>
+      <tr>
+        <td><b>S4</b><br><small>内容模块</small></td>
+        <td><b>足迹模块</b>：旅游 + 大事件 + 小程序订阅消息接入 + 数据导出</td>
+        <td>两个重照片模块同批做，共用同一套媒体展示组件，一起验证 S0 的照片地基在大规模场景下是否成立。订阅消息放在这批接入，因为它是唯一需要用户逐次授权的通道，先让产品跑起来看真实授权率。</td>
+      </tr>
+      <tr>
+        <td><b>S5</b><br><small>打磨</small></td>
+        <td>P1 项按需挑选（年度回顾、导出分享、预算、地图足迹）· PC 端去留决策</td>
+        <td>此时产品已有真实用户与真实数据，P1 的优先级应该由数据决定，而不是由设计稿决定。</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="note ok">
+    <b>每批的验收方式：</b>每批上线后，用模块灰度开关控制可见范围；若某批上线后出现严重问题，关闭该模块开关即可回退，已产生的数据保留。这是「五模块全部纳入 MVP」这个激进目标之下唯一的安全绳。
+  </div>
+</section>
+
+<!-- ============ 10 风险 ============ -->
+<section id="s10">
+  <h2><span class="no">10</span>风险与对策</h2>
+  <table>
+    <thead><tr><th style="width:150px">风险</th><th style="width:80px">级别</th><th>说明与对策</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><b>媒体存储成本与体积失控</b></td>
+        <td><span class="tag x">高</span></td>
+        <td>照片是唯一的成本增长点，且用户不会自己节制。<br><b>对策：</b>上传前强制压缩（最长边 1920px）；单条目数量硬上限；回收站照片随条目才真正删除；后台提供占用空间统计与单张上限配置项，必要时可动态收紧。</td>
+      </tr>
+      <tr>
+        <td><b>提醒不可靠导致的信任损伤</b></td>
+        <td><span class="tag x">高</span></td>
+        <td>H5 无推送、小程序订阅消息一次性授权，用户很可能「没收到提醒」并认为产品坏了。<br><b>对策：</b>①站内消息作为必备可靠通道；②设置页明确写出限制（§6 M9 的硬性文案规则）；③不承诺「准时送达」；④提供邮件通道作为用户可选的长效兜底。</td>
+      </tr>
+      <tr>
+        <td><b>五模块同时纳入 MVP 导致失焦</b></td>
+        <td><span class="tag x">高</span></td>
+        <td>把五个模块全塞进 MVP 是范围风险，容易做成「五个都半成品」。<br><b>对策：</b>已按 §9 拆成五批，每批独立可用可回退；S1 用最短链路验证地基，把风险压在最前面。</td>
+      </tr>
+      <tr>
+        <td><b>调性冲突：玩梗产品装严肃金融数据</b></td>
+        <td><span class="tag x">中</span></td>
+        <td>同一 App 里既有「牛马拉磨中…」又有「家庭净资产 ¥1,286,400.00」，可能显得割裂。<br><b>对策：</b>§6 M6 约定按模块边界切换语气 —— 资产模块内零玩梗，回到克制专业风；其余模块玩梗。靠边界而非靠全局统一。</td>
+      </tr>
+      <tr>
+        <td><b>索引层与主表数据不一致</b></td>
+        <td><span class="tag x">中</span></td>
+        <td>§4 的单向同步一旦不在同一事务里，会出现「手札流有条目、点进去 404」。<br><b>对策：</b>索引写入与主记录写入强制同事务；索引层随时可全量重建；前端对「主记录不存在」的条目做静默移除兜底（§6 M1）。</td>
+      </tr>
+      <tr>
+        <td><b>品牌改名对既有用户的冲击</b></td>
+        <td><span class="tag x">中</span></td>
+        <td>「攒息」已有一批演示/真实用户，改名后他们可能找不到原有功能。<br><b>对策：</b>①原投资功能不删，只是入口下沉，且保留 PC 端独立入口；②首次进入时在「家庭资产」给出一次性引导说明功能去哪了；③是否保留「攒息」作为投资子品牌为待定项（§11）。</td>
+      </tr>
+      <tr>
+        <td><b>注销数据丢失的分量变大</b></td>
+        <td><span class="tag x">中</span></td>
+        <td>注销原来删的是分红记录，现在删的是几年人生记录与照片。<br><b>对策：</b>§6 M7 规定注销确认页必须显式列出将被删除的条目与照片数量，并要求二次确认。这是本稿唯一一处「必须加重的确认」。</td>
+      </tr>
+      <tr>
+        <td><b>管理员可见范围扩大带来的隐私风险</b></td>
+        <td><span class="tag x">中</span></td>
+        <td>用户数据从金额变成照片与私人文字。<br><b>对策：</b>§7.4 的新红线 —— 后台不可查看用户照片原件，只可见数量与占用；单用户排查页不提供照片预览。</td>
+      </tr>
+      <tr>
+        <td><b>「家庭共享」需求会冲击现有模型</b></td>
+        <td><span class="tag x">待定</span></td>
+        <td>「家庭资产」这个词天然暗示多人共享，但现有模型是严格一人一账号。<br><b>对策：</b>MVP 期内明确不做共享（§3.3），并在文案上避免「全家一起记」这类暗示。是否要做留待 §11 决策。</td>
+      </tr>
+      <tr>
+        <td>已存在的社区模块与私人定位冲突</td>
+        <td><span class="tag x">低</span></td>
+        <td>仓库里已有一个社区相关接口，而本产品定位是「私人手札、不做社交」。<br><b>对策：</b>建议本期下线或暂不接入（§11 待定）。留着不管会与定位打架，还会给用户造成预期错位。</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ============ 11 待定问题 ============ -->
+<section id="s11">
+  <h2><span class="no">11</span>待定问题 <span class="sub">需要你拍板的、会实质改变设计的决策</span></h2>
+  <table>
+    <thead><tr><th style="width:210px">问题</th><th style="width:80px">影响面</th><th>为什么必须先定</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><b>要不要做「家庭共享」？</b></td>
+        <td><span class="tag x">极大</span></td>
+        <td>「家庭资产」「家庭账本」这两个词都暗示多人。若要做，整个权限与可见性模型要从「一人一账号」改成「一个空间多成员」，§7.4 的权限矩阵、条目索引层的归属字段、回收站归属都要重做，<strong>等于把 S0 地基重新设计一次</strong>。若不做，则需在文案上彻底避免「全家一起记」的暗示。</td>
+      </tr>
+      <tr>
+        <td><b>MVP 的五批顺序是否照 §9 走？</b></td>
+        <td><span class="tag x">大</span></td>
+        <td>§9 建议首批做「日子」，理由是它链路最短但覆盖全部基建，能用最低成本验证 S0 的三块地基。若你更希望先看到「账本」的效果，顺序可以互换 —— 但<strong>媒体地基必须排在含照片的模块（旅游 / 大事件）之前</strong>，这一条不能调。另外「分五批」本身是可以砍的，代价是每批的返工风险上升。</td>
+      </tr>
+      <tr>
+        <td><b>「攒息」是否保留为投资子品牌？</b></td>
+        <td><span class="tag x">中</span></td>
+        <td>若保留：家庭资产 · 投资页沿用「攒息」这个名字与蓝色视觉，老用户有连续性，§6 M6 的「模块内换语气」也更有解释力。<br>若不保留：品牌彻底统一为「纯牛马人生手札」，但需要处理老用户的「我的持仓去哪了」的迁移认知，且要一次性做完全站视觉替换。</td>
+      </tr>
+      <tr>
+        <td><b>PC 端最终去留</b></td>
+        <td><span class="tag x">中</span></td>
+        <td>本稿默认「PC 只保留运营后台、面向用户页面暂停维护但不删除」。若后续要补 PC 端，每个移动模块都要额外补一页，工作量基本翻倍。建议等 S2 结束后，用真实用户设备分布再决定，而不是现在拍。</td>
+      </tr>
+      <tr>
+        <td><b>仓库里已存在的社区接口怎么处理？</b></td>
+        <td><span class="tag x">中</span></td>
+        <td>它与「私人手札、不做社交」的定位直接冲突（§3.3）。选项只有两个：<b>下线</b>（推荐，代价最小，但需确认无用户数据依赖），或<b>改造为匿名树洞</b>（但这等于部分反悔「不做社交」的决策，会带来内容审核与举报处理的长期负担）。</td>
+      </tr>
+      <tr>
+        <td><b>是否接入小程序订阅消息</b></td>
+        <td><span class="tag x">中</span></td>
+        <td>接入需要用户<strong>逐次授权</strong>，真实授权率可能很低，投入产出不一定划算。若不接入，微信内的倒计时提醒就只能靠站内消息 —— 意味着用户必须主动打开小程序才能看到提醒，倒计时的价值会大幅缩水。这是「提醒模块」最需要先验证的一个假设。</td>
+      </tr>
+      <tr>
+        <td><b>现有演示/老用户数据如何迁移</b></td>
+        <td><span class="tag x">中</span></td>
+        <td>现有库里的持仓与分红数据在新 IA 下需要归位到「我的 → 家庭资产 → 投资持仓」。需要确定：①是直接沿用现有数据（老用户开箱即用，但他们会看到一堆陌生模块），②还是新建一套五模块演示数据用于评审（看点更全，但会与真实数据混在一起）。</td>
+      </tr>
+      <tr>
+        <td><b>数据导出格式</b></td>
+        <td><span class="tag x">低</span></td>
+        <td>JSON（完整字段，便于日后迁移）/ CSV（账本流水，便于 Excel 分析）/ 照片压缩包。三者是否都要做，还是先只做 JSON。影响很小，可延到 S4 再定。</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="note">
+    本稿是设计评审版本，尚未编码。§11 中标注「极大 / 大」的三项（家庭共享、批次顺序、PC 端）会实质改变 S0 地基的设计，建议在开工前先定下来；标注「中 / 低」的可放到对应批次开始前再定。
+  </div>
+</section>
+
+<footer>
+  纯牛马人生手札 · 产品设计稿 v0.1 —— 在现有仓库内改造，移动端优先<br>
+  帮助你，也帮助每一位牛马，把日子过成有记录的日子。
+</footer>
+
+</div>
+
+<script>
+// ---------- 手机原型：tab 切换 ----------
+const tabs = Array.from(document.querySelectorAll('.p-tab'));
+const TAB_TITLE = { 'sc-journal':'手札', 'sc-ledger':'账本', 'sc-footprint':'足迹', 'sc-days':'日子', 'sc-mine':'我的' };
+
+tabs.forEach(t => t.addEventListener('click', () => showScreen(t.dataset.sc, false, t.dataset.t)));
+
+function showScreen(id, fromSub, title) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
+  document.querySelector('.p-body').scrollTop = 0;
+  document.getElementById('navTitle').textContent = title || TAB_TITLE[id] || '手札';
+  tabs.forEach(x => x.classList.remove('on'));
+  const hit = document.querySelector('.p-tab[data-sc="' + id + '"]');
+  if (hit) { hit.classList.add('on'); }
+  else {
+    // 三级页（如家庭资产）不在 tab 内，保留「我的」高亮，体现它挂在我的下面
+    const mine = document.querySelector('.p-tab[data-sc="sc-mine"]');
+    if (mine) mine.classList.add('on');
+  }
+}
+
+// ---------- 快捷新增弹层 ----------
+function toggleSheet(on) {
+  document.getElementById('sheet').classList.toggle('on', on);
+}
+
+// ---------- 足迹 / 日子的 segment ----------
+function segFoot(el, target) {
+  Array.from(el.parentElement.children).forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+  const group = target.indexOf('fp-') === 0 ? ['fp-trip','fp-event'] : ['dy-list','dy-cal'];
+  group.forEach(id => document.getElementById(id).classList.toggle('hidden', id !== target));
+}
+
+// ---------- 空状态切换 ----------
+function toggleJournalEmpty() {
+  const e = document.getElementById('journalEmpty');
+  const nowHidden = e.classList.toggle('hidden');
+  document.getElementById('journalList').classList.toggle('hidden', !nowHidden);
+}
+function toggleDaysEmpty() {
+  const e = document.getElementById('daysEmpty');
+  const nowHidden = e.classList.toggle('hidden');
+  document.getElementById('dy-list').classList.toggle('hidden', !nowHidden);
+}
+
+// ---------- 记账录入 demo ----------
+let flowType = 'out';
+function setFlow(t) {
+  flowType = t;
+  document.getElementById('ftOut').classList.toggle('on', t === 'out');
+  document.getElementById('ftIn').classList.toggle('on', t === 'in');
+  document.getElementById('curSym').textContent = t === 'out' ? '-¥' : '+¥';
+  clearToast();
+}
+function pickChip(el) {
+  Array.from(el.parentElement.children).forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+  clearToast();
+}
+function clearToast() {
+  document.getElementById('flowToast').classList.remove('on', 'suc', 'err');
+}
+function submitFlow() {
+  const raw = document.getElementById('amtInput').value.trim();
+  const t = document.getElementById('flowToast');
+  const v = parseFloat(raw);
+  t.classList.remove('suc', 'err');
+  if (!raw) {
+    t.textContent = '金额不能为空 —— 哪怕记 0.01 也算你今天活过。';
+    t.classList.add('on', 'err');
+    return;
+  }
+  if (isNaN(v) || v <= 0) {
+    t.textContent = '金额得大于 0。免费的东西不用记（但很可能是诈骗）。';
+    t.classList.add('on', 'err');
+    return;
+  }
+  if (v > 9999999.99) {
+    t.textContent = '超过上限 ¥9,999,999.99。有这钱就不用记了。';
+    t.classList.add('on', 'err');
+    return;
+  }
+  const chip = document.querySelector('#chipBox .chip.on');
+  const cat = chip ? chip.textContent.trim().replace(/^\S+\s+/, '') : '餐饮';
+  t.textContent = '又活过一天 +1 —— 已记下「' + cat + '」' + (flowType === 'out' ? '-' : '+') + '¥' + v.toFixed(2)
+    + '，立刻出现在手札流顶部。';
+  t.classList.add('on', 'suc');
+  document.getElementById('amtInput').value = '';
+}
+
+// ---------- 倒计时状态机 demo ----------
+const STAGE = {
+  '30': { big: '发薪日 · 距离还有 30 天', desc: '状态：临近 · 卡片数字用品牌色，不加额外装饰', tone: '「距离发薪日还有 30 天。」（克制，不加情绪）' },
+  '7':  { big: '发薪日 · 距离还有 7 天', desc: '状态：紧迫 · 卡片底色转浅暖色，文案带情绪', tone: '「距离发薪日还有 7 天。」（开始有情绪）' },
+  '1':  { big: '发薪日 · 距离还有 1 天', desc: '状态：紧迫 · 当天多档位重叠时只发一条消息（按最晚触发的档位）', tone: '「距离发薪日还有 1 天，撑住。」' },
+  '0':  { big: '发薪日 · 就是今天', desc: '状态：就是今天 · 全站最高视觉优先级，列表置顶', tone: '「发薪日到了。」（不加戏）' },
+  '-3': { big: '发薪日 · 已过去 3 天', desc: '状态：已过去 · 灰显沉底；若为重复规则的日子，则自动滚动到下一周期', tone: '「已经过去 3 天了。」（一次性事件回看时用）' }
+};
+function setStage(st, btn) {
+  document.querySelectorAll('.st-btns button').forEach(b => b.classList.remove('on'));
+  if (btn) btn.classList.add('on');
+  const d = STAGE[st] || STAGE['30'];
+  document.getElementById('stageBig').textContent = d.big;
+  document.getElementById('stageDesc').textContent = d.desc;
+  document.getElementById('stageTone').innerHTML = '文案基调：<i>' + d.tone + '</i>';
+  document.querySelectorAll('#stageTable tbody tr').forEach(tr => {
+    const hit = tr.dataset.st === st;
+    tr.classList.toggle('hl', hit);
+    tr.children[1].textContent = hit ? '触发' : '—';
+  });
+}
+setStage('30', document.querySelector('.st-btns button'));
+</script>
+</body>
+</html>
+

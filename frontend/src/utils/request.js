@@ -70,3 +70,37 @@ export const post = (url, data, opts = {}) => request({ url, method: 'POST', dat
 export const patch = (url, data, opts = {}) => request({ url, method: 'PATCH', data, ...opts })
 export const del = (url, data, opts = {}) => request({ url, method: 'DELETE', data, ...opts })
 export const put = (url, data, opts = {}) => request({ url, method: 'PUT', data, ...opts })
+
+/** 图片上传：uni.uploadFile 不走 request 的 JSON 链路，单独封装（统一解包包络） */
+export function upload(url, filePath, formData = {}) {
+  const token = uni.getStorageSync(TOKEN_KEY)
+  if (!token) {
+    redirectToLogin()
+    return Promise.reject({ code: 1002, msg: '未登录' })
+  }
+  return new Promise((resolve, reject) => {
+    uni.uploadFile({
+      url: BASE_URL + url,
+      filePath,
+      name: 'file',
+      formData,
+      header: { Authorization: 'Bearer ' + token },
+      timeout: 60000,
+      success: (res) => {
+        let body = {}
+        try {
+          body = typeof res.data === 'string' ? JSON.parse(res.data) : res.data
+        } catch (e) {
+          body = {}
+        }
+        if (body.code === 0) return resolve(body.data)
+        uni.showToast({ title: body.msg || '上传失败', icon: 'none' })
+        reject(body)
+      },
+      fail: (err) => {
+        uni.showToast({ title: '上传失败，请检查网络', icon: 'none' })
+        reject(err)
+      },
+    })
+  })
+}

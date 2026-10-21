@@ -75,6 +75,25 @@ def run_daily_job_with_session(session) -> None:
             log.info("scheduled reminders: users=%d", n)
     except Exception:
         log.exception("scheduled reminders failed")
+    # 人生手札：日子提醒（站内消息，幂等）+ 回收站到期销毁 + 消息中心 90 天清理
+    try:
+        from .services import notification_service, recycle_service
+        n = notification_service.run_daily_reminders(session)
+        if n:
+            log.info("countdown reminders: %d", n)
+    except Exception:
+        log.exception("countdown reminders failed")
+    try:
+        from .services import notification_service, recycle_service
+        n = recycle_service.purge_expired(session)
+        if n:
+            log.info("recycle purge: %d", n)
+        m = notification_service.cleanup_old(session)
+        if m:
+            session.commit()
+            log.info("notifications cleaned: %d", m)
+    except Exception:
+        log.exception("recycle purge failed")
 
 
 async def _loop() -> None:  # pragma: no cover - 后台循环

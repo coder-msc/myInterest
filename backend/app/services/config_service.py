@@ -172,6 +172,63 @@ SPECS: dict[str, dict] = {
     "user_submit": {
         "category": "用户提交", "type": _BOOL, "default": False,
         "label": "允许用户提交预案", "help": "开启后用户可在前端提交分红预案（进入待审核队列，由管理员审核）；关闭则用户端提交入口返回 403。"},
+
+    # ── 媒体存储（PRD §7.3 / M8） ────────────────────────────────
+    "media_provider": {
+        "category": "媒体存储", "type": _STR, "default": "local",
+        "label": "存储方式", "help": "local=本地磁盘（开发/H5 可用，小程序需切七牛）；kodo=七牛云 Kodo 对象存储。"},
+    "qiniu_access_key": {
+        "category": "媒体存储", "type": _STR, "default": "", "env_key": "XI_QINIU_AK",
+        "sensitive": True, "label": "七牛 AccessKey",
+        "help": "七牛云个人密钥 AK；与 SK、Bucket、绑定域名四项齐全才会真正走七牛上传。"},
+    "qiniu_secret_key": {
+        "category": "媒体存储", "type": _STR, "default": "", "env_key": "XI_QINIU_SK",
+        "sensitive": True, "label": "七牛 SecretKey",
+        "help": "七牛云个人密钥 SK；页面脱敏显示，留空保存表示不修改。"},
+    "qiniu_bucket": {
+        "category": "媒体存储", "type": _STR, "default": "", "env_key": "XI_QINIU_BUCKET",
+        "label": "七牛 Bucket 名称", "help": "存储空间名称，如 myjournal-photos。"},
+    "qiniu_domain": {
+        "category": "媒体存储", "type": _STR, "default": "", "env_key": "XI_QINIU_DOMAIN",
+        "label": "七牛绑定域名", "help": "绑定到该 Bucket 的 CDN 加速域名，必须带 https://，如 https://img.example.com。"},
+    "media_max_size_mb": {
+        "category": "媒体存储", "type": _INT, "default": 10, "min": 1, "max": 50,
+        "label": "单张图片上限(MB)", "help": "超过即拒绝上传；客户端会先压缩到最长边 1920px。"},
+    "media_max_per_ledger": {
+        "category": "媒体存储", "type": _INT, "default": 1, "min": 0, "max": 9,
+        "label": "账目照片上限", "help": "单条账目可关联的照片数量（小票用）。"},
+    "media_max_per_trip": {
+        "category": "媒体存储", "type": _INT, "default": 20, "min": 0, "max": 60,
+        "label": "行程照片上限", "help": "单个行程可关联的照片数量。"},
+    "media_max_per_event": {
+        "category": "媒体存储", "type": _INT, "default": 9, "min": 0, "max": 30,
+        "label": "大事件照片上限", "help": "单条人生大事件可关联的照片数量。"},
+
+    # ── 人生手札（PRD §7.1 / §7.5） ──────────────────────────────
+    "recycle_retain_days": {
+        "category": "人生手札", "type": _INT, "default": 30, "min": 1, "max": 365,
+        "label": "回收站保留天数", "help": "软删除条目在回收站保留的天数，到期由定时任务自动销毁（含关联照片）。"},
+    "reminder_enabled": {
+        "category": "人生手札", "type": _BOOL, "default": True,
+        "label": "提醒总开关", "help": "关闭后全站不再生成日子提醒（应急用）；已产生的站内消息不受影响。"},
+    "reminder_hour": {
+        "category": "人生手札", "type": _INT, "default": 8, "min": 0, "max": 23,
+        "label": "提醒发送时刻(时)", "help": "每日定点检查倒计时并按档位写站内消息的整点（默认 08:00）。"},
+    "module_ledger_enabled": {
+        "category": "人生手札", "type": _BOOL, "default": True,
+        "label": "模块灰度：账本", "help": "关闭后账本 tab 隐藏、接口返回 403，已产生的数据保留。"},
+    "module_days_enabled": {
+        "category": "人生手札", "type": _BOOL, "default": True,
+        "label": "模块灰度：日子", "help": "关闭后日子 tab 隐藏、接口返回 403，已产生的数据保留。"},
+    "module_trips_enabled": {
+        "category": "人生手札", "type": _BOOL, "default": True,
+        "label": "模块灰度：旅游", "help": "关闭后足迹·旅游入口隐藏、接口返回 403，已产生的数据保留。"},
+    "module_events_enabled": {
+        "category": "人生手札", "type": _BOOL, "default": True,
+        "label": "模块灰度：大事件", "help": "关闭后足迹·大事件入口隐藏、接口返回 403，已产生的数据保留。"},
+    "module_assets_enabled": {
+        "category": "人生手札", "type": _BOOL, "default": True,
+        "label": "模块灰度：家庭资产", "help": "关闭后「我的 → 家庭资产」入口隐藏、接口返回 403，已产生的数据保留。"},
 }
 
 # ── 进程内缓存 ─────────────────────────────────────────────────
