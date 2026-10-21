@@ -660,6 +660,74 @@ def seed_journal(session: Session, user: User) -> None:
           f"日子 {n_cd} 个 · 资产项 {n_asset} 项 · 盘点快照 {n_snap} 次")
 
 
+def seed_treehole(session: Session, user: User) -> None:
+    """造几条已审核通过的树洞发言，让公共频道不是空墙。
+
+    演示账号自己的发言保留 pending 状态，方便体验「先审后发」的完整链路。
+    """
+    from app.models import TreeholePost
+    from app.services.treehole_service import anon_code
+
+    for row in session.exec(select(TreeholePost)
+                            .where(TreeholePost.user_id == user.id)).all():
+        session.delete(row)
+    session.commit()
+
+    sample = [
+        ("今天加班到十点，回家路上买了份炒饭，坐在楼道里吃完才上楼。", 4),
+        ("月薪一万二，房租三千五，剩下的钱存起来的速度追不上想辞职的速度。", 30),
+        ("我妈打电话问我最近怎么样，我说挺好的，然后就哭了。", 52),
+        ("攒了两年终于够首付，结果房价又涨了。笑不出来。", 96),
+    ]
+    # 借用一个不存在的用户 id 生成“其他人”的固定代号，避免和演示账号重名
+    for i, (text, hours_ago) in enumerate(sample):
+        session.add(TreeholePost(
+            user_id=900000 + i,
+            anon_code=anon_code(900000 + i),
+            content=text,
+            status="approved",
+            created_at=stamp(hours_ago),
+        ))
+    session.commit()
+    print(f"  ✓ 树洞发言 {len(sample)} 条（已通过）")
+
+
+def seed_todos(session: Session, user: User) -> None:
+    """造几条待办：逾期 / 今天 / 明天 / 以后 / 没定日子 / 已完成各一条，覆盖列表全部分组。"""
+    from datetime import timedelta
+
+    from app.models import Todo
+
+    for row in session.exec(select(Todo).where(Todo.user_id == user.id)).all():
+        session.delete(row)
+    session.commit()
+
+    today = date.today()
+
+    def d(offset: int) -> str:
+        return (today + timedelta(days=offset)).isoformat()
+
+    sample = [
+        ("把上个月的报销单交了", d(-2), "发票在抽屉第二层", True, False, None),
+        ("下午三点跟产品对需求", d(0), None, True, False, None),
+        ("给爸妈打个电话", d(0), "问问体检结果", False, False, None),
+        ("续费宽带", d(1), None, False, False, None),
+        ("整理一下这季度的照片", d(9), "旅游那批还没归档", False, False, None),
+        ("想想要不要报个羽毛球班", None, None, False, False, None),
+        ("交房租", d(-1), None, False, True, stamp(26)),
+    ]
+    for title, due, note, important, done, done_at in sample:
+        session.add(Todo(user_id=user.id, title=title, due_date=due, note=note,
+                         important=important, done=done, done_at=done_at))
+    session.commit()
+    print(f"  ✓ 待办 {len(sample)} 条（含 1 条已完成）")
+
+
+def stamp(hours_ago: int) -> str:
+    from datetime import datetime, timedelta
+    return (datetime.now() - timedelta(hours=hours_ago)).strftime("%Y-%m-%d %H:%M:%S")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="造演示数据")
     parser.add_argument("--crawl", action="store_true",
@@ -701,6 +769,12 @@ def main() -> None:
 
         print("\n>>> 写入人生手札演示数据（账本 / 足迹 / 日子 / 家庭资产）...")
         seed_journal(session, user)
+
+        print("\n>>> 写入树洞演示发言（已审核通过）...")
+        seed_treehole(session, user)
+
+        print("\n>>> 写入待办演示数据...")
+        seed_todos(session, user)
 
     if args.crawl:
         os.environ.pop("XI_CRAWL_OFFLINE", None)

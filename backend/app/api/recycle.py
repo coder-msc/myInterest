@@ -13,7 +13,7 @@ from sqlmodel import Session, select
 
 from ..database import get_session
 from ..models import (AssetItem, AssetSnapshot, Countdown, EntryIndex, LedgerRecord,
-                      LifeEvent, MediaAsset, Trip, User)
+                      LifeEvent, MediaAsset, Todo, Trip, User)
 from ..services import entry_service, recycle_service
 from ..utils.errors import not_found, ok
 from .deps import get_current_user
@@ -55,6 +55,7 @@ def export_full(session: Session = Depends(get_session),
         "countdowns": [dump(r) for r in rows(Countdown)],
         "asset_items": [dump(r) for r in rows(AssetItem)],
         "asset_snapshots": [dump(r) for r in rows(AssetSnapshot)],
+        "todos": [dump(r) for r in rows(Todo)],
         "media": [{"id": m.id, "owner_type": m.owner_type, "owner_id": m.owner_id,
                    "mime": m.mime, "size": m.size, "created_at": m.created_at}
                   for m in rows(MediaAsset) if m.status == "normal"],

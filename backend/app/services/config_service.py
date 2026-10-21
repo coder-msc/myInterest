@@ -168,6 +168,21 @@ SPECS: dict[str, dict] = {
         "category": "通知与提醒", "type": _BOOL, "default": True,
         "label": "派息日前 3 天提醒", "help": "全局提醒总开关：开启后每日检查派息日在 3 天内及当天的预案，对开启了提醒的持仓用户发送提醒；关闭则全站不发送派息提醒。"},
 
+    # ── 通知推送（飞书群机器人） ────────────────────────────────
+    "feishu_webhook_url": {
+        "category": "通知推送", "type": _STR, "default": "", "env_key": "XI_FEISHU_WEBHOOK",
+        "sensitive": True, "label": "飞书群机器人 Webhook",
+        "help": "飞书群 → 设置 → 群机器人 → 自定义机器人 的 Webhook 地址；留空则全部推送静默跳过。"
+                "推送全部由后端发出，微信小程序无需把它加入合法域名。"},
+    "feishu_notify_enabled": {
+        "category": "通知推送", "type": _BOOL, "default": True,
+        "label": "启用飞书通知",
+        "help": "总开关；关闭后验证码、新用户、注销、树洞待审、用户反馈一律不推送，站内功能不受影响。"},
+    "feishu_notify_code": {
+        "category": "通知推送", "type": _BOOL, "default": True,
+        "label": "推送登录验证码",
+        "help": "验证码等同登录凭证，会以明文出现在群聊里；仅建议联调期开启，正式上线前关掉。"},
+
     # ── 用户提交 ────────────────────────────────────────────────
     "user_submit": {
         "category": "用户提交", "type": _BOOL, "default": False,
@@ -223,12 +238,18 @@ SPECS: dict[str, dict] = {
     "module_trips_enabled": {
         "category": "人生手札", "type": _BOOL, "default": True,
         "label": "模块灰度：旅游", "help": "关闭后足迹·旅游入口隐藏、接口返回 403，已产生的数据保留。"},
+    "module_todo_enabled": {
+        "category": "人生手札", "type": _BOOL, "default": True,
+        "label": "模块灰度：待办", "help": "关闭后「值得记 → 待办」入口隐藏、接口返回 403，已产生的待办保留。"},
     "module_events_enabled": {
         "category": "人生手札", "type": _BOOL, "default": True,
         "label": "模块灰度：大事件", "help": "关闭后足迹·大事件入口隐藏、接口返回 403，已产生的数据保留。"},
     "module_assets_enabled": {
         "category": "人生手札", "type": _BOOL, "default": True,
         "label": "模块灰度：家庭资产", "help": "关闭后「我的 → 家庭资产」入口隐藏、接口返回 403，已产生的数据保留。"},
+    "module_treehole_enabled": {
+        "category": "人生手札", "type": _BOOL, "default": True,
+        "label": "模块灰度：树洞", "help": "关闭后「发现 → 树洞」入口隐藏、接口返回 403，已产生的发言保留。"},
 }
 
 # ── 进程内缓存 ─────────────────────────────────────────────────
@@ -322,6 +343,11 @@ def validate_and_store_text(key: str, value) -> str:
                                "「港股采集白名单」需为逗号分隔的 5 位数字代码，如 00700,09988",
                                status=422)
             text = ",".join(parts)
+        elif key == "feishu_webhook_url" and text:
+            if not text.startswith(("http://", "https://")):
+                raise AppError(Codes.VALIDATION,
+                               "「飞书群机器人 Webhook」需以 http:// 或 https:// 开头",
+                               status=422)
         elif key == "scheduler_hours":
             try:
                 hours = [int(h) for h in text.split(",") if h.strip()]

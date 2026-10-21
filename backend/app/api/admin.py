@@ -15,13 +15,15 @@ from sqlmodel import Session, func, select
 
 from ..database import get_session
 from ..models import (AdminOperationLog, Announcement, DividendSchedule,
-                      ExchangeRate, Feedback, Holding, Lot, Security, TaxRule, User)
+                      ExchangeRate, Feedback, Holding, Lot, Security, TaxRule,
+                      TreeholePost, User)
 from ..schemas import (AnnouncementCreate, AnnouncementUpdate, ConfigUpdateIn,
                        FeedbackHandleIn, RateManualIn, ScheduleAdminCreate,
                        ScheduleBatchApproveIn, ScheduleRejectIn, SecurityCreateIn,
-                       TaxRuleUpdate)
+                       TaxRuleUpdate, TreeholeRejectIn)
 from ..services import (config_service, crawler_service, dividend_service, fx_service,
-                        lots_service, schedule_service, security_service)
+                        lots_service, schedule_service, security_service,
+                        treehole_service)
 from ..utils.errors import AppError, Codes, not_found, ok
 from ..utils.timeutil import add_days, days_ago_iso, now_str, today_str
 from .deps import get_admin_user, require_super_admin
@@ -666,6 +668,21 @@ def admin_test_mail(body: dict, request: Request,
     return ok({"success": success, "message": message})
 
 
+@router.post("/notify/test")
+def admin_test_notify(request: Request, session: Session = Depends(get_session),
+                      admin: User = Depends(require_super_admin)):
+    """给当前配置的飞书群机器人发一条测试消息。super_admin only。
+
+    同步等结果（5 秒超时），好让后台立刻知道地址是否可用；失败也落操作日志。
+    """
+    from ..services import feishu_service
+    success, message = feishu_service.notify_test()
+    _log(session, admin, request, "notify.test", "feishu", None,
+         {"success": success, "message": message})
+    session.commit()
+    return ok({"success": success, "message": message})
+
+
 # ---------- 11.5 公告 ----------
 def _announcement_out(a: Announcement) -> dict:
     return {"id": a.id, "title": a.title, "content": a.content,
@@ -756,6 +773,90 @@ def handle_feedback(fid: int, body: FeedbackHandleIn, request: Request,
     session.commit()
     session.refresh(f)
     return ok(_feedback_admin_out(session, f))
+
+
+# ---------- 树洞审核（发现 · 公共频道）----------
+TREEHOLE_FILTERS = ("pending", "approved", "rejected", "hidden", "visited")
+
+
+def _treehole_admin_out(session: Session, p: TreeholePost) -> dict:
+    u = session.get(User, p.user_id)
+    data = treehole_service.out(p, mine=True)
+    data.update({
+        "user_id": p.user_id,
+        "username": u.username if u else None,
+        "email": _mask_email(u.email) if u else None,
+        "reports": p.report_count,
+        "reason": p.reason,
+        "reviewed_at": p.reviewed_at,
+        "reviewed_by": p.reviewed_by,
+    })
+    return data
+
+
+@router.get("/treehole")
+def admin_list_treehole(status: str = "pending", page: int = 1, page_size: int = 20,
+                        session: Session = Depends(get_session),
+                        admin: User = Depends(get_admin_user)):
+    stmt = select(TreeholePost)
+    if status == "visited":
+        stmt = stmt.where(TreeholePost.status.in_(("approved", "rejected", "hidden")))  # type: ignore
+    elif status:
+        stmt = stmt.where(TreeholePost.status == status)
+    rows = list(session.exec(
+        stmt.order_by(TreeholePost.id.desc())).all())  # type: ignore
+    total = len(rows)
+    start = (page - 1) * page_size
+    pending = session.exec(
+        select(func.count()).select_from(TreeholePost)
+        .where(TreeholePost.status == "pending")  # type: ignore
+    ).one()
+    return ok({"items": [_treehole_admin_out(session, p) for p in rows[start:start + page_size]],
+               "total": total, "page": page, "page_size": page_size,
+               "pending_count": pending})
+
+
+@router.post("/treehole/{pid}/approve")
+def approve_treehole(pid: int, request: Request,
+                     session: Session = Depends(get_session),
+                     admin: User = Depends(get_admin_user)):
+    p = session.get(TreeholePost, pid)
+    if p is None:
+        raise not_found()
+    treehole_service.review(session, p, admin.id, "approved")
+    _log(session, admin, request, "treehole.approve", "treehole", p.id,
+         {"anon_code": p.anon_code})
+    session.commit()
+    return ok(_treehole_admin_out(session, p))
+
+
+@router.post("/treehole/{pid}/reject")
+def reject_treehole(pid: int, body: TreeholeRejectIn, request: Request,
+                    session: Session = Depends(get_session),
+                    admin: User = Depends(get_admin_user)):
+    p = session.get(TreeholePost, pid)
+    if p is None:
+        raise not_found()
+    treehole_service.review(session, p, admin.id, "rejected", body.reason.strip())
+    _log(session, admin, request, "treehole.reject", "treehole", p.id,
+         {"reason": p.reason})
+    session.commit()
+    return ok(_treehole_admin_out(session, p))
+
+
+@router.post("/treehole/{pid}/hide")
+def hide_treehole(pid: int, body: TreeholeRejectIn, request: Request,
+                  session: Session = Depends(get_session),
+                  admin: User = Depends(get_admin_user)):
+    """下架已通过但被举报 / 事后发现问题的发言。"""
+    p = session.get(TreeholePost, pid)
+    if p is None:
+        raise not_found()
+    treehole_service.review(session, p, admin.id, "hidden", body.reason.strip())
+    _log(session, admin, request, "treehole.hide", "treehole", p.id,
+         {"reason": p.reason})
+    session.commit()
+    return ok(_treehole_admin_out(session, p))
 
 
 # ---------- 11.7 操作日志（只读）----------

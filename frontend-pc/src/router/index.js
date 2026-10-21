@@ -25,6 +25,7 @@ const routes = [
       { path: 'schedules', name: 'adminSchedules', component: () => import('../views/admin/Schedules.vue'), meta: { title: '分红预案审核' } },
       { path: 'securities', name: 'adminSecurities', component: () => import('../views/admin/Securities.vue'), meta: { title: '证券与白名单' } },
       { path: 'users', name: 'adminUsers', component: () => import('../views/admin/Users.vue'), meta: { title: '用户管理' } },
+      { path: 'treehole', name: 'adminTreehole', component: () => import('../views/admin/Treehole.vue'), meta: { title: '树洞审核' } },
       { path: 'login-methods', name: 'adminLoginMethods', component: () => import('../views/admin/LoginMethods.vue'), meta: { title: '登录方式' } },
       { path: 'config', name: 'adminConfig', component: () => import('../views/admin/Config.vue'), meta: { title: '汇率与税率' } },
       { path: 'notice', name: 'adminNotice', component: () => import('../views/admin/Notice.vue'), meta: { title: '公告与反馈' } },

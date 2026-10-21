@@ -76,50 +76,7 @@
       </block>
     </block>
 
-    <!-- ===== 月历 ===== -->
-    <block v-else-if="tab === 'calendar'">
-      <view class="cal-nav">
-        <text class="cn-arrow" @click="shiftCal(-1)">‹</text>
-        <text class="cn-label">{{ calYear }} 年 {{ calMonth }} 月</text>
-        <text class="cn-arrow" @click="shiftCal(1)">›</text>
-      </view>
-
-      <view class="calendar">
-        <view class="week-head">
-          <text v-for="w in weeks" :key="w" class="wh-item">{{ w }}</text>
-        </view>
-        <view class="cal-grid">
-          <view v-for="(cell, i) in calendarCells" :key="i"
-                :class="['cal-cell', !cell.day ? 'blank' : '', cell.isToday ? 'today' : '',
-                         cell.items.length ? 'has' : '', selectedDay === cell.day ? 'sel' : '']"
-                @click="cell.day && selectDay(cell.day)">
-            <text v-if="cell.day" class="cc-day">{{ cell.day }}</text>
-            <view v-if="cell.items.length" class="cc-dots">
-              <view v-for="(it, j) in cell.items.slice(0, 3)" :key="j" class="cc-dot"></view>
-            </view>
-          </view>
-        </view>
-      </view>
-
-      <view class="cal-list">
-        <view class="section-title">
-          <text>{{ calMonth }} 月 {{ selectedDay || '—' }} 日</text>
-          <view class="st-right">
-            <text class="section-extra">{{ dayItems.length }} 个日子</text>
-            <text class="cal-add" @click="openSheet()">＋ 新增</text>
-          </view>
-        </view>
-        <view v-if="!dayItems.length" class="cal-empty">这天没有安排，安心摸鱼。</view>
-        <view v-for="cd in dayItems" :key="cd.id" class="cal-item" @click="openSheet(cd)">
-          <text class="ci-emoji">{{ cd.emoji }}</text>
-          <view class="ci-main">
-            <text class="ci-name">{{ cd.name }}</text>
-            <text class="ci-sub">{{ ruleLabel(cd.repeat_rule) }} · {{ cd.state_label }}</text>
-          </view>
-          <text class="ci-arrow">›</text>
-        </view>
-      </view>
-    </block>
+    <!-- ===== 日程（已移至「发现 → 日历」） ===== -->
 
     <!-- ===== 旅游 ===== -->
     <block v-else-if="tab === 'trip'">
@@ -156,6 +113,72 @@
               <text class="tc-pill" v-if="t.cost">💰 ¥{{ money(t.cost) }}</text>
             </view>
           </view>
+        </view>
+      </block>
+    </block>
+
+    <!-- ===== 待办 ===== -->
+    <block v-else-if="tab === 'todo'">
+      <!-- 快速添加：输入 + 回车/＋，日期用胶囊选 -->
+      <view class="todo-add">
+        <input class="ta-input" v-model="quickTitle" maxlength="60"
+               placeholder="要做点什么？" confirm-type="done" @confirm="quickAdd" />
+        <view :class="['ta-btn', quickTitle.trim() ? 'on' : '']" @click="quickAdd">＋</view>
+      </view>
+      <view class="quick-days">
+        <view v-for="d in quickDayOptions" :key="d.label"
+              :class="['qd-chip', quickDue === d.value ? 'on' : '']"
+              @click="quickDue = d.value">{{ d.label }}</view>
+        <picker mode="date" :value="quickCustomDate" @change="quickPickDate">
+          <view :class="['qd-chip', quickCustom ? 'on' : '']">
+            {{ quickCustom ? '📅 ' + quickDue.slice(5) : '📅 选日期' }}
+          </view>
+        </picker>
+      </view>
+
+      <view v-if="todoLoading && !todos.length" class="loading-text">牛马拉磨中…</view>
+
+      <view v-else-if="!todos.length" class="empty">
+        <text class="empty-title">清单是空的，活不是。</text>
+        <text class="empty-sub">把脑子里悬着的事写下来，才能安心摸鱼。</text>
+        <view class="empty-btn" @click="openTodo(null)">写第一条待办</view>
+      </view>
+
+      <block v-else>
+        <view class="todo-sum">
+          <text class="sum-open"><text class="sum-num">{{ todoStats.open }}</text> 项未完成</text>
+          <text v-if="todoStats.today" class="sum-pill">今天 {{ todoStats.today }}</text>
+          <text v-if="todoStats.overdue" class="sum-pill danger">逾期 {{ todoStats.overdue }}</text>
+        </view>
+
+        <view v-if="!todoStats.open" class="todo-allclear">
+          <text class="tac-emoji">🎉</text>
+          <text class="tac-text">清单清了，今天的牛马暂时自由。</text>
+        </view>
+
+        <view v-for="g in todoGroups" :key="g.key" class="todo-group">
+          <view class="tg-head" @click="g.key === 'done' && (showDone = !showDone)">
+            <text :class="['tg-dot', g.tone]"></text>
+            <text class="tg-label">{{ g.label }}</text>
+            <text class="tg-count">{{ g.count }}</text>
+            <text v-if="g.key === 'done'" class="tg-fold">{{ showDone ? '收起' : '展开' }}</text>
+          </view>
+          <block v-if="g.key !== 'done' || showDone">
+            <view v-for="t in g.items" :key="t.id" class="todo-row" :class="{ done: t.done }"
+                  @click="openTodo(t)">
+              <view :class="['tr-check', t.done ? 'on' : '']" @click.stop="toggleTodo(t)">
+                <text v-if="t.done" class="tr-tick">✓</text>
+              </view>
+              <view class="tr-main">
+                <text class="tr-title">{{ t.title }}</text>
+                <view v-if="t.due_text || t.note" class="tr-meta">
+                  <text v-if="t.due_text" :class="['tr-due', t.overdue ? 'over' : '']">{{ t.due_text }}</text>
+                  <text v-if="t.note" class="tr-note">{{ t.note }}</text>
+                </view>
+              </view>
+              <text v-if="t.important" class="tr-star">★</text>
+            </view>
+          </block>
         </view>
       </block>
     </block>
@@ -197,74 +220,11 @@
 
     <view style="height: 180rpx"></view>
 
-    <!-- ===== 日子表单 ===== -->
-    <view v-if="sheetVisible" class="sheet-mask" @click="sheetVisible = false">
-      <view class="sheet" @click.stop>
-        <view class="sheet-head">
-          <text class="sheet-title">{{ editingId ? '编辑日子' : '记一个重要日子' }}</text>
-          <text class="sheet-close" @click="sheetVisible = false">✕</text>
-        </view>
-
-        <view class="field">
-          <text class="f-label">名称</text>
-          <input class="f-input" v-model="form.name" maxlength="20" placeholder="发薪日 / 妈妈生日 / 结婚纪念日" />
-        </view>
-
-        <view class="field">
-          <text class="f-label">{{ form.repeat_rule === 'anniversary' ? '起始日' : '日期' }}</text>
-          <picker mode="date" :value="form.date" @change="e => form.date = e.detail.value">
-            <view class="f-input">{{ form.date }}</view>
-          </picker>
-        </view>
-
-        <view class="field">
-          <text class="f-label">重复方式</text>
-          <view class="opt-chips">
-            <view v-for="r in rules" :key="r.value"
-                  :class="['opt-chip', form.repeat_rule === r.value ? 'on' : '']"
-                  @click="form.repeat_rule = r.value">{{ r.label }}</view>
-          </view>
-          <text v-if="form.repeat_rule === 'anniversary'" class="rule-tip">
-            填已经发生的那一天，会显示「已经 N 周年 / N 天」，每年这一天照常提醒。
-          </text>
-          <text v-if="form.repeat_rule === 'yearly_lunar'" class="rule-tip">
-            按农历保存，每年公历日期会自动换算（春节、生日都可以）。
-          </text>
-        </view>
-
-        <view class="field">
-          <text class="f-label">提前提醒</text>
-          <view class="opt-chips">
-            <view v-for="o in offsets" :key="o.value"
-                  :class="['opt-chip', form.remind_offsets.includes(o.value) ? 'on' : '']"
-                  @click="toggleOffset(o.value)">{{ o.label }}</view>
-          </view>
-          <text class="rule-tip">提醒以站内消息形式发送，在「提醒中心」查看。</text>
-        </view>
-
-        <view class="field">
-          <text class="f-label">图标</text>
-          <view class="opt-chips">
-            <view v-for="em in emojis" :key="em"
-                  :class="['opt-chip', 'emoji-chip', form.emoji === em ? 'on' : '']"
-                  @click="form.emoji = em">{{ em }}</view>
-          </view>
-        </view>
-
-        <view class="field">
-          <text class="f-label">备注</text>
-          <input class="f-input" v-model="form.note" maxlength="100" placeholder="要准备什么（可不填）" />
-        </view>
-
-        <view class="pin-row" @click="form.pinned = !form.pinned">
-          <text class="pin-label">置顶显示在手札首页</text>
-          <text :class="['pin-switch', form.pinned ? 'on' : '']">{{ form.pinned ? '已开启' : '未开启' }}</text>
-        </view>
-
-        <button class="btn-primary submit" :loading="saving" @click="save">保存</button>
-        <view v-if="editingId" class="del-link" @click="removeCurrent">删除这个日子</view>
-      </view>
-    </view>
+    <!-- ===== 日子表单（值得记与日历共用） ===== -->
+    <CountdownSheet :visible="sheetVisible" :item="editingItem"
+                    @close="sheetVisible = false"
+                    @saved="onCountdownSaved"
+                    @deleted="onCountdownSaved" />
 
     <!-- ===== 旅游表单 ===== -->
     <view v-if="tripSheet" class="sheet-mask" @click="tripSheet = false">
@@ -379,6 +339,50 @@
       </view>
     </view>
 
+    <!-- ===== 待办表单 ===== -->
+    <view v-if="todoSheet" class="sheet-mask" @click="todoSheet = false">
+      <view class="sheet" @click.stop>
+        <view class="sheet-head">
+          <text class="sheet-title">{{ editingTodoId ? '编辑待办' : '新建待办' }}</text>
+          <text class="sheet-close" @click="todoSheet = false">✕</text>
+        </view>
+
+        <view class="field">
+          <text class="f-label">要做什么</text>
+          <input class="f-input" v-model="todoForm.title" maxlength="60"
+                 placeholder="例如：把报销单交了" />
+        </view>
+
+        <view class="field">
+          <text class="f-label">哪天做（可不填）</text>
+          <view class="f-row">
+            <picker class="date-picker" mode="date" :value="todoForm.due_date || today"
+                    @change="e => todoForm.due_date = e.detail.value">
+              <view class="f-input">{{ todoForm.due_date || '不设日期' }}</view>
+            </picker>
+            <text v-if="todoForm.due_date" class="clear-date" @click="todoForm.due_date = ''">清除</text>
+          </view>
+        </view>
+
+        <view class="field">
+          <text class="f-label">备注（可不填）</text>
+          <textarea class="f-area" v-model="todoForm.note" maxlength="200"
+                    placeholder="补充点细节…" auto-height />
+        </view>
+
+        <view class="pin-row">
+          <text class="pin-label">标为重要（同一天里排前面）</text>
+          <text :class="['pin-switch', todoForm.important ? 'on' : '']"
+                @click="todoForm.important = !todoForm.important">
+            {{ todoForm.important ? '★ 已标重要' : '☆ 标为重要' }}
+          </text>
+        </view>
+
+        <button class="btn-primary submit" :loading="saving" @click="saveTodo">保存</button>
+        <view v-if="editingTodoId" class="del-link" @click="removeTodo">删除这条</view>
+      </view>
+    </view>
+
     <!-- #ifdef H5 --><CustomTab current="/pages/worth/worth" /><!-- #endif -->
   </view>
 </template>
@@ -387,19 +391,21 @@
 import { computed, nextTick, reactive, ref } from 'vue'
 import { onShow, onPullDownRefresh } from '@dcloudio/uni-app'
 import {
-  apiCountdowns, apiCreateCountdown, apiUpdateCountdown, apiDeleteCountdown,
-  apiTrips, apiCreateTrip, apiUpdateTrip, apiEvent, apiEvents,
-  apiCreateEvent, apiUpdateEvent, apiDeleteEvent, apiUploadMedia,
+  apiCountdowns, apiUpdateCountdown,
+  apiTrips, apiCreateTrip, apiUpdateTrip,
+  apiTodos, apiCreateTodo, apiUpdateTodo, apiDeleteTodo,
+  apiEvent, apiEvents, apiCreateEvent, apiUpdateEvent, apiDeleteEvent, apiUploadMedia,
 } from '@/api'
 import { mediaUrl } from '@/utils/config'
 import WebLayout from '@/components/WebLayout.vue'
 import CustomTab from '@/components/CustomTab.vue'
+import CountdownSheet from '@/components/CountdownSheet.vue'
 
 /** 顶部大项。新增模块时在这里加一项，并在下方加对应的内容块即可。 */
 const segments = [
-  { key: 'countdown', label: '倒计时', emoji: '🎯' },
-  { key: 'calendar', label: '月历', emoji: '📅' },
+  { key: 'countdown', label: '计时', emoji: '🎯' },
   { key: 'trip', label: '旅游', emoji: '🧳' },
+  { key: 'todo', label: '待办', emoji: '✅' },
   { key: 'event', label: '大事件', emoji: '🎉' },
 ]
 
@@ -413,62 +419,29 @@ const saving = ref(false)
 // ---- 日子 ----
 const items = ref([])
 const sheetVisible = ref(false)
-const editingId = ref(null)
-const today = new Date().toISOString().slice(0, 10)
-const form = reactive({
-  name: '', date: today, repeat_rule: 'yearly', remind_offsets: [7, 0],
-  emoji: '🎯', note: '', pinned: false,
-})
-const rules = [
-  { value: 'once', label: '只一次' },
-  { value: 'yearly', label: '每年' },
-  { value: 'monthly', label: '每月' },
-  { value: 'yearly_lunar', label: '每年农历' },
-  { value: 'anniversary', label: '纪念日' },
-]
-const offsets = [
-  { value: 30, label: '提前 30 天' },
-  { value: 7, label: '提前 7 天' },
-  { value: 1, label: '提前 1 天' },
-  { value: 0, label: '当天' },
-]
-const emojis = ['🎯', '🎂', '💍', '💰', '🏖️', '🎓', '🏥', '🏠', '🐣', '🌟']
-const weeks = ['一', '二', '三', '四', '五', '六', '日']
+const editingItem = ref(null)
+/** 本地日期（不用 toISOString：东八区凌晨会算成前一天） */
+function localDate(offset = 0) {
+  const d = new Date()
+  d.setDate(d.getDate() + offset)
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${d.getFullYear()}-${m}-${day}`
+}
+function shiftDate(iso, days) {
+  const d = new Date(iso + 'T00:00:00')
+  d.setDate(d.getDate() + days)
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${d.getFullYear()}-${m}-${day}`
+}
+/** 用 ref：tabBar 页面会常驻，跨过零点后 onShow 要能把「今天」推到新的一天 */
+const today = ref(localDate())
 
 const topItem = computed(() => {
   const active = items.value.filter(i => !i.is_past)
   const pinned = active.filter(i => i.pinned)
   return (pinned.length ? pinned : active).slice().sort((a, b) => a.days_left - b.days_left)[0] || null
-})
-
-// ---- 月历 ----
-const calYear = ref(new Date().getFullYear())
-const calMonth = ref(new Date().getMonth() + 1)
-const selectedDay = ref(new Date().getDate())
-const monthItems = ref([])
-const monthKey = computed(() => `${calYear.value}-${String(calMonth.value).padStart(2, '0')}`)
-
-const calendarCells = computed(() => {
-  const first = new Date(calYear.value, calMonth.value - 1, 1)
-  const offset = (first.getDay() + 6) % 7 // 周一为第一列
-  const total = new Date(calYear.value, calMonth.value, 0).getDate()
-  const cells = []
-  for (let i = 0; i < offset; i++) cells.push({ day: 0, items: [] })
-  const todayStr = new Date().toISOString().slice(0, 10)
-  for (let d = 1; d <= total; d++) {
-    const ds = `${monthKey.value}-${String(d).padStart(2, '0')}`
-    cells.push({
-      day: d,
-      isToday: ds === todayStr,
-      items: monthItems.value.filter(i => i.next_date === ds),
-    })
-  }
-  return cells
-})
-
-const dayItems = computed(() => {
-  const ds = `${monthKey.value}-${String(selectedDay.value).padStart(2, '0')}`
-  return monthItems.value.filter(i => i.next_date === ds)
 })
 
 // ---- 旅游 ----
@@ -479,9 +452,86 @@ const editingTripId = ref(null)
 const photoLimit = computed(() => tripMeta.photo_limit || 20)
 const totalPhotos = computed(() => trips.value.reduce((a, t) => a + (t.photo_count || 0), 0))
 const tripForm = reactive({
-  destinations: '', start_date: today, end_date: today, companions: '',
+  destinations: '', start_date: today.value, end_date: today.value, companions: '',
   cost: '', content: '', photos: [],
 })
+
+// ---- 待办 ----
+const todos = ref([])
+const todoLoading = ref(false)
+const todoStats = reactive({ open: 0, done: 0, today: 0, overdue: 0, total: 0 })
+const quickTitle = ref('')
+const quickDue = ref(today.value)
+const todoSheet = ref(false)
+const editingTodoId = ref(null)
+const showDone = ref(false)
+const todoForm = reactive({ title: '', due_date: '', note: '', important: false })
+
+/** 以 today 为基准偏移，跨零点后胶囊能跟着重算（computed 无依赖会永久缓存） */
+const quickDayOptions = computed(() => [
+  { label: '今天', value: today.value },
+  { label: '明天', value: shiftDate(today.value, 1) },
+  { label: '不设日期', value: '' },
+])
+const quickCustom = computed(() =>
+  !!quickDue.value && !quickDayOptions.value.some(d => d.value === quickDue.value))
+const quickCustomDate = computed(() => quickDue.value || today.value)
+
+/** 分组：逾期 → 今天 → 明天 → 以后 → 没定日子 → 已完成（可折叠） */
+const todoGroups = computed(() => {
+  const buckets = { overdue: [], today: [], tomorrow: [], later: [], nodate: [] }
+  for (const t of todos.value) {
+    if (!t.done) buckets[t.bucket].push(t)
+  }
+  const meta = [
+    ['overdue', '逾期', 'danger'],
+    ['today', '今天', 'brand'],
+    ['tomorrow', '明天', 'info'],
+    ['later', '以后', 'info'],
+    ['nodate', '没定日子', 'muted'],
+  ]
+  const groups = meta
+    .filter(([key]) => buckets[key].length)
+    .map(([key, label, tone]) => ({
+      key, label, tone, items: buckets[key], count: buckets[key].length,
+    }))
+  const doneItems = todos.value.filter(t => t.done)
+  if (doneItems.length) {
+    groups.push({
+      key: 'done', label: '已完成', tone: 'done',
+      items: doneItems, count: todoStats.done || doneItems.length,
+    })
+  }
+  return groups
+})
+
+/** 给一条待办补上「分组 + 人话日期」，模板只负责展示 */
+function decorateTodo(t) {
+  let bucket = 'nodate'
+  let dueText = ''
+  let overdue = false
+  if (t.due_date) {
+    const diff = Math.round(
+      (new Date(t.due_date + 'T00:00:00') - new Date(localDate() + 'T00:00:00')) / 86400000)
+    if (t.done) {
+      dueText = `${Number(t.due_date.slice(5, 7))}月${Number(t.due_date.slice(8, 10))}日`
+    } else if (diff < 0) {
+      bucket = 'overdue'
+      overdue = true
+      dueText = `逾期 ${-diff} 天`
+    } else if (diff === 0) {
+      bucket = 'today'
+      dueText = '今天'
+    } else if (diff === 1) {
+      bucket = 'tomorrow'
+      dueText = '明天'
+    } else {
+      bucket = 'later'
+      dueText = diff === 2 ? '后天' : `${Number(t.due_date.slice(5, 7))}月${Number(t.due_date.slice(8, 10))}日`
+    }
+  }
+  return { ...t, bucket, due_text: dueText, overdue }
+}
 
 // ---- 大事件 ----
 const eventGroups = ref([])
@@ -491,7 +541,7 @@ const eventPhotoLimit = ref(9)
 const eventSheet = ref(false)
 const editingEventId = ref(null)
 const eventForm = reactive({
-  title: '', event_date: today, category: '里程碑', emoji: '🏆',
+  title: '', event_date: today.value, category: '里程碑', emoji: '🏆',
   mood: '', content: '', photos: [],
 })
 const moods = ['😀', '😌', '🥲', '🔥', '🌧️', '❤️']
@@ -553,7 +603,7 @@ function applyPendingTab() {
 const touch = { x: 0, y: 0, at: 0, ok: false }
 
 function anySheetOpen() {
-  return sheetVisible.value || tripSheet.value || eventSheet.value
+  return sheetVisible.value || tripSheet.value || todoSheet.value || eventSheet.value
 }
 
 function onTouchStart(e) {
@@ -591,15 +641,18 @@ function onTouchEnd(e) {
 
 // ---------- 数据加载 ----------
 /** 每个分段是否已取过数、取数时间；用于切回时复用缓存，避免每次都闪 loading */
-const loaded = reactive({ countdown: false, trip: false, event: false })
-const loadedAt = reactive({ countdown: 0, trip: 0, event: 0 })
+const loaded = reactive({ countdown: false, trip: false, todo: false, event: false })
+const loadedAt = reactive({ countdown: 0, trip: 0, todo: 0, event: 0 })
 const CACHE_TTL = 30000
 
 /** 同一接口并发只发一次（onShow、切分段、预取可能同时触发） */
 const inflight = new Map()
 function once(key, fn) {
   if (inflight.has(key)) return inflight.get(key)
-  const p = fn().finally(() => inflight.delete(key))
+  const p = fn().finally(() => {
+    // 只清掉自己：强制刷新时这个 key 可能已经被更新的请求占用
+    if (inflight.get(key) === p) inflight.delete(key)
+  })
   inflight.set(key, p)
   return p
 }
@@ -618,16 +671,6 @@ function loadCountdowns() {
   })
 }
 
-function loadMonth() {
-  const reqMonth = monthKey.value
-  return once('month:' + reqMonth, async () => {
-    const data = await apiCountdowns({ month: reqMonth })
-    // 期间又翻了月份就不覆盖，避免旧月份数据闪一下
-    if (reqMonth !== monthKey.value) return
-    monthItems.value = data.items || []
-  })
-}
-
 function loadTrips() {
   return once('trip', async () => {
     tripLoading.value = true
@@ -641,6 +684,28 @@ function loadTrips() {
       loadedAt.trip = Date.now()
     } finally {
       tripLoading.value = false
+    }
+  })
+}
+
+/** 每次请求的序号：增删改后强制重拉时，避免上一个更早的请求把新结果覆盖掉 */
+let todoSeq = 0
+
+function loadTodos(force = false) {
+  // 写操作必须 force：once 会复用「写之前发出、还没回来」的旧请求，列表就会少一条
+  if (force) inflight.delete('todo')
+  return once('todo', async () => {
+    const seq = ++todoSeq
+    todoLoading.value = true
+    try {
+      const data = await apiTodos()
+      if (seq !== todoSeq) return
+      todos.value = (data.items || []).map(decorateTodo)
+      Object.assign(todoStats, data.stats || {})
+      loaded.todo = true
+      loadedAt.todo = Date.now()
+    } finally {
+      if (seq === todoSeq) todoLoading.value = false
     }
   })
 }
@@ -664,11 +729,11 @@ function loadEvents() {
 
 /** 切到某分段时按需取数：有缓存就不再打扰用户 */
 function ensureTabData(key, force = false) {
-  if (key === 'calendar') return loadMonth()
   const fresh = loaded[key] && Date.now() - loadedAt[key] < CACHE_TTL
   if (!force && fresh) return
   if (key === 'countdown') return loadCountdowns()
   if (key === 'trip') return loadTrips()
+  if (key === 'todo') return loadTodos()
   if (key === 'event') return loadEvents()
 }
 
@@ -676,77 +741,27 @@ function ensureTabData(key, force = false) {
 function refresh(force = true) {
   ensureTabData(tab.value, force)
   if (tab.value !== 'trip' && loaded.trip) loadTrips()
+  if (tab.value !== 'todo' && loaded.todo) loadTodos()
   if (tab.value !== 'event' && loaded.event) loadEvents()
 }
 
 function prefetch() {
   setTimeout(() => {
     if (!loaded.trip) loadTrips()
+    if (!loaded.todo) loadTodos()
     if (!loaded.event) loadEvents()
   }, 350)
 }
 
 // ---------- 日子 ----------
-function shiftCal(delta) {
-  const idx = calYear.value * 12 + (calMonth.value - 1) + delta
-  calYear.value = Math.floor(idx / 12)
-  calMonth.value = (idx % 12) + 1
-  selectedDay.value = 1
-  loadMonth()
-}
-function selectDay(d) { selectedDay.value = d }
-
 function openSheet(cd) {
-  if (cd) {
-    editingId.value = cd.id
-    form.name = cd.name
-    form.date = cd.base_date
-    form.repeat_rule = cd.repeat_rule
-    form.remind_offsets = [...(cd.remind_offsets || [])]
-    form.emoji = cd.emoji || '🎯'
-    form.note = cd.note || ''
-    form.pinned = !!cd.pinned
-  } else {
-    editingId.value = null
-    form.name = ''
-    form.date = today
-    form.repeat_rule = 'yearly'
-    form.remind_offsets = [7, 0]
-    form.emoji = '🎯'
-    form.note = ''
-    form.pinned = false
-  }
+  editingItem.value = cd || null
   sheetVisible.value = true
 }
 
-function toggleOffset(v) {
-  const i = form.remind_offsets.indexOf(v)
-  if (i >= 0) form.remind_offsets.splice(i, 1)
-  else form.remind_offsets.push(v)
-}
-
-async function save() {
-  if (!form.name.trim()) return uni.showToast({ title: '给它起个名字吧', icon: 'none' })
-  saving.value = true
-  const payload = {
-    name: form.name.trim(), date: form.date, repeat_rule: form.repeat_rule,
-    remind_offsets: form.remind_offsets, emoji: form.emoji,
-    note: form.note || null,
-  }
-  try {
-    if (editingId.value) {
-      await apiUpdateCountdown(editingId.value, { ...payload, pinned: form.pinned })
-    } else {
-      const cd = await apiCreateCountdown(payload)
-      if (form.pinned) await apiUpdateCountdown(cd.id, { pinned: true })
-    }
-    sheetVisible.value = false
-    uni.showToast({ title: '记下了', icon: 'none' })
-    await loadCountdowns()
-    if (tab.value === 'calendar') loadMonth()
-  } catch (e) { /* toast 已统一 */ } finally {
-    saving.value = false
-  }
+function onCountdownSaved() {
+  sheetVisible.value = false
+  loadCountdowns()
 }
 
 async function togglePin(cd) {
@@ -754,24 +769,6 @@ async function togglePin(cd) {
     await apiUpdateCountdown(cd.id, { pinned: !cd.pinned })
     await loadCountdowns()
   } catch (e) { /* toast 已统一 */ }
-}
-
-function removeCurrent() {
-  if (!editingId.value) return
-  const id = editingId.value
-  uni.showModal({
-    title: '真的删？',
-    content: '它不会记仇。',
-    confirmText: '删掉',
-    confirmColor: '#C0555F',
-    success: async (res) => {
-      if (!res.confirm) return
-      await apiDeleteCountdown(id)
-      sheetVisible.value = false
-      await loadCountdowns()
-      if (tab.value === 'calendar') loadMonth()
-    },
-  })
 }
 
 // ---------- 旅游 ----------
@@ -787,8 +784,8 @@ function openTrip(t) {
     tripForm.photos = t.photos && t.photos.length ? t.photos : []
   } else {
     tripForm.destinations = ''
-    tripForm.start_date = today
-    tripForm.end_date = today
+    tripForm.start_date = today.value
+    tripForm.end_date = today.value
     tripForm.companions = ''
     tripForm.cost = ''
     tripForm.content = ''
@@ -830,6 +827,76 @@ async function saveTrip() {
 
 function goTrip(id) { uni.navigateTo({ url: `/pages/trips/detail?id=${id}` }) }
 
+// ---------- 待办 ----------
+async function quickAdd() {
+  const title = quickTitle.value.trim()
+  if (!title) return uni.showToast({ title: '先写要做什么', icon: 'none' })
+  try {
+    await apiCreateTodo({ title, due_date: quickDue.value || null })
+    quickTitle.value = ''
+    await loadTodos(true)
+  } catch (e) { /* toast 已统一 */ }
+}
+
+function quickPickDate(e) {
+  quickDue.value = e.detail.value
+}
+
+function openTodo(t) {
+  editingTodoId.value = t ? t.id : null
+  todoForm.title = t ? t.title : ''
+  todoForm.due_date = t ? (t.due_date || '') : (quickDue.value || '')
+  todoForm.note = t ? (t.note || '') : ''
+  todoForm.important = t ? !!t.important : false
+  todoSheet.value = true
+}
+
+async function toggleTodo(t) {
+  try {
+    await apiUpdateTodo(t.id, { done: !t.done })
+    await loadTodos(true)
+  } catch (e) { /* toast 已统一 */ }
+}
+
+async function saveTodo() {
+  const title = todoForm.title.trim()
+  if (!title) return uni.showToast({ title: '写点什么吧', icon: 'none' })
+  saving.value = true
+  const payload = {
+    title,
+    due_date: todoForm.due_date || null,
+    note: todoForm.note.trim() || null,
+    important: todoForm.important,
+  }
+  try {
+    if (editingTodoId.value) await apiUpdateTodo(editingTodoId.value, payload)
+    else await apiCreateTodo(payload)
+    todoSheet.value = false
+    await loadTodos(true)
+  } catch (e) { /* toast 已统一 */ } finally {
+    saving.value = false
+  }
+}
+
+function removeTodo() {
+  if (!editingTodoId.value) return
+  const id = editingTodoId.value
+  uni.showModal({
+    title: '删掉这条？',
+    content: '待办没有回收站，删了就是删了。',
+    confirmText: '删掉',
+    confirmColor: '#C0555F',
+    success: async (res) => {
+      if (!res.confirm) return
+      try {
+        await apiDeleteTodo(id)
+        todoSheet.value = false
+        await loadTodos(true)
+      } catch (e) { /* toast 已统一 */ }
+    },
+  })
+}
+
 // ---------- 大事件 ----------
 async function openEvent(e) {
   editingEventId.value = e ? e.id : null
@@ -844,7 +911,7 @@ async function openEvent(e) {
     eventForm.photos = detail.photos || []
   } else {
     eventForm.title = ''
-    eventForm.event_date = today
+    eventForm.event_date = today.value
     eventForm.category = '里程碑'
     eventForm.emoji = '🏆'
     eventForm.mood = ''
@@ -919,6 +986,12 @@ function removeEvent() {
 }
 
 onShow(() => {
+  // 常驻页面跨零点：把「今天」和待办的快速默认日期推进到新的一天
+  const d = localDate()
+  if (d !== today.value) {
+    if (quickDue.value === today.value) quickDue.value = d
+    today.value = d
+  }
   refresh()
   applyPendingTab()
   prefetch()
@@ -926,7 +999,7 @@ onShow(() => {
 onPullDownRefresh(async () => {
   refresh()
   try {
-    await Promise.all([loadCountdowns(), loadTrips(), loadEvents()])
+    await Promise.all([loadCountdowns(), loadTrips(), loadTodos(), loadEvents()])
   } finally {
     uni.stopPullDownRefresh()
   }
@@ -1029,41 +1102,6 @@ onPullDownRefresh(async () => {
   background: var(--brand); color: #fff; border-radius: 9999rpx; font-size: 26rpx;
 }
 
-/* 月历 */
-.cal-nav { display: flex; align-items: center; justify-content: center; gap: 40rpx; margin-bottom: 20rpx; }
-.cn-arrow { font-size: 40rpx; color: var(--ink2); padding: 0 16rpx; }
-.cn-label { font-size: 30rpx; font-weight: 700; color: var(--ink); }
-
-.calendar { background: #fff; border: 1rpx solid var(--line2); border-radius: 24rpx; padding: 20rpx 16rpx; }
-.week-head { display: flex; }
-.wh-item { flex: 1; text-align: center; font-size: 20rpx; color: var(--ink3); padding-bottom: 12rpx; }
-.cal-grid { display: flex; flex-wrap: wrap; }
-.cal-cell {
-  width: 14.28%; height: 92rpx; display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 4rpx; border-radius: 14rpx;
-}
-.cal-cell.blank { visibility: hidden; }
-.cc-day { font-size: 26rpx; color: var(--ink); }
-.cal-cell.today .cc-day { color: var(--brand-d); font-weight: 700; }
-.cal-cell.has { background: var(--brand-l); }
-.cal-cell.sel { background: var(--brand); }
-.cal-cell.sel .cc-day { color: #fff; }
-.cc-dots { display: flex; gap: 4rpx; }
-.cc-dot { width: 8rpx; height: 8rpx; border-radius: 50%; background: var(--brand); }
-.cal-cell.sel .cc-dot { background: #fff; }
-
-.cal-list { margin-top: 26rpx; }
-.cal-empty { text-align: center; font-size: 22rpx; color: var(--ink3); padding: 30rpx 0; }
-.cal-item {
-  display: flex; align-items: center; gap: 16rpx; background: #fff;
-  border: 1rpx solid var(--line2); border-radius: 18rpx; padding: 20rpx 22rpx; margin-bottom: 12rpx;
-}
-.ci-emoji { font-size: 32rpx; }
-.ci-main { flex: 1; display: flex; flex-direction: column; gap: 4rpx; }
-.ci-name { font-size: 27rpx; font-weight: 600; color: var(--ink); }
-.ci-sub { font-size: 20rpx; color: var(--ink3); }
-.ci-arrow { font-size: 30rpx; color: var(--ink3); }
-
 /* 旅游统计条 */
 .trip-stats {
   display: flex; align-items: center; background: #fff; border: 1rpx solid var(--line2);
@@ -1163,6 +1201,88 @@ onPullDownRefresh(async () => {
 }
 .submit { margin-top: 28rpx; }
 .del-link { text-align: center; color: var(--danger); font-size: 24rpx; padding: 24rpx 0 0; }
+.date-picker { flex: 1; }
+.clear-date { font-size: 23rpx; color: var(--ink3); padding-left: 20rpx; }
+
+/* 待办 */
+.todo-add {
+  display: flex; align-items: center; gap: 14rpx; background: #fff;
+  border: 1rpx solid var(--line2); border-radius: 9999rpx;
+  padding: 10rpx 10rpx 10rpx 30rpx; margin-bottom: 16rpx;
+}
+.ta-input { flex: 1; font-size: 27rpx; height: 56rpx; color: var(--ink); }
+.ta-btn {
+  width: 64rpx; height: 64rpx; flex-shrink: 0; border-radius: 9999rpx;
+  background: var(--line2); color: var(--ink3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 34rpx; transition: background-color .16s ease, color .16s ease;
+}
+.ta-btn.on { background: var(--brand); color: #fff; }
+
+.quick-days { display: flex; flex-wrap: wrap; gap: 12rpx; margin-bottom: 24rpx; }
+.qd-chip {
+  padding: 10rpx 22rpx; border-radius: 9999rpx; background: #fff;
+  border: 1rpx solid var(--line2); color: var(--ink2); font-size: 22rpx;
+}
+.qd-chip.on { background: var(--brand-l); border-color: #F3CDB3; color: var(--brand-d); font-weight: 600; }
+
+.todo-sum { display: flex; flex-wrap: wrap; align-items: center; gap: 14rpx; padding: 0 6rpx 18rpx; }
+.sum-open { font-size: 22rpx; color: var(--ink3); }
+.sum-num { font-size: 26rpx; font-weight: 700; color: var(--ink); }
+.sum-pill {
+  font-size: 19rpx; color: var(--ink2); background: var(--line2);
+  padding: 3rpx 12rpx; border-radius: 8rpx;
+}
+.sum-pill.danger { color: var(--danger); background: var(--danger-l); }
+
+.todo-allclear {
+  display: flex; align-items: center; gap: 14rpx; padding: 26rpx 28rpx;
+  background: var(--ok-l); border: 1rpx solid #CFE6DB; border-radius: 20rpx;
+  margin-bottom: 24rpx;
+}
+.tac-emoji { font-size: 34rpx; }
+.tac-text { font-size: 24rpx; color: var(--ok); }
+
+.todo-group { margin-bottom: 24rpx; }
+.tg-head { display: flex; align-items: center; gap: 10rpx; padding: 0 6rpx 12rpx; }
+.tg-dot { width: 12rpx; height: 12rpx; border-radius: 50%; background: var(--ink3); }
+.tg-dot.overdue { background: var(--danger); }
+.tg-dot.today { background: var(--brand); }
+.tg-dot.tomorrow { background: var(--info); }
+.tg-dot.later { background: #B7C7D6; }
+.tg-dot.done { background: var(--ok); }
+.tg-label { font-size: 24rpx; font-weight: 600; color: var(--ink2); }
+.tg-count { font-size: 20rpx; color: var(--ink3); }
+.tg-fold { margin-left: auto; font-size: 20rpx; color: var(--ink3); padding: 4rpx 6rpx; }
+
+.todo-row {
+  display: flex; align-items: flex-start; gap: 16rpx; background: #fff;
+  border: 1rpx solid var(--line2); border-radius: 18rpx;
+  padding: 22rpx; margin-bottom: 12rpx;
+}
+.todo-row.done { opacity: 0.72; }
+.tr-check {
+  width: 38rpx; height: 38rpx; border-radius: 50%; border: 2rpx solid var(--line);
+  flex-shrink: 0; margin-top: 4rpx;
+  display: flex; align-items: center; justify-content: center;
+  transition: background-color .16s ease, border-color .16s ease;
+}
+.tr-check.on { background: var(--ok); border-color: var(--ok); }
+.tr-tick { color: #fff; font-size: 24rpx; line-height: 1; }
+.tr-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6rpx; }
+.tr-title { font-size: 28rpx; line-height: 1.5; color: var(--ink); word-break: break-all; }
+.todo-row.done .tr-title { color: var(--ink3); text-decoration: line-through; }
+.tr-meta { display: flex; align-items: center; gap: 12rpx; min-width: 0; }
+.tr-due {
+  font-size: 19rpx; color: var(--ink3); background: var(--line2);
+  padding: 2rpx 10rpx; border-radius: 6rpx; flex-shrink: 0;
+}
+.tr-due.over { color: var(--danger); background: var(--danger-l); }
+.tr-note {
+  flex: 1; min-width: 0; font-size: 20rpx; color: var(--ink3);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.tr-star { font-size: 24rpx; color: var(--gold); flex-shrink: 0; padding-left: 6rpx; }
 
 @media (min-width: 768px) {
   .page { max-width: 720px; margin: 0 auto; }

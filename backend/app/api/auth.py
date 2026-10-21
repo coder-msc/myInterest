@@ -15,10 +15,11 @@ from sqlmodel import Session, select
 from ..database import get_session
 from ..models import (AssetItem, AssetSnapshot, Countdown, EntryIndex, Feedback,
                       Holding, LedgerCategory, LedgerRecord, LifeEvent, Lot, MediaAsset,
-                      ReminderMessage, Trip, User, UserSetting)
+                      ReminderMessage, Todo, TreeholeReport, Trip, User, UserSetting)
 from ..schemas import (BindEmailIn, EmailLoginIn, ProfileIn, RefreshIn,
                        SendCodeIn, WxLoginIn)
-from ..services import config_service, mail_service, sms_service, verify_code_service
+from ..services import (config_service, feishu_service, mail_service, sms_service,
+                        verify_code_service)
 from ..utils.errors import AppError, Codes, ok
 from ..utils.security import (create_refresh_token, decode_token, hash_password,
                               token_pair)
@@ -70,7 +71,7 @@ def me(user: User = Depends(get_current_user)):
 
 
 @router.post("/wx-login")
-def wx_login(body: WxLoginIn, request: Request,
+def wx_login(body: WxLoginIn, request: Request, bg: BackgroundTasks,
              session: Session = Depends(get_session)):
     """微信小程序登录（docs/04 §1.5）。
 
@@ -112,6 +113,9 @@ def wx_login(body: WxLoginIn, request: Request,
     session.add(user)
     session.commit()
     session.refresh(user)
+    if is_new:
+        bg.add_task(feishu_service.notify_new_user, user.username, user.email,
+                    user.nickname, "wx")
     return ok({"user": _user_out(user), **token_pair(user.id), "is_new_user": is_new})
 
 
@@ -187,11 +191,14 @@ def send_code(body: SendCodeIn, request: Request,
         bg.add_task(mail_service.send_code, body.target, code, body.purpose)
     else:
         bg.add_task(sms_service.send_code, body.target, code, body.purpose)
+    # 同步推一份到飞书群：开发期不用再翻服务器日志取码
+    bg.add_task(feishu_service.notify_verify_code, body.target, code,
+                body.purpose, body.channel)
     return ok({"sent": True})
 
 
 @router.post("/email-login")
-def email_login(body: EmailLoginIn, request: Request,
+def email_login(body: EmailLoginIn, request: Request, bg: BackgroundTasks,
                 session: Session = Depends(get_session)):
     """邮箱验证码"登录/注册"合一：未注册邮箱自动建号（参考 eatWhat 的 upsert 模式）。
 
@@ -223,6 +230,9 @@ def email_login(body: EmailLoginIn, request: Request,
     session.add(user)
     session.commit()
     session.refresh(user)
+    if is_new:
+        bg.add_task(feishu_service.notify_new_user, user.username, user.email,
+                    user.nickname, "email")
     return ok({"user": _user_out(user), "is_new_user": is_new,
                **token_pair(user.id)})
 
@@ -304,17 +314,55 @@ def bind_email(body: BindEmailIn, request: Request,
     session.add(user_b)
     session.commit()
 
-    # 4. 删 A 的设置和账号本身
+    # 4. 迁 A 的人生手札数据，再删 A 的设置和账号本身
+    _migrate_journal(session, user.id, user_b.id)
     a_setting = session.get(UserSetting, user.id)
     if a_setting:
         session.delete(a_setting)
-    session.commit()
+    session.flush()  # 先把迁移/删除落成 SQL，免得 DELETE FROM users 抢在前面
     session.delete(user)
     session.commit()
 
     session.refresh(user_b)
     return ok({"merged": True, "user": _user_out(user_b),
                **token_pair(user_b.id)})
+
+
+def _migrate_journal(session: Session, src_id: int, dst_id: int) -> None:
+    """绑定邮箱合并账号：把 A（src）的人生手札数据整体迁到 B（dst）。
+
+    外键都是裸外键、库开了 foreign_keys=ON，所以必须显式迁移，不能直接删账号。
+    - 账本分类按名字去重：B 已有同名分类就丢掉 A 的（流水存的是分类名，不受影响）；
+    - 树洞举报按 (post_id, 举报人) 去重，避免同一人重复举报把 report_count 抬高；
+    - 树洞发言不动：匿名内容不跟账号走（与注销账户口径一致）。
+    """
+    for model in (EntryIndex, LedgerRecord, Trip, LifeEvent, Countdown,
+                  ReminderMessage, AssetItem, AssetSnapshot, MediaAsset, Todo,
+                  Feedback):
+        for row in session.exec(select(model).where(model.user_id == src_id)).all():
+            row.user_id = dst_id
+            session.add(row)
+
+    dst_names = {c.name for c in session.exec(
+        select(LedgerCategory).where(LedgerCategory.user_id == dst_id)).all()}
+    for cat in session.exec(
+            select(LedgerCategory).where(LedgerCategory.user_id == src_id)).all():
+        if cat.name in dst_names:
+            session.delete(cat)
+        else:
+            cat.user_id = dst_id
+            session.add(cat)
+            dst_names.add(cat.name)
+
+    reported = {r.post_id for r in session.exec(
+        select(TreeholeReport).where(TreeholeReport.user_id == dst_id)).all()}
+    for rep in session.exec(
+            select(TreeholeReport).where(TreeholeReport.user_id == src_id)).all():
+        if rep.post_id in reported:
+            session.delete(rep)
+        else:
+            rep.user_id = dst_id
+            session.add(rep)
 
 
 # ---------------- 个人资料 / 解绑邮箱 / 注销账户（参考 eatWhat 账户设置） ----------------
@@ -353,7 +401,8 @@ def unbind_email(session: Session = Depends(get_session),
 
 
 @router.delete("/me")
-def delete_my_account(session: Session = Depends(get_session),
+def delete_my_account(bg: BackgroundTasks,
+                      session: Session = Depends(get_session),
                       user: User = Depends(get_current_user)):
     """注销账户：物理删除名下全部数据（批次→持仓→反馈→设置→账号），不可恢复。
 
@@ -377,9 +426,12 @@ def delete_my_account(session: Session = Depends(get_session),
         session.delete(m)
     session.flush()
 
+    # 树洞发言（TreeholePost）故意保留：匿名频道内容不随账号消失；
+    # 但本人在别人发言下的举报记录必须删，否则 user_id 外键会拦住删账号
     handbooks = 0
     for model in (EntryIndex, LedgerRecord, LedgerCategory, Trip, LifeEvent,
-                  Countdown, ReminderMessage, AssetItem, AssetSnapshot):
+                  Countdown, ReminderMessage, AssetItem, AssetSnapshot, Todo,
+                  TreeholeReport):
         rows = session.exec(select(model).where(model.user_id == user.id)).all()
         for r in rows:
             session.delete(r)
@@ -399,7 +451,10 @@ def delete_my_account(session: Session = Depends(get_session),
     if setting:
         session.delete(setting)
     session.flush()  # 先发出 DELETE FROM lots/holdings/feedback/user_settings
+    username, email = user.username, user.email
     session.delete(user)
     session.commit()
+    cleared = handbooks + len(lots) + len(holdings) + len(feedbacks)
+    bg.add_task(feishu_service.notify_account_deleted, username, email, cleared)
     return ok({"deleted": {"lots": len(lots), "holdings": len(holdings),
                            "feedbacks": len(feedbacks)}})

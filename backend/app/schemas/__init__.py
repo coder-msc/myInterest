@@ -332,3 +332,32 @@ class AssetItemUpdate(BaseModel):
     currency: Optional[Literal["CNY", "USD", "HKD"]] = None
     note: Optional[str] = Field(default=None, max_length=100)
     repay_date: Optional[Date] = None
+
+
+# ---------- 待办（值得记 · 待办）----------
+class TodoCreate(BaseModel):
+    title: str = Field(min_length=1, max_length=60)
+    due_date: Optional[Date] = None
+    note: Optional[str] = Field(default=None, max_length=200)
+    important: bool = False
+
+
+class TodoUpdate(BaseModel):
+    title: Optional[str] = Field(default=None, min_length=1, max_length=60)
+    due_date: Optional[Date] = None
+    note: Optional[str] = Field(default=None, max_length=200)
+    important: Optional[bool] = None
+    done: Optional[bool] = None
+
+
+# ---------- 树洞（发现 · 公共频道）----------
+class TreeholeCreate(BaseModel):
+    content: str = Field(min_length=2, max_length=200)
+
+
+class TreeholeReportIn(BaseModel):
+    reason: Optional[str] = Field(default=None, max_length=100)
+
+
+class TreeholeRejectIn(BaseModel):
+    reason: str = Field(min_length=1, max_length=100)

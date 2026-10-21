@@ -121,7 +121,17 @@
               <!-- 普通字符串 -->
               <el-input v-else v-model="formModel[item.key]" :disabled="!canWrite" style="width: 320px" />
             </div>
-            <div class="cfg-help">{{ item.help }}</div>
+            <div class="cfg-help">
+              {{ item.help }}
+              <div v-if="item.key === 'feishu_webhook_url' && canWrite" class="cfg-test">
+                <el-button size="small" type="primary" plain :loading="testingNotify"
+                           title="测试的是已保存的地址，改完地址请先保存再测"
+                           @click="testNotify">测试已保存地址</el-button>
+                <span v-if="testResult" :class="['cfg-test-res', { fail: !testResult.ok }]">
+                  {{ testResult.text }}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -158,7 +168,7 @@
 import { onMounted, reactive, ref, computed } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { apiAdminRates, apiAdminCreateRate, apiAdminRefreshRates, apiAdminTaxRules, apiAdminUpdateTaxRule,
-  apiAdminConfig, apiAdminUpdateConfig, apiAdminResetConfig } from '../../api'
+  apiAdminConfig, apiAdminUpdateConfig, apiAdminResetConfig, apiAdminTestNotify } from '../../api'
 import { marketMap } from '../../utils/constants'
 import { useUserStore } from '../../store/user'
 
@@ -181,6 +191,8 @@ const curName = { USD: '美元', HKD: '港币' }
 const configGroups = ref([])          // [{ category, items: [{key,label,help,type,min,max,overridden,value,...}] }]
 const configLoading = ref(false)
 const cfgSaving = ref(false)
+const testingNotify = ref(false)
+const testResult = ref(null)          // { ok, text }
 const formModel = reactive({})        // key → 当前编辑值（敏感项初始为空串）
 const sensitiveKeys = new Set()       // 敏感配置 key（av_api_key/wx_secret）
 
@@ -250,6 +262,20 @@ async function saveConfig() {
     applyGroups(groups)
     ElMessage.success('配置已保存')
   } catch (e) { /* toast 已统一 */ } finally { cfgSaving.value = false }
+}
+
+// 用已保存的 Webhook 发一条测试：敏感项输入框是空的，必须走后端读库里的值
+async function testNotify() {
+  testingNotify.value = true
+  testResult.value = null
+  try {
+    const r = await apiAdminTestNotify()
+    testResult.value = r.success
+      ? { ok: true, text: '已发送，去群里看看' }
+      : { ok: false, text: `失败：${r.message}` }
+  } catch (e) {
+    testResult.value = { ok: false, text: '请求失败' }
+  } finally { testingNotify.value = false }
 }
 
 async function resetCfg(item) {
@@ -355,4 +381,7 @@ onMounted(() => { loadRates(); loadTax(); loadConfig() })
   padding: 9px 4px; border-bottom: 1px dashed #e2e8f0; }
 .cfg-label { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #334155; font-weight: 500; }
 .cfg-help { font-size: 12px; color: #94a3b8; line-height: 1.5; }
+.cfg-test { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.cfg-test-res { font-size: 12px; color: #0f766e; }
+.cfg-test-res.fail { color: #dc2626; }
 </style>

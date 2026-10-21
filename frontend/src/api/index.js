@@ -111,6 +111,12 @@ export const apiCreateTrip = (payload) => post('/api/trips', payload)
 export const apiUpdateTrip = (id, payload) => patch(`/api/trips/${id}`, payload)
 export const apiDeleteTrip = (id) => del(`/api/trips/${id}`)
 
+// ---------- 值得记 · 待办 ----------
+export const apiTodos = (params = {}) => get('/api/todos', params)
+export const apiCreateTodo = (payload) => post('/api/todos', payload)
+export const apiUpdateTodo = (id, payload) => patch(`/api/todos/${id}`, payload)
+export const apiDeleteTodo = (id) => del(`/api/todos/${id}`)
+
 // ---------- 足迹 · 大事件 ----------
 export const apiEvents = () => get('/api/events')
 export const apiEvent = (id) => get(`/api/events/${id}`)
@@ -148,3 +154,12 @@ export const apiDeleteNotification = (id) => del(`/api/notifications/${id}`)
 export const apiRecycleBin = () => get('/api/recycle-bin')
 export const apiRestoreRecycle = (type, id) => post(`/api/recycle-bin/${type}/${id}/restore`)
 export const apiExportFull = () => get('/api/export/full')
+
+// ---------- 树洞（发现 · 公共频道） ----------
+export const apiTreeholeFeed = (params = {}) => get('/api/treehole', params)
+export const apiTreeholeMine = () => get('/api/treehole/mine')
+export const apiTreeholeQuota = () => get('/api/treehole/quota')
+export const apiCreateTreeholePost = (content) => post('/api/treehole', { content })
+export const apiDeleteTreeholePost = (id) => del(`/api/treehole/${id}`)
+export const apiReportTreeholePost = (id, reason) =>
+  post(`/api/treehole/${id}/report`, { reason })

@@ -87,7 +87,8 @@ async def validation_handler(_request: Request, exc: RequestValidationError):
 # ---------- 路由 ----------
 from .api import (accounts, admin, assets, auth, calendar, community, countdowns,  # noqa: E402
                   dividends, events, holdings, journal, ledger, lots, media,
-                  notifications, recycle, schedules, settings, stats, system, trips)
+                  notifications, recycle, schedules, settings, stats, system, todos,
+                  treehole, trips)
 
 app.include_router(auth.router)
 app.include_router(holdings.router)
@@ -107,10 +108,12 @@ app.include_router(journal.router)
 app.include_router(ledger.router)
 app.include_router(countdowns.router)
 app.include_router(trips.router)
+app.include_router(todos.router)
 app.include_router(events.router)
 app.include_router(assets.router)
 app.include_router(notifications.router)
 app.include_router(recycle.router)
+app.include_router(treehole.router)
 
 
 @app.get("/api/health")

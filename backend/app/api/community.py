@@ -1,10 +1,11 @@
 """公告与反馈用户端接口（docs/04 §十）。"""
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, BackgroundTasks, Depends
 from sqlmodel import Session, select
 
 from ..database import get_session
 from ..models import Announcement, Feedback, User
 from ..schemas import FeedbackCreate
+from ..services import feishu_service
 from ..utils.errors import ok
 from .deps import get_current_user
 
@@ -32,12 +33,14 @@ def list_announcements(session: Session = Depends(get_session)):
 
 
 @router.post("/feedback")
-def create_feedback(body: FeedbackCreate, session: Session = Depends(get_session),
+def create_feedback(body: FeedbackCreate, bg: BackgroundTasks,
+                    session: Session = Depends(get_session),
                     user: User = Depends(get_current_user)):
     fb = Feedback(user_id=user.id, content=body.content, contact=body.contact)
     session.add(fb)
     session.commit()
     session.refresh(fb)
+    bg.add_task(feishu_service.notify_feedback, user.username, fb.content, fb.contact)
     return ok(feedback_out(fb))
 
 

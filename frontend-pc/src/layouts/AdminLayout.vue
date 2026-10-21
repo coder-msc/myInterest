@@ -79,6 +79,12 @@ const menus = [
   },
   { path: '/admin/users', label: '用户管理', icon: '👥' },
   {
+    label: '内容运营', icon: '🌳',
+    children: [
+      { path: '/admin/treehole', label: '树洞审核' },
+    ],
+  },
+  {
     label: '系统设置', icon: '⚙️',
     children: [
       { path: '/admin/login-methods', label: '系统参数配置' },

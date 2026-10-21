@@ -101,8 +101,17 @@ export const apiAdminFeedback = (params) => get('/api/admin/feedback', params)
 export const apiAdminHandleFeedback = (id, payload) => httpPatch(`/api/admin/feedback/${id}`, payload)
 export const apiAdminLogs = (params) => get('/api/admin/logs', params)
 
+// ---------- 树洞审核 ----------
+export const apiAdminTreehole = (params) => get('/api/admin/treehole', params)
+export const apiAdminApproveTreehole = (id) => post(`/api/admin/treehole/${id}/approve`)
+export const apiAdminRejectTreehole = (id, reason) =>
+  post(`/api/admin/treehole/${id}/reject`, { reason })
+export const apiAdminHideTreehole = (id, reason) =>
+  post(`/api/admin/treehole/${id}/hide`, { reason })
+
 // ---------- 系统配置（仅 super_admin 可写，admin 只读） ----------
 export const apiAdminConfig = () => get('/api/admin/config')
 export const apiAdminUpdateConfig = (items) => put('/api/admin/config', { items })
 export const apiAdminResetConfig = (key) => del(`/api/admin/config/${key}`)
 export const apiAdminTestMail = (to) => post('/api/admin/test-mail', { to })
+export const apiAdminTestNotify = () => post('/api/admin/notify/test')

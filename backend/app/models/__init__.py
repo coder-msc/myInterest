@@ -16,6 +16,8 @@ from .reminder_message import ReminderMessage
 from .security import Security
 from .system_config import SystemConfig
 from .tax_rule import TaxRule
+from .todo import Todo
+from .treehole import TreeholePost, TreeholeReport
 from .trip import Trip
 from .user import User
 from .user_setting import UserSetting
@@ -46,4 +48,7 @@ __all__ = [
     "ReminderMessage",
     "AssetItem",
     "AssetSnapshot",
+    "TreeholePost",
+    "TreeholeReport",
+    "Todo",
 ]
