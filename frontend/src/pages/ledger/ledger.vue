@@ -256,9 +256,6 @@ async function load() {
     if (data.last_category) form.category = data.last_category.name
   } finally {
     loading.value = false
-    // #ifdef MP-WEIXIN || MP-ALIPAY
-    uni.stopPullDownRefresh()
-    // #endif
   }
 }
 
@@ -372,7 +369,16 @@ onShow(() => {
   if (tab.value === 'stats') switchStats()
   load()
 })
-onPullDownRefresh(load)
+onPullDownRefresh(async () => {
+  // 兜底：任何请求卡死也要在 8 秒内把小程序原生转圈收掉
+  const guard = setTimeout(() => uni.stopPullDownRefresh(), 8000)
+  try {
+    await load()
+  } finally {
+    clearTimeout(guard)
+    uni.stopPullDownRefresh()
+  }
+})
 </script>
 
 <style scoped>

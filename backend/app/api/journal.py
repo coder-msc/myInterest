@@ -69,14 +69,31 @@ def home(page: int = Query(default=1, ge=1),
 
 
 def _asset_card(session: Session, user_id: int):
-    """家庭资产快捷卡：仅在已有资产数据时出现（低频入口的兜底存在感，PRD §M1）。"""
+    """家庭资产总览卡：仅在已有资产数据时出现（低频入口的兜底存在感，PRD §M1）。
+
+    手札首页只给「一眼看懂家底」的浓缩版：净值、总资产/总负债、近几次盘点趋势；
+    明细和条目编辑都在「值得记 · 盘点」里。
+    """
     from ..services import config_service
     if not config_service.get_bool("module_assets_enabled"):
         return None
     ov = asset_service.overview(session, user_id)
     if not ov["has_data"]:
         return None
-    return {"net_worth": ov["net_worth"], "last_snapshot": ov["last_snapshot"]}
+    snaps = ov["snapshots"][-6:]
+    last = ov["last_snapshot"]
+    prev = snaps[-2] if len(snaps) >= 2 else None
+    return {
+        "net_worth": ov["net_worth"],
+        "total_assets": ov["total_assets"],
+        "total_liabilities": ov["total_liabilities"],
+        "last_snapshot": last,
+        "snapshot_count": len(ov["snapshots"]),
+        # 近 6 次盘点，给首页画迷你趋势柱；无快照时为空
+        "trend": [{"date": s["snapshot_date"], "net_worth": s["net_worth"]} for s in snaps],
+        # 相对上一次盘点的净值变化
+        "delta": round(ov["net_worth"] - prev["net_worth"], 2) if prev else None,
+    }
 
 
 @router.get("/feed")

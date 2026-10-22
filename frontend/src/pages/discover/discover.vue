@@ -18,15 +18,6 @@
     <view :class="['seg-body', slideClass]" @touchstart="onTouchStart" @touchend="onTouchEnd" @touchcancel="onTouchCancel">
       <!-- 工具 -->
       <block v-if="tab === 'tools'">
-        <view class="cal-entry" @click="openCalendar">
-          <view class="ce-icon">📅</view>
-          <view class="ce-main">
-            <text class="ce-title">日历</text>
-            <text class="ce-sub">{{ calendarHint }}</text>
-          </view>
-          <text class="ce-arrow">›</text>
-        </view>
-
         <view class="hero">
           <text class="hero-title">算清楚，再决定。</text>
           <text class="hero-sub">所有计算只在你手机上完成，不上传、不留存。</text>
@@ -68,10 +59,9 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onMounted, ref } from 'vue'
+import { computed, nextTick, ref } from 'vue'
 import { onPageScroll } from '@dcloudio/uni-app'
 import { groupedTools } from '@/utils/tools'
-import { apiCountdowns } from '@/api'
 import WebLayout from '@/components/WebLayout.vue'
 import CustomTab from '@/components/CustomTab.vue'
 import TreeholePanel from '@/components/TreeholePanel.vue'
@@ -88,26 +78,6 @@ const treeholeReady = ref(false)
 const slideClass = ref('')
 
 const groups = computed(() => groupedTools())
-
-// 日历入口卡的一句话提示：取最近两个没过去的日子
-const upcoming = ref([])
-const calendarHint = computed(() => {
-  if (!upcoming.value.length) return '这个月的日子、行程和大事件，都在一张表上'
-  const first = upcoming.value[0]
-  const tail = upcoming.value.length > 1 ? ` 等 ${upcoming.value.length} 项` : ''
-  return `接下来：${first.name} ${first.days_left} 天后${tail}`
-})
-
-function openCalendar() {
-  uni.navigateTo({ url: '/pages/schedule/schedule' })
-}
-
-onMounted(async () => {
-  try {
-    const d = await apiCountdowns()
-    upcoming.value = (d.items || []).filter(i => !i.is_past).slice(0, 2)
-  } catch (e) { /* 提示失败不影响入口 */ }
-})
 
 onPageScroll((e) => { pageScroll.value = e.scrollTop })
 
@@ -186,22 +156,6 @@ function onTouchEnd(e) {
   from { transform: translateX(-36rpx); opacity: 0.4; }
   to { transform: translateX(0); opacity: 1; }
 }
-
-.cal-entry {
-  display: flex; align-items: center; gap: 18rpx; padding: 26rpx 24rpx;
-  border-radius: 24rpx; margin-bottom: 20rpx; background: #fff;
-  border: 1rpx solid #F3CDB3;
-}
-.cal-entry:active { background: #FFF9F4; }
-.ce-icon {
-  width: 72rpx; height: 72rpx; border-radius: 18rpx; font-size: 36rpx;
-  display: flex; align-items: center; justify-content: center;
-  background: linear-gradient(135deg, #FDF1E7, #FBE3D2);
-}
-.ce-main { flex: 1; display: flex; flex-direction: column; gap: 6rpx; min-width: 0; }
-.ce-title { font-size: 29rpx; font-weight: 700; color: var(--ink); }
-.ce-sub { font-size: 21rpx; color: var(--ink3); line-height: 1.5; }
-.ce-arrow { font-size: 32rpx; color: var(--ink3); }
 
 .hero {
   padding: 28rpx 26rpx; border-radius: 24rpx; margin-bottom: 28rpx;

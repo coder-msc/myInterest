@@ -230,6 +230,11 @@
         </view>
       </block>
     </block>
+
+    <!-- ===== 盘点 · 家庭资产 ===== -->
+    <block v-else-if="tab === 'assets'">
+      <AssetsPanel ref="assetsRef" />
+    </block>
     </view>
 
     <view style="height: 180rpx"></view>
@@ -418,6 +423,7 @@ import CustomTab from '@/components/CustomTab.vue'
 import BackTop from '@/components/BackTop.vue'
 import CountdownSheet from '@/components/CountdownSheet.vue'
 import HealthPanel from '@/components/HealthPanel.vue'
+import AssetsPanel from '@/components/AssetsPanel.vue'
 
 /** 顶部大项。新增模块时在这里加一项，并在下方加对应的内容块即可。 */
 const segments = [
@@ -426,12 +432,14 @@ const segments = [
   { key: 'todo', label: '待办', emoji: '✅' },
   { key: 'health', label: '健康', emoji: '🌿' },
   { key: 'event', label: '大事件', emoji: '🎉' },
+  { key: 'assets', label: '盘点', emoji: '🏦' },
 ]
 
 const tab = ref('countdown')
 const scrollTo = ref('')
 const pageScroll = ref(0)
 const healthRef = ref(null)
+const assetsRef = ref(null)
 const cdLoading = ref(false)
 const tripLoading = ref(false)
 const eventLoading = ref(false)
@@ -1077,6 +1085,7 @@ onShow(() => {
 onPullDownRefresh(async () => {
   const jobs = [loadCountdowns(), loadTrips(), loadTodos(), loadEvents()]
   if (healthRef.value) jobs.push(healthRef.value.reload())
+  if (assetsRef.value) jobs.push(assetsRef.value.reload())
   try {
     await Promise.all(jobs)
   } finally {

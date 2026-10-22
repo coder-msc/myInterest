@@ -45,15 +45,56 @@
       </view>
     </view>
 
-    <!-- ===== 置顶日子条 ===== -->
-    <view v-if="home.top_day" :class="['topday', 'state-' + home.top_day.state]" @click="goDays">
-      <text class="td-emoji">{{ home.top_day.emoji || '🎯' }}</text>
-      <view class="td-main">
-        <text class="td-name">{{ home.top_day.name }}</text>
-        <text class="td-sub">{{ home.top_day.next_date }}{{ home.top_day.lunar_text ? ' · 农历' + home.top_day.lunar_text : '' }}</text>
+    <!-- ===== 家庭资产总览（浓缩版，明细在值得记 · 盘点） ===== -->
+    <view v-if="home.asset_card" class="asset-ov">
+      <view class="ao-head">
+        <text class="ao-label">家庭净值</text>
+        <text class="ao-go" @click.stop="goAssets">明细 ›</text>
       </view>
-      <text class="td-days">{{ home.top_day.state_label }}</text>
+
+      <view class="ao-body">
+        <view class="ao-main">
+          <text class="ao-value">¥{{ money(home.asset_card.net_worth) }}</text>
+          <view class="ao-cols">
+            <view class="ao-col">
+              <text class="ao-col-label">总资产</text>
+              <text class="ao-col-val">¥{{ shortMoney(home.asset_card.total_assets) }}</text>
+            </view>
+            <view class="ao-col">
+              <text class="ao-col-label">总负债</text>
+              <text class="ao-col-val debt">¥{{ shortMoney(home.asset_card.total_liabilities) }}</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 近 6 次盘点迷你柱 -->
+        <view v-if="home.asset_card.trend.length > 1" class="ao-spark">
+          <view v-for="t in home.asset_card.trend" :key="t.date" class="ao-bar-wrap">
+            <view class="ao-bar" :style="{ height: assetBarH(t.net_worth) + 'rpx' }"></view>
+          </view>
+        </view>
+      </view>
+
+      <view class="ao-foot">
+        <text class="ao-date">
+          {{ home.asset_card.last_snapshot ? '上次盘点 ' + home.asset_card.last_snapshot.snapshot_date : '还没盘点过' }}
+        </text>
+        <text v-if="home.asset_card.delta !== null" :class="['ao-delta', home.asset_card.delta >= 0 ? 'up' : 'down']">
+          {{ home.asset_card.delta >= 0 ? '比上次 +' : '比上次 ' }}¥{{ shortMoney(Math.abs(home.asset_card.delta)) }}
+        </text>
+      </view>
+
+      <!-- 就地操作：盘点当前家底 / 去看投资持仓，不用先跳页 -->
+      <view class="ao-actions">
+        <view class="ao-btn" :class="taking ? 'loading' : ''" @click.stop="takeSnapshot">
+          {{ taking ? '盘点中…' : '📸 现在盘点' }}
+        </view>
+        <view class="ao-btn ghost" @click.stop="goInvest">📈 投资持仓</view>
+      </view>
     </view>
+
+    <!-- ===== 日历：日子 / 行程 / 大事件 一览（原「发现 · 日历」移入手札） ===== -->
+    <CalendarPanel ref="calRef" @changed="onCalendarChanged" />
 
     <!-- ===== 类型筛选 ===== -->
     <scroll-view class="filters" scroll-x>
@@ -115,18 +156,6 @@
       </view>
     </view>
 
-    <!-- ===== 家庭资产快捷卡 ===== -->
-    <view v-if="home.asset_card" class="asset-card" @click="goAssets">
-      <view class="ac-left">
-        <text class="ac-label">家庭资产净值</text>
-        <text class="ac-value">¥{{ money(home.asset_card.net_worth) }}</text>
-        <text v-if="home.asset_card.last_snapshot" class="ac-sub">
-          上次盘点 {{ home.asset_card.last_snapshot.snapshot_date }}
-        </text>
-      </view>
-      <text class="ac-arrow">›</text>
-    </view>
-
     <view style="height: 180rpx"></view>
 
     <!-- ===== 新增 FAB ===== -->
@@ -160,15 +189,16 @@
 <script setup>
 import { computed, reactive, ref } from 'vue'
 import { onShow, onLoad, onPullDownRefresh, onReachBottom, onPageScroll } from '@dcloudio/uni-app'
-import { apiJournalHome, apiJournalFeed } from '@/api'
+import { apiJournalHome, apiJournalFeed, apiTakeAssetSnapshot } from '@/api'
 import { mediaUrl } from '@/utils/config'
 import { userStore } from '@/store/user'
 import WebLayout from '@/components/WebLayout.vue'
 import CustomTab from '@/components/CustomTab.vue'
 import BackTop from '@/components/BackTop.vue'
+import CalendarPanel from '@/components/CalendarPanel.vue'
 
 const home = reactive({
-  counts: {}, unread: 0, top_day: null, asset_card: null, month_footprints: 0,
+  counts: {}, unread: 0, asset_card: null, month_footprints: 0,
   month_summary: { expense: 0, income: 0, balance: 0, has_prev: false, expense_delta: 0 },
 })
 const feed = ref([])
@@ -179,6 +209,8 @@ const hasMore = ref(false)
 const page = ref(1)
 const filterType = ref('')
 const quickVisible = ref(false)
+const taking = ref(false)
+const calRef = ref(null)
 
 const filters = [
   { value: '', label: '全部' },
@@ -223,6 +255,18 @@ const todayText = computed(() => {
 function money(n) {
   return Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
+/** 总资产/总负债用万元收短，避免一行塞两串长数字把卡撑爆 */
+function shortMoney(n) {
+  const v = Number(n || 0)
+  if (Math.abs(v) >= 10000) return (v / 10000).toFixed(1) + ' 万'
+  return money(v)
+}
+/** 迷你趋势柱：以近几次盘点的最大值取满格，避免金额小时柱子看不见 */
+function assetBarH(v) {
+  const list = home.asset_card?.trend || []
+  const max = Math.max(1, ...list.map(t => t.net_worth))
+  return Math.max(8, (Number(v || 0) / max) * 72)
+}
 function dayOf(s) { return s ? String(s).slice(8, 10) : '' }
 function monOf(s) { return s ? String(s).slice(5, 7) + '月' : '' }
 function chipClass(t) {
@@ -263,9 +307,6 @@ async function loadFeed(reset = false) {
     page.value = (data.page || 1) + 1
   } finally {
     loading.value = false
-    // #ifdef MP-WEIXIN || MP-ALIPAY
-    uni.stopPullDownRefresh()
-    // #endif
   }
 }
 
@@ -305,7 +346,7 @@ function openEntry(e) {
   if (e.entry_type === 'trip') return uni.navigateTo({ url: `/pages/trips/detail?id=${e.ref_id}` })
   if (e.entry_type === 'event') return goWorth('event')
   if (e.entry_type === 'countdown') return goWorth('countdown')
-  if (e.entry_type === 'asset_snapshot') return uni.navigateTo({ url: '/pages/assets/assets' })
+  if (e.entry_type === 'asset_snapshot') return goWorth('assets')
 }
 
 /** 值得记是 tab 页，switchTab 不能带参数，用 storage 传递要打开的分段 */
@@ -314,18 +355,44 @@ function goWorth(key) {
   uni.switchTab({ url: '/pages/worth/worth' })
 }
 function goLedger() { uni.switchTab({ url: '/pages/ledger/ledger' }) }
-function goDays() { goWorth('countdown') }
-function goAssets() { uni.navigateTo({ url: '/pages/assets/assets' }) }
+function goAssets() { goWorth('assets') }
+function goInvest() { uni.navigateTo({ url: '/pages/holdings/holdings' }) }
 function goNotifications() { uni.navigateTo({ url: '/pages/notifications/notifications' }) }
+
+/** 首页就地盘点：固化当日净值后重拉首页，净值卡与迷你趋势一起更新 */
+async function takeSnapshot() {
+  if (taking.value) return
+  taking.value = true
+  try {
+    await apiTakeAssetSnapshot()
+    uni.showToast({ title: '盘点完成，净值已记录', icon: 'none' })
+    await loadHome()
+  } catch (e) { /* toast 已统一 */ } finally {
+    taking.value = false
+  }
+}
+
+/** 日历里改了日子，首页置顶条与时间线要跟着变 */
+function onCalendarChanged() {
+  loadHome()
+}
 
 onLoad(() => {})
 onShow(() => {
   loadHome()
   loadFeed(true)
+  // 从值得记改完日子回来时刷新日历，避免还是旧数据
+  calRef.value?.reload()
 })
-onPullDownRefresh(() => {
-  loadHome()
-  loadFeed(true)
+onPullDownRefresh(async () => {
+  // 兜底：任何请求卡死也要在 8 秒内把小程序原生转圈收掉
+  const guard = setTimeout(() => uni.stopPullDownRefresh(), 8000)
+  try {
+    await Promise.all([loadHome(), loadFeed(true), calRef.value?.reload()])
+  } finally {
+    clearTimeout(guard)
+    uni.stopPullDownRefresh()
+  }
 })
 onReachBottom(loadMore)
 onPageScroll((e) => { pageScroll.value = e.scrollTop })
@@ -374,19 +441,6 @@ onPageScroll((e) => { pageScroll.value = e.scrollTop })
 }
 .sc-btn.primary { background: #fff; color: var(--brand-d); font-weight: 600; flex: 1.2; }
 
-/* 置顶日子条 */
-.topday {
-  display: flex; align-items: center; gap: 18rpx; padding: 24rpx 26rpx;
-  background: #fff; border: 1rpx solid var(--line); border-radius: 22rpx; margin-bottom: 24rpx;
-}
-.topday.state-today { background: var(--brand-l); border-color: #F3CDB3; }
-.topday.state-urgent { background: var(--warn-l); border-color: #F0DCB4; }
-.td-emoji { font-size: 36rpx; }
-.td-main { flex: 1; display: flex; flex-direction: column; gap: 4rpx; }
-.td-name { font-size: 28rpx; font-weight: 600; color: var(--ink); }
-.td-sub { font-size: 22rpx; color: var(--ink3); }
-.td-days { font-size: 26rpx; font-weight: 700; color: var(--brand-d); }
-
 /* 筛选 */
 .filters { white-space: nowrap; margin-bottom: 20rpx; }
 .filter {
@@ -430,17 +484,48 @@ onPageScroll((e) => { pageScroll.value = e.scrollTop })
   background: var(--brand); color: #fff; border-radius: 9999rpx; font-size: 26rpx;
 }
 
-/* 资产快捷卡 */
-.asset-card {
-  display: flex; align-items: center; justify-content: space-between;
-  background: #fff; border: 1rpx solid #DEE7F0; border-left: 6rpx solid #5B7FA6;
-  border-radius: 22rpx; padding: 26rpx 28rpx; margin-top: 8rpx;
+/* 资产总览 · 克制专业蓝（与月小结的暖橙区分） */
+.asset-ov {
+  background: linear-gradient(135deg, #5B7FA6 0%, #456B92 100%);
+  border-radius: 26rpx; padding: 26rpx 28rpx 22rpx; color: #fff;
+  margin-bottom: 24rpx; box-shadow: 0 8rpx 20rpx rgba(69, 107, 146, 0.2);
 }
-.ac-left { display: flex; flex-direction: column; gap: 8rpx; }
-.ac-label { font-size: 22rpx; color: #5B7FA6; }
-.ac-value { font-size: 38rpx; font-weight: 700; color: #2F4358; }
-.ac-sub { font-size: 20rpx; color: var(--ink3); }
-.ac-arrow { font-size: 36rpx; color: #B7C6D6; }
+.ao-head { display: flex; align-items: center; justify-content: space-between; }
+.ao-label { font-size: 22rpx; opacity: 0.85; }
+.ao-go { font-size: 21rpx; opacity: 0.9; }
+.ao-body { display: flex; align-items: flex-end; justify-content: space-between; gap: 20rpx; margin-top: 8rpx; }
+.ao-main { flex: 1; min-width: 0; }
+.ao-value { display: block; font-size: 46rpx; font-weight: 700; letter-spacing: 0.5rpx; line-height: 1.25; }
+.ao-cols { display: flex; gap: 36rpx; margin-top: 12rpx; }
+.ao-col { display: flex; flex-direction: column; gap: 2rpx; }
+.ao-col-label { font-size: 19rpx; opacity: 0.75; }
+.ao-col-val { font-size: 24rpx; font-weight: 600; }
+.ao-col-val.debt { color: #FFE3E6; }
+
+/* 迷你趋势柱：只做形状参考，不标数值 */
+.ao-spark { display: flex; align-items: flex-end; gap: 7rpx; height: 72rpx; flex-shrink: 0; }
+.ao-bar-wrap { display: flex; align-items: flex-end; height: 100%; }
+.ao-bar { width: 12rpx; border-radius: 5rpx 5rpx 0 0; background: rgba(255, 255, 255, 0.62); }
+
+.ao-foot {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 18rpx; padding-top: 14rpx;
+  border-top: 1rpx solid rgba(255, 255, 255, 0.2);
+}
+.ao-date { font-size: 19rpx; opacity: 0.78; }
+.ao-delta { font-size: 19rpx; font-weight: 600; }
+.ao-delta.up { color: #E8F7EF; }
+.ao-delta.down { color: #FFE3E6; }
+
+/* 卡内操作按钮：与盘点页同款，就地就能盘点/看持仓 */
+.ao-actions { display: flex; gap: 16rpx; margin-top: 20rpx; }
+.ao-btn {
+  flex: 1; height: 68rpx; line-height: 68rpx; text-align: center;
+  background: #fff; color: #456B92; border-radius: 9999rpx;
+  font-size: 24rpx; font-weight: 600;
+}
+.ao-btn.ghost { background: rgba(255, 255, 255, 0.18); color: #fff; font-weight: 400; }
+.ao-btn.loading { opacity: 0.7; }
 
 /* FAB */
 .fab {

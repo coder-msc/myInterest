@@ -294,10 +294,17 @@ def test_assets_overview_and_snapshot(client):
     trend = client.get("/api/assets/trend", headers=auth(token)).json()["data"]
     assert len(trend) == 1
 
-    # 资产数据存在后，首页出现资产快捷卡
+    # 资产数据存在后，首页出现资产总览卡（净值 + 总资产/总负债 + 趋势）
     home = client.get("/api/journal/home", headers=auth(token)).json()["data"]
-    assert home["asset_card"] is not None
-    assert home["asset_card"]["net_worth"] == ov["net_worth"]
+    card = home["asset_card"]
+    assert card is not None
+    assert card["net_worth"] == ov["net_worth"]
+    assert card["total_assets"] == ov["total_assets"]
+    assert card["total_liabilities"] == ov["total_liabilities"]
+    assert card["snapshot_count"] == 1 and len(card["trend"]) == 1
+    assert card["trend"][0]["net_worth"] == ov["net_worth"]
+    # 只有一次盘点，没有「比上次」可比
+    assert card["delta"] is None
 
     # 重复盘点同日只更新同一条
     client.post("/api/assets/snapshot", headers=auth(token))
