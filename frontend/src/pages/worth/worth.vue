@@ -427,7 +427,7 @@ import AssetsPanel from '@/components/AssetsPanel.vue'
 
 /** 顶部大项。新增模块时在这里加一项，并在下方加对应的内容块即可。 */
 const segments = [
-  { key: 'countdown', label: '计时', emoji: '🎯' },
+  { key: 'countdown', label: '日子', emoji: '🎯' },
   { key: 'trip', label: '旅游', emoji: '🧳' },
   { key: 'todo', label: '待办', emoji: '✅' },
   { key: 'health', label: '健康', emoji: '🌿' },
@@ -1083,12 +1083,14 @@ onShow(() => {
   prefetch()
 })
 onPullDownRefresh(async () => {
-  const jobs = [loadCountdowns(), loadTrips(), loadTodos(), loadEvents()]
-  if (healthRef.value) jobs.push(healthRef.value.reload())
-  if (assetsRef.value) jobs.push(assetsRef.value.reload())
+  const guard = setTimeout(() => uni.stopPullDownRefresh(), 8000)
   try {
+    const jobs = [loadCountdowns(), loadTrips(), loadTodos(), loadEvents()]
+    if (healthRef.value) jobs.push(healthRef.value.reload())
+    if (assetsRef.value) jobs.push(assetsRef.value.reload())
     await Promise.all(jobs)
   } finally {
+    clearTimeout(guard)
     uni.stopPullDownRefresh()
   }
 })

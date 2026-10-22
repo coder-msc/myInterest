@@ -34,16 +34,19 @@
     </view>
 
     <view style="height: 60rpx"></view>
+    <BackTop :scroll-top="pageScroll" bare />
   </view>
 </template>
 
 <script setup>
 import { ref } from 'vue'
-import { onShow, onPullDownRefresh } from '@dcloudio/uni-app'
+import { onShow, onPullDownRefresh, onPageScroll } from '@dcloudio/uni-app'
 import { apiRecycleBin, apiRestoreRecycle } from '@/api'
 import WebLayout from '@/components/WebLayout.vue'
+import BackTop from '@/components/BackTop.vue'
 
 const groups = ref([])
+const pageScroll = ref(0)
 const retainDays = ref(30)
 const loading = ref(false)
 
@@ -55,9 +58,6 @@ async function load() {
     retainDays.value = data.retain_days || 30
   } finally {
     loading.value = false
-    // #ifdef MP-WEIXIN || MP-ALIPAY
-    uni.stopPullDownRefresh()
-    // #endif
   }
 }
 
@@ -70,7 +70,16 @@ async function restore(it) {
 }
 
 onShow(load)
-onPullDownRefresh(load)
+onPullDownRefresh(async () => {
+  const guard = setTimeout(() => uni.stopPullDownRefresh(), 8000)
+  try {
+    await load()
+  } finally {
+    clearTimeout(guard)
+    uni.stopPullDownRefresh()
+  }
+})
+onPageScroll((e) => { pageScroll.value = e.scrollTop })
 </script>
 
 <style scoped>

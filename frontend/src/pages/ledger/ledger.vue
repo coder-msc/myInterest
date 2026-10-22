@@ -173,21 +173,24 @@
     </view>
 
     <view style="height: 40rpx"></view>
+    <BackTop :scroll-top="pageScroll" />
     <!-- #ifdef H5 --><CustomTab current="/pages/ledger/ledger" /><!-- #endif -->
   </view>
 </template>
 
 <script setup>
 import { computed, reactive, ref } from 'vue'
-import { onShow, onPullDownRefresh } from '@dcloudio/uni-app'
+import { onShow, onPullDownRefresh, onPageScroll } from '@dcloudio/uni-app'
 import {
   apiLedger, apiLedgerStats, apiCreateLedger, apiUpdateLedger,
   apiDeleteLedger, apiAddLedgerCategory,
 } from '@/api'
 import WebLayout from '@/components/WebLayout.vue'
 import CustomTab from '@/components/CustomTab.vue'
+import BackTop from '@/components/BackTop.vue'
 
 const tab = ref('list')
+const pageScroll = ref(0)
 const loading = ref(false)
 const saving = ref(false)
 const sheetVisible = ref(false)
@@ -365,6 +368,7 @@ function addCategory() {
   })
 }
 
+onPageScroll((e) => { pageScroll.value = e.scrollTop })
 onShow(() => {
   if (tab.value === 'stats') switchStats()
   load()

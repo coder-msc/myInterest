@@ -79,9 +79,6 @@ async function load(reset = true) {
     page.value = (data.page || 1) + 1
   } finally {
     loading.value = false
-    // #ifdef MP-WEIXIN || MP-ALIPAY
-    uni.stopPullDownRefresh()
-    // #endif
   }
 }
 
@@ -130,7 +127,15 @@ function removeMsg(m) {
 }
 
 onShow(() => load(true))
-onPullDownRefresh(() => load(true))
+onPullDownRefresh(async () => {
+  const guard = setTimeout(() => uni.stopPullDownRefresh(), 8000)
+  try {
+    await load(true)
+  } finally {
+    clearTimeout(guard)
+    uni.stopPullDownRefresh()
+  }
+})
 onReachBottom(loadMore)
 onPageScroll((e) => { pageScroll.value = e.scrollTop })
 </script>

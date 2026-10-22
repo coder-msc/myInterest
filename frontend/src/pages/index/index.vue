@@ -142,13 +142,14 @@
     </view>
 
     <view style="height: 40rpx"></view>
+    <BackTop :scroll-top="pageScroll" />
     <!-- #ifdef H5 --><CustomTab current="/pages/index/index" /><!-- #endif -->
   </view>
 </template>
 
 <script setup>
 import { computed, ref } from 'vue'
-import { onShow, onPullDownRefresh } from '@dcloudio/uni-app'
+import { onShow, onPullDownRefresh, onPageScroll } from '@dcloudio/uni-app'
 import { apiEnhancedSummary, apiDashboardMetrics, apiMonthlyTrend, apiSaveSettings, apiUpcoming } from '@/api'
 import { userStore, setDisplayCurrency } from '@/store/user'
 import { fmtDisplay } from '@/utils/constants'
@@ -156,8 +157,10 @@ import { fmtDisplay } from '@/utils/constants'
 import WebLayout from '@/components/WebLayout.vue'
 import CustomTab from '@/components/CustomTab.vue'
 // #endif
+import BackTop from '@/components/BackTop.vue'
 
 // ---------- 数据 ----------
+const pageScroll = ref(0)
 const enhanced = ref({})
 const registry = ref([])
 const selectedMetrics = ref([])
@@ -302,15 +305,19 @@ async function load() {
     soonHot.value = items.filter(x => x.days_to_pay !== null && x.days_to_pay !== undefined && x.days_to_pay <= 7).length
     soonMonthTotal.value = up.month_total_cny || 0
   } catch (e) { /* toast 已统一处理 */ }
-  finally {
-    // #ifdef MP-WEIXIN || MP-ALIPAY
-    uni.stopPullDownRefresh()
-    // #endif
-  }
 }
 
 onShow(load)
-onPullDownRefresh(load)
+onPullDownRefresh(async () => {
+  const guard = setTimeout(() => uni.stopPullDownRefresh(), 8000)
+  try {
+    await load()
+  } finally {
+    clearTimeout(guard)
+    uni.stopPullDownRefresh()
+  }
+})
+onPageScroll((e) => { pageScroll.value = e.scrollTop })
 </script>
 
 <style scoped>

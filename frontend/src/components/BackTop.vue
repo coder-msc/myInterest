@@ -1,5 +1,6 @@
 <template>
-  <view v-if="visible" class="back-top" :style="{ '--lift': lift + 'rpx' }" @click="toTop">
+  <!-- 非 tab 页没有底部导航，按钮可以更贴近底部 -->
+  <view v-if="visible" :class="['back-top', bare ? 'bare' : '']" :style="{ '--lift': lift + 'rpx' }" @click="toTop">
     <text class="bt-arrow">↑</text>
   </view>
 </template>
@@ -13,6 +14,8 @@ const props = defineProps({
   threshold: { type: Number, default: 640 },
   // 页面右下角已经有悬浮按钮（如手札的「＋」）时，用它把回顶按钮往上抬
   lift: { type: Number, default: 0 },
+  // 详情页等非 tab 页：没有底部导航，落点更低一点
+  bare: { type: Boolean, default: false },
 })
 
 // H5 下页面实际滚动容器不一定是 window（有些端会滚在 uni-page-body 上），
@@ -66,6 +69,7 @@ function toTop() {
   animation: bt-in .18s ease-out;
 }
 .bt-arrow { font-size: 36rpx; line-height: 1; font-weight: 600; color: var(--ink2, #6B5F55); }
+.back-top.bare { bottom: calc(48rpx + var(--lift, 0rpx) + env(safe-area-inset-bottom)); }
 .back-top:active { transform: scale(.94); background: #fff; }
 
 @keyframes bt-in {

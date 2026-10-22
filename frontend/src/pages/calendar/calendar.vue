@@ -274,9 +274,6 @@ async function load() {
       .map(Number).filter(d => d >= today).sort((a, b) => a - b)
     selectedDay.value = upcoming.length ? upcoming[0] : null
   }
-  // #ifdef MP-WEIXIN || MP-ALIPAY
-  uni.stopPullDownRefresh()
-  // #endif
 }
 
 function selectDay(d) { selectedDay.value = selectedDay.value === d ? null : d }
@@ -358,9 +355,6 @@ function toggleYear() {
 }
 async function refreshRecords() {
   await Promise.all([loadRecords(true), loadSummary()])
-  // #ifdef MP-WEIXIN || MP-ALIPAY
-  uni.stopPullDownRefresh()
-  // #endif
 }
 async function loadMoreRecords() {
   if (!rHasMore.value || rLoading.value) return
@@ -377,7 +371,15 @@ onLoad((options) => {
 })
 
 onShow(() => { tab.value === 'calendar' ? load() : (rList.value.length ? refreshRecords() : loadRecords(true)) })
-onPullDownRefresh(() => { tab.value === 'calendar' ? load() : refreshRecords() })
+onPullDownRefresh(async () => {
+  const guard = setTimeout(() => uni.stopPullDownRefresh(), 8000)
+  try {
+    await (tab.value === 'calendar' ? load() : refreshRecords())
+  } finally {
+    clearTimeout(guard)
+    uni.stopPullDownRefresh()
+  }
+})
 // 记录列表触底翻页（仅记录 tab 生效）
 onReachBottom(() => { if (tab.value === 'records') loadMoreRecords() })
 onPageScroll((e) => { pageScroll.value = e.scrollTop })

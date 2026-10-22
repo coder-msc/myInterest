@@ -141,20 +141,23 @@
     </block>
 
     <view style="height: 140rpx"></view>
+    <BackTop :scroll-top="pageScroll" />
     <!-- #ifdef H5 --><CustomTab current="/pages/holdings/holdings" /><!-- #endif -->
   </view>
 </template>
 
 <script setup>
 import { ref } from 'vue'
-import { onShow, onLoad, onPullDownRefresh } from '@dcloudio/uni-app'
+import { onShow, onLoad, onPullDownRefresh, onPageScroll } from '@dcloudio/uni-app'
 import { apiHoldings, apiUpcoming } from '@/api'
 import { marketMap, badgeClass, fmt, moneyWith, currencyMap } from '@/utils/constants'
 import { userStore } from '@/store/user'
 import WebLayout from '@/components/WebLayout.vue'
 import CustomTab from '@/components/CustomTab.vue'
+import BackTop from '@/components/BackTop.vue'
 
 const tab = ref('holdings')
+const pageScroll = ref(0)
 const list = ref([])
 const loading = ref(false)
 const upcoming = ref([])
@@ -177,9 +180,6 @@ async function load() {
     list.value = data.items || []
   } finally {
     loading.value = false
-    // #ifdef MP-WEIXIN || MP-ALIPAY
-    uni.stopPullDownRefresh()
-    // #endif
   }
   try {
     const res = await apiUpcoming()
@@ -223,7 +223,16 @@ function goAdd() { uni.navigateTo({ url: '/pages/holdings/add' }) }
 function goDetail(id) { uni.navigateTo({ url: '/pages/holdings/detail?id=' + id }) }
 
 onShow(load)
-onPullDownRefresh(load)
+onPullDownRefresh(async () => {
+  const guard = setTimeout(() => uni.stopPullDownRefresh(), 8000)
+  try {
+    await load()
+  } finally {
+    clearTimeout(guard)
+    uni.stopPullDownRefresh()
+  }
+})
+onPageScroll((e) => { pageScroll.value = e.scrollTop })
 </script>
 
 <style scoped>

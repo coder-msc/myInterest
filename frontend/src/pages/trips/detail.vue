@@ -54,16 +54,19 @@
     </view>
 
     <view style="height: 60rpx"></view>
+    <BackTop :scroll-top="pageScroll" bare />
   </view>
 </template>
 
 <script setup>
 import { ref } from 'vue'
-import { onLoad, onShow } from '@dcloudio/uni-app'
+import { onLoad, onShow, onPageScroll } from '@dcloudio/uni-app'
 import { apiTrip, apiDeleteTrip } from '@/api'
 import { mediaUrl } from '@/utils/config'
+import BackTop from '@/components/BackTop.vue'
 
 const trip = ref(null)
+const pageScroll = ref(0)
 const loading = ref(true)
 let tripId = 0
 
@@ -107,6 +110,7 @@ onLoad((query) => {
 onShow(() => {
   if (tripId) load()
 })
+onPageScroll((e) => { pageScroll.value = e.scrollTop })
 </script>
 
 <style scoped>

@@ -127,18 +127,21 @@
     </view>
 
     <view style="height: 60rpx"></view>
+    <BackTop :scroll-top="pageScroll" bare />
   </view>
 </template>
 
 <script setup>
 import { computed, ref } from 'vue'
-import { onShow } from '@dcloudio/uni-app'
+import { onShow, onPageScroll } from '@dcloudio/uni-app'
 import { apiByMarket, apiTopHoldings, apiYieldRanking, apiMonthlyTrend, apiForecast } from '@/api'
 import { MARKETS, marketMap, currencyMap, badgeClass, moneyWith } from '@/utils/constants'
 import { userStore } from '@/store/user'
 import WebLayout from '@/components/WebLayout.vue'
+import BackTop from '@/components/BackTop.vue'
 
 const marketList = ref([])
+const pageScroll = ref(0)
 const yearList = ref([])
 const topList = ref([])
 const yieldList = ref([])
@@ -239,6 +242,7 @@ async function loadData() {
 }
 
 onShow(loadData)
+onPageScroll((e) => { pageScroll.value = e.scrollTop })
 </script>
 
 <style scoped>

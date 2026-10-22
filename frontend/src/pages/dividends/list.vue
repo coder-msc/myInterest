@@ -151,9 +151,6 @@ async function loadSummary() {
 
 async function refresh() {
   await Promise.all([load(true), loadSummary()])
-  // #ifdef MP-WEIXIN || MP-ALIPAY
-  uni.stopPullDownRefresh()
-  // #endif
 }
 
 function setStatus(s) { status.value = s; refresh() }
@@ -173,7 +170,15 @@ async function loadMore() {
 onShow(refresh)
 onReachBottom(loadMore)
 onPageScroll((e) => { pageScroll.value = e.scrollTop })
-onPullDownRefresh(refresh)
+onPullDownRefresh(async () => {
+  const guard = setTimeout(() => uni.stopPullDownRefresh(), 8000)
+  try {
+    await refresh()
+  } finally {
+    clearTimeout(guard)
+    uni.stopPullDownRefresh()
+  }
+})
 </script>
 
 <style scoped>

@@ -214,13 +214,14 @@
     </view>
 
     <view style="height: 140rpx"></view>
+    <BackTop :scroll-top="pageScroll" />
     <!-- #ifdef H5 --><CustomTab current="/pages/mine/mine" /><!-- #endif -->
   </view>
 </template>
 
 <script setup>
 import { computed, reactive, ref } from 'vue'
-import { onLoad, onShow } from '@dcloudio/uni-app'
+import { onLoad, onShow, onPageScroll } from '@dcloudio/uni-app'
 import {
   apiRates, apiSettings, apiSaveSettings, apiLogout,
   apiSendCode, apiBindEmail, apiMe, apiAccounts, apiAccountsMeta,
@@ -230,6 +231,9 @@ import {
 import { userStore, setAuth, clearAuth, syncFromSettings, setCurrentAccount } from '@/store/user'
 import WebLayout from '@/components/WebLayout.vue'
 import CustomTab from '@/components/CustomTab.vue'
+import BackTop from '@/components/BackTop.vue'
+
+const pageScroll = ref(0)
 
 const TYPE_LABEL = {
   ledger: '账本流水', trip: '旅游足迹', event: '大事件',
@@ -283,6 +287,7 @@ async function load() {
   } catch (e) {}
 }
 onShow(load)
+onPageScroll((e) => { pageScroll.value = e.scrollTop })
 
 // 微信新用户登录后 reLaunch 到本页 ?bind=1：自动弹出绑定邮箱引导（对齐 eatWhat redirect=bind）
 onLoad((options) => {

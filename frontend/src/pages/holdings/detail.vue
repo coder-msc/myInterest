@@ -131,16 +131,20 @@
         <button class="btn-primary" style="margin-top: 30rpx" :loading="saving" @click="saveLot">保 存</button>
       </view>
     </view>
+
+    <BackTop :scroll-top="pageScroll" bare />
   </view>
 </template>
 
 <script setup>
 import { computed, reactive, ref } from 'vue'
-import { onLoad, onShow } from '@dcloudio/uni-app'
+import { onLoad, onShow, onPageScroll } from '@dcloudio/uni-app'
 import { apiHoldingDetail, apiLots, apiDividends, apiCreateLot, apiHoldingStats } from '@/api'
 import { marketMap, currencyMap, directionMap, DIRECTIONS as DIRS, badgeClass } from '@/utils/constants'
+import BackTop from '@/components/BackTop.vue'
 
 const id = ref(null)
+const pageScroll = ref(0)
 const h = ref({})
 const st = ref({})
 const lots = ref([])
@@ -177,6 +181,7 @@ async function load() {
 
 onLoad((q) => { id.value = Number(q.id) })
 onShow(() => { if (id.value) load() })
+onPageScroll((e) => { pageScroll.value = e.scrollTop })
 
 function toggle(did) { openId.value = openId.value === did ? null : did }
 function openLot() {
