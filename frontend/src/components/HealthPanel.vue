@@ -69,6 +69,14 @@
           <text v-if="selectedCell.today" class="dc-today">今天</text>
         </view>
 
+        <!-- 快捷新增放最上面：记录再多也不会被压到底部 -->
+        <view v-if="canAddOnSelected" class="dc-add">
+          <text class="dca" @click="openCycle(null, selectedCell.date)">＋ 经期</text>
+          <text class="dca" @click="openIntimacy(null, selectedCell.date)">＋ 亲密</text>
+          <text class="dca" @click="openSleep(null, selectedCell.date)">＋ 睡眠</text>
+        </view>
+        <view v-else class="dc-future">未来的日期只能看预测，当天到了再记录。</view>
+
         <view v-if="!dayHasRecords" class="dc-empty">这一天还没记录。</view>
 
         <block v-else>
@@ -106,13 +114,6 @@
             <text class="dc-edit">编辑</text>
           </view>
         </block>
-
-        <view v-if="canAddOnSelected" class="dc-add">
-          <text class="dca" @click="openCycle(null, selectedCell.date)">＋ 经期</text>
-          <text class="dca" @click="openIntimacy(null, selectedCell.date)">＋ 亲密</text>
-          <text class="dca" @click="openSleep(null, selectedCell.date)">＋ 睡眠</text>
-        </view>
-        <view v-else class="dc-future">未来的日期只能看预测，当天到了再记录。</view>
       </view>
 
       <view v-else class="cal-hint">点某一天看当天明细；完整列表在下方「周期 / 亲密 / 睡眠」里。</view>
@@ -1023,12 +1024,12 @@ loadOverview()
 .dc-time { font-size: 19rpx; color: var(--ink3); margin-left: 8rpx; font-weight: 400; }
 .dc-sub { font-size: 20rpx; color: var(--ink3); line-height: 1.5; }
 .dc-edit { font-size: 20rpx; color: var(--ink3); padding-top: 4rpx; }
-.dc-add { display: flex; gap: 12rpx; margin-top: 16rpx; }
+.dc-add { display: flex; gap: 12rpx; margin: 4rpx 0 10rpx; }
 .dca {
   flex: 1; text-align: center; font-size: 21rpx; font-weight: 600;
   color: var(--brand-d); background: var(--brand-l); padding: 12rpx 0; border-radius: 12rpx;
 }
-.dc-future { font-size: 20rpx; color: var(--ink3); margin-top: 14rpx; }
+.dc-future { font-size: 20rpx; color: var(--ink3); margin: 4rpx 0 10rpx; }
 .cal-hint { font-size: 21rpx; color: var(--ink3); text-align: center; padding: 18rpx 10rpx 6rpx; line-height: 1.6; }
 
 /* ---------- 周期 ---------- */
