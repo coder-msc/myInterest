@@ -11,6 +11,7 @@ from datetime import date, timedelta
 
 DEFAULT_CYCLE = 28
 DEFAULT_PERIOD = 5
+HISTORY_LIMIT = 24  # 经期历史一次最多回 24 次
 
 FLOW_LABELS = {"light": "少量", "medium": "中等", "heavy": "较多"}
 KIND_LABELS = {"self": "自己", "partner": "两人", "multi": "多人"}
@@ -72,7 +73,8 @@ def cycle_prediction(records: list) -> dict:
     """records：本人的全部经期记录（顺序不限）。返回今日状态 + 预测。"""
     today = date.today()
     rows = sorted(records, key=lambda r: r.start_date)
-    history = [cycle_out(r) for r in reversed(rows)]
+    # 历史列表只回最近 24 次（约两年），20 年的记录没必要一次塞给前端
+    history = [cycle_out(r) for r in reversed(rows[-HISTORY_LIMIT:])]
 
     if not rows:
         return {

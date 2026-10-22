@@ -64,19 +64,26 @@ def trip_out(session: Session, t: Trip, with_media: bool = True) -> dict:
 
 
 @router.get("")
-def listing(session: Session = Depends(get_session),
+def listing(page: int = Query(default=1, ge=1),
+            page_size: int = Query(default=20, ge=1, le=50),
+            session: Session = Depends(get_session),
             user: User = Depends(get_current_user)):
+    """行程列表：进行中的排最前，其余按开始日期倒序；分页返回。"""
     rows = session.exec(select(Trip)
                         .where(Trip.user_id == user.id)
                         .where(Trip.status == "normal")).all()
     items = [trip_out(session, t, with_media=False) for t in rows]
-    # 进行中的排最前，其余按开始日期倒序
-    items.sort(key=lambda x: (0 if x["status"] == "ongoing" else 1,))
+    # 两次稳定排序：先按日期倒序，再把进行中的提到最前
     items.sort(key=lambda x: x["start_date"], reverse=True)
     items.sort(key=lambda x: 0 if x["status"] == "ongoing" else 1)
 
+    total = len(items)
+    start = (page - 1) * page_size
     cities = {c for it in items for c in it["destinations"]}
-    return ok({"items": items, "city_count": len(cities), "trip_count": len(items),
+    return ok({"items": items[start:start + page_size], "total": total,
+               "page": page, "page_size": page_size,
+               "has_more": start + page_size < total,
+               "city_count": len(cities), "trip_count": total,
                "photo_limit": _photo_limit()})
 
 

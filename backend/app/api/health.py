@@ -147,15 +147,19 @@ def cycle_delete(row_id: int, session: Session = Depends(get_session),
 # ---------- 亲密 ----------
 
 @router.get("/intimacy")
-def intimacy_list(limit: int = Query(default=60, ge=1, le=200),
+def intimacy_list(page: int = Query(default=1, ge=1),
+                  page_size: int = Query(default=20, ge=1, le=100),
                   session: Session = Depends(get_session),
                   user: User = Depends(get_current_user)):
     rows = session.exec(select(IntimacyRecord)
                         .where(IntimacyRecord.user_id == user.id)).all()
     items = [health_service.intimacy_out(r) for r in rows]
     items.sort(key=lambda x: (x["happen_date"], x["happen_time"] or ""), reverse=True)
+    start = (page - 1) * page_size
     return ok({
-        "items": items[:limit],
+        "items": items[start:start + page_size],
+        "total": len(items), "page": page, "page_size": page_size,
+        "has_more": start + page_size < len(items),
         "stats": health_service.intimacy_stats(items),
         "kind_options": [{"value": k, "label": v}
                          for k, v in health_service.KIND_LABELS.items()],
@@ -222,15 +226,19 @@ def intimacy_delete(row_id: int, session: Session = Depends(get_session),
 # ---------- 睡眠 ----------
 
 @router.get("/sleep")
-def sleep_list(limit: int = Query(default=60, ge=1, le=200),
+def sleep_list(page: int = Query(default=1, ge=1),
+               page_size: int = Query(default=20, ge=1, le=100),
                session: Session = Depends(get_session),
                user: User = Depends(get_current_user)):
     rows = session.exec(select(SleepRecord)
                         .where(SleepRecord.user_id == user.id)).all()
     items = [health_service.sleep_out(r) for r in rows]
     items.sort(key=lambda x: x["sleep_date"], reverse=True)
+    start = (page - 1) * page_size
     return ok({
-        "items": items[:limit],
+        "items": items[start:start + page_size],
+        "total": len(items), "page": page, "page_size": page_size,
+        "has_more": start + page_size < len(items),
         "stats": health_service.sleep_stats(items),
         "quality_options": [{"value": k, "label": v}
                             for k, v in health_service.QUALITY_LABELS.items()],

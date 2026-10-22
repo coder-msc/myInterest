@@ -105,7 +105,7 @@ export const apiUpdateCountdown = (id, payload) => patch(`/api/countdowns/${id}`
 export const apiDeleteCountdown = (id) => del(`/api/countdowns/${id}`)
 
 // ---------- 足迹 · 旅游 ----------
-export const apiTrips = () => get('/api/trips')
+export const apiTrips = (params = {}) => get('/api/trips', params)
 export const apiTrip = (id) => get(`/api/trips/${id}`)
 export const apiCreateTrip = (payload) => post('/api/trips', payload)
 export const apiUpdateTrip = (id, payload) => patch(`/api/trips/${id}`, payload)
@@ -135,7 +135,7 @@ export const apiUpdateTodo = (id, payload) => patch(`/api/todos/${id}`, payload)
 export const apiDeleteTodo = (id) => del(`/api/todos/${id}`)
 
 // ---------- 足迹 · 大事件 ----------
-export const apiEvents = () => get('/api/events')
+export const apiEvents = (params = {}) => get('/api/events', params)
 export const apiEvent = (id) => get(`/api/events/${id}`)
 export const apiCreateEvent = (payload) => post('/api/events', payload)
 export const apiUpdateEvent = (id, payload) => patch(`/api/events/${id}`, payload)

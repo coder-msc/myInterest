@@ -240,6 +240,11 @@
           </view>
         </view>
       </view>
+
+      <view v-if="intimacyHasMore" class="more-link" @click="loadMoreIntimacy">
+        <text v-if="loadingMore.intimacy">加载中…</text>
+        <text v-else>加载更多</text>
+      </view>
     </block>
 
     <!-- ================= 睡眠 ================= -->
@@ -289,6 +294,11 @@
             <text v-if="s.note" class="sl-note">{{ s.note }}</text>
           </view>
         </view>
+      </view>
+
+      <view v-if="sleepHasMore" class="more-link" @click="loadMoreSleep">
+        <text v-if="loadingMore.sleep">加载中…</text>
+        <text v-else>加载更多</text>
       </view>
     </block>
 
@@ -500,6 +510,8 @@ const sec = ref('calendar')
 const sheet = ref('')
 const saving = ref(false)
 const loading = reactive({ cycle: false, intimacy: false, sleep: false })
+const loadingMore = reactive({ intimacy: false, sleep: false })
+const PAGE = 20
 
 // ---------- 月历 ----------
 const calMonth = ref(localDate().slice(0, 7))
@@ -637,12 +649,16 @@ const cycleEdit = ref(null)
 const cycleForm = reactive({ start_date: localDate(), end_date: '', flow: 'medium', symptoms: [], note: '' })
 
 const intimacy = reactive({ items: [], stats: {} })
+const intimacyPage = ref(1)
+const intimacyHasMore = ref(false)
 const intimacyEdit = ref(null)
 const intimacyForm = reactive({
   happen_date: localDate(), happen_time: '', kind: 'partner', protection: 'condom', note: '',
 })
 
 const sleep = reactive({ items: [], stats: {} })
+const sleepPage = ref(1)
+const sleepHasMore = ref(false)
 const sleepEdit = ref(null)
 const sleepForm = reactive({
   sleep_date: localDate(), bed_time: '23:30', wake_time: '07:30', quality: 4, note: '',
@@ -696,20 +712,54 @@ async function loadCycle() {
   } catch (e) { /* toast 已统一 */ } finally { loading.cycle = false }
 }
 async function loadIntimacy() {
+  intimacyPage.value = 1
   loading.intimacy = true
   try {
-    const d = await apiIntimacy()
+    const d = await apiIntimacy({ page: 1, page_size: PAGE })
     intimacy.items = d.items || []
     intimacy.stats = d.stats || {}
+    intimacyHasMore.value = !!d.has_more
   } catch (e) { /* toast 已统一 */ } finally { loading.intimacy = false }
 }
 async function loadSleep() {
+  sleepPage.value = 1
   loading.sleep = true
   try {
-    const d = await apiSleep()
+    const d = await apiSleep({ page: 1, page_size: PAGE })
     sleep.items = d.items || []
     sleep.stats = d.stats || {}
+    sleepHasMore.value = !!d.has_more
   } catch (e) { /* toast 已统一 */ } finally { loading.sleep = false }
+}
+
+/** 追加下一页；只在滚动触底或点「加载更多」时调用 */
+async function loadMoreIntimacy() {
+  if (!intimacyHasMore.value || loadingMore.intimacy) return
+  loadingMore.intimacy = true
+  try {
+    const d = await apiIntimacy({ page: intimacyPage.value + 1, page_size: PAGE })
+    const seen = new Set(intimacy.items.map(i => i.id))
+    intimacy.items = intimacy.items.concat((d.items || []).filter(i => !seen.has(i.id)))
+    intimacyPage.value += 1
+    intimacyHasMore.value = !!d.has_more
+  } catch (e) { /* toast 已统一 */ } finally { loadingMore.intimacy = false }
+}
+async function loadMoreSleep() {
+  if (!sleepHasMore.value || loadingMore.sleep) return
+  loadingMore.sleep = true
+  try {
+    const d = await apiSleep({ page: sleepPage.value + 1, page_size: PAGE })
+    const seen = new Set(sleep.items.map(i => i.id))
+    sleep.items = sleep.items.concat((d.items || []).filter(i => !seen.has(i.id)))
+    sleepPage.value += 1
+    sleepHasMore.value = !!d.has_more
+  } catch (e) { /* toast 已统一 */ } finally { loadingMore.sleep = false }
+}
+
+/** 页面触底时由父组件调用：按当前分段决定加载哪一页 */
+function loadMore() {
+  if (sec.value === 'intimacy') return loadMoreIntimacy()
+  if (sec.value === 'sleep') return loadMoreSleep()
 }
 
 function switchSection(key) {
@@ -728,7 +778,7 @@ async function reload() {
   if (sec.value === 'intimacy') return loadIntimacy()
   return loadSleep()
 }
-defineExpose({ reload })
+defineExpose({ reload, loadMore })
 
 // ---------- 周期 ----------
 function openCycle(item, date) {
@@ -982,6 +1032,9 @@ loadOverview()
 .cal-hint { font-size: 21rpx; color: var(--ink3); text-align: center; padding: 18rpx 10rpx 6rpx; line-height: 1.6; }
 
 /* ---------- 周期 ---------- */
+.more-link {
+  text-align: center; font-size: 22rpx; color: var(--ink3); padding: 22rpx 0 6rpx;
+}
 .cy-hero {
   border-radius: 24rpx; padding: 30rpx; color: #fff; margin-bottom: 16rpx;
   background: linear-gradient(135deg, #E38B7A, #C0555F);

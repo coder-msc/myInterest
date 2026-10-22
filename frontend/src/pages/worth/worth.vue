@@ -114,6 +114,10 @@
             </view>
           </view>
         </view>
+        <view v-if="tripHasMore" class="load-more" @click="loadMoreTrips">
+          <text v-if="tripLoadingMore">加载中…</text>
+          <text v-else>上拉或点击加载更多</text>
+        </view>
       </block>
     </block>
 
@@ -218,6 +222,11 @@
               <text v-else-if="e.photo_count" class="ev-photo">📷{{ e.photo_count }}</text>
             </view>
           </view>
+        </view>
+
+        <view v-if="eventHasMore" class="load-more" @click="loadMoreEvents">
+          <text v-if="eventLoadingMore">加载中…</text>
+          <text v-else>上拉或点击加载更多</text>
         </view>
       </block>
     </block>
@@ -394,7 +403,7 @@
 
 <script setup>
 import { computed, nextTick, reactive, ref } from 'vue'
-import { onShow, onPullDownRefresh } from '@dcloudio/uni-app'
+import { onShow, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app'
 import {
   apiCountdowns, apiUpdateCountdown,
   apiTrips, apiCreateTrip, apiUpdateTrip,
@@ -455,6 +464,9 @@ const topItem = computed(() => {
 // ---- 旅游 ----
 const trips = ref([])
 const tripMeta = reactive({ trip_count: 0, city_count: 0, photo_limit: 20 })
+const tripPage = ref(1)
+const tripHasMore = ref(false)
+const tripLoadingMore = ref(false)
 const tripSheet = ref(false)
 const editingTripId = ref(null)
 const photoLimit = computed(() => tripMeta.photo_limit || 20)
@@ -544,6 +556,9 @@ function decorateTodo(t) {
 // ---- 大事件 ----
 const eventGroups = ref([])
 const eventTotal = ref(0)
+const eventPage = ref(1)
+const eventHasMore = ref(false)
+const eventLoadingMore = ref(false)
 const eventCats = ref([])
 const eventPhotoLimit = ref(9)
 const eventSheet = ref(false)
@@ -680,11 +695,13 @@ function loadCountdowns() {
 }
 
 function loadTrips() {
+  tripPage.value = 1
   return once('trip', async () => {
     tripLoading.value = true
     try {
-      const data = await apiTrips()
+      const data = await apiTrips({ page: 1, page_size: 20 })
       trips.value = data.items || []
+      tripHasMore.value = !!data.has_more
       tripMeta.trip_count = data.trip_count || 0
       tripMeta.city_count = data.city_count || 0
       tripMeta.photo_limit = data.photo_limit || 20
@@ -694,6 +711,22 @@ function loadTrips() {
       tripLoading.value = false
     }
   })
+}
+
+/** 滑到底/点按钮时追加下一页；分页中写操作仍走 loadTrips 全量重取 */
+async function loadMoreTrips() {
+  if (!tripHasMore.value || tripLoadingMore.value || tripLoading.value) return
+  tripLoadingMore.value = true
+  try {
+    const data = await apiTrips({ page: tripPage.value + 1, page_size: 20 })
+    const more = data.items || []
+    const seen = new Set(trips.value.map(t => t.id))
+    trips.value = trips.value.concat(more.filter(t => !seen.has(t.id)))
+    tripPage.value += 1
+    tripHasMore.value = !!data.has_more
+  } catch (e) { /* toast 已统一 */ } finally {
+    tripLoadingMore.value = false
+  }
 }
 
 /** 每次请求的序号：增删改后强制重拉时，避免上一个更早的请求把新结果覆盖掉 */
@@ -719,12 +752,14 @@ function loadTodos(force = false) {
 }
 
 function loadEvents() {
+  eventPage.value = 1
   return once('event', async () => {
     eventLoading.value = true
     try {
-      const data = await apiEvents()
+      const data = await apiEvents({ page: 1, page_size: 20 })
       eventGroups.value = data.groups || []
       eventTotal.value = data.total || 0
+      eventHasMore.value = !!data.has_more
       eventCats.value = data.categories || []
       eventPhotoLimit.value = data.photo_limit || 9
       loaded.event = true
@@ -733,6 +768,32 @@ function loadEvents() {
       eventLoading.value = false
     }
   })
+}
+
+/** 同一年可能跨页，追加时按年份合并，避免出现两个「2026」分组 */
+async function loadMoreEvents() {
+  if (!eventHasMore.value || eventLoadingMore.value || eventLoading.value) return
+  eventLoadingMore.value = true
+  try {
+    const data = await apiEvents({ page: eventPage.value + 1, page_size: 20 })
+    const merged = eventGroups.value.map(g => ({ ...g, items: [...g.items] }))
+    for (const g of data.groups || []) {
+      const hit = merged.find(x => x.year === g.year)
+      if (hit) {
+        const seen = new Set(hit.items.map(e => e.id))
+        hit.items = hit.items.concat(g.items.filter(e => !seen.has(e.id)))
+        hit.count = hit.items.length
+      } else {
+        merged.push({ ...g, items: [...g.items] })
+      }
+    }
+    merged.sort((a, b) => Number(b.year) - Number(a.year))
+    eventGroups.value = merged
+    eventPage.value += 1
+    eventHasMore.value = !!data.has_more
+  } catch (e) { /* toast 已统一 */ } finally {
+    eventLoadingMore.value = false
+  }
 }
 
 /** 切到某分段时按需取数：有缓存就不再打扰用户 */
@@ -1018,10 +1079,20 @@ onPullDownRefresh(async () => {
     uni.stopPullDownRefresh()
   }
 })
+// 触底加载：旅游/大事件各自追加下一页，健康面板自己决定加载哪一段
+onReachBottom(() => {
+  if (tab.value === 'trip') return loadMoreTrips()
+  if (tab.value === 'event') return loadMoreEvents()
+  if (tab.value === 'health' && healthRef.value) return healthRef.value.loadMore()
+})
 </script>
 
 <style scoped>
 .page { padding: 24rpx; }
+.load-more {
+  text-align: center; font-size: 22rpx; color: var(--ink3);
+  padding: 20rpx 0 6rpx;
+}
 
 /* 顶部可滑动分段 */
 .seg-scroll {

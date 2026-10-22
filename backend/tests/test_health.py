@@ -139,6 +139,48 @@ def test_intimacy_crud_and_stats(client):
                          headers=auth(token)).json()["code"] == 0
 
 
+def test_intimacy_and_sleep_pagination(client):
+    """列表按 page/page_size 分页，翻页不重不漏，stats 仍按全量算。"""
+    token = register(client, "health_page")
+    for i in range(25):
+        client.post("/api/health/intimacy", headers=auth(token), json={
+            "happen_date": _d(-i), "kind": "partner"})
+        client.post("/api/health/sleep", headers=auth(token), json={
+            "sleep_date": _d(-i), "bed_time": "23:00", "wake_time": "07:00"})
+
+    p1 = client.get("/api/health/intimacy?page=1&page_size=10",
+                    headers=auth(token)).json()["data"]
+    p2 = client.get("/api/health/intimacy?page=2&page_size=10",
+                    headers=auth(token)).json()["data"]
+    p3 = client.get("/api/health/intimacy?page=3&page_size=10",
+                    headers=auth(token)).json()["data"]
+    assert p1["total"] == 25 and p1["has_more"] is True
+    assert len(p1["items"]) == 10 and len(p3["items"]) == 5
+    assert p3["has_more"] is False
+    ids = [i["id"] for i in p1["items"] + p2["items"] + p3["items"]]
+    assert len(set(ids)) == 25
+    # stats 是整表口径，不随分页缩水
+    assert p1["stats"]["by_kind"]["partner"] == 25
+
+    s2 = client.get("/api/health/sleep?page=2&page_size=10",
+                    headers=auth(token)).json()["data"]
+    assert s2["total"] == 25 and len(s2["items"]) == 10
+    assert s2["stats"]["count"] == 25
+
+
+def test_cycle_history_capped(client):
+    """经期历史只回最近 24 次，避免多年记录一次全量下发。"""
+    token = register(client, "health_history")
+    for i in range(30):
+        start = -(i * 30 + 1)
+        r = _cycle(client, token, _d(start), _d(start + 3))
+        assert r["code"] == 0, r
+    data = client.get("/api/health/cycle", headers=auth(token)).json()["data"]
+    assert len(data["history"]) == 24
+    # 最近一次仍在最前
+    assert data["history"][0]["start_date"] == _d(-1)
+
+
 # ---------- 睡眠 ----------
 
 def test_sleep_duration_cross_midnight(client):

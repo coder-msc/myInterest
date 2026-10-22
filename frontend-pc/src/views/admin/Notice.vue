@@ -27,7 +27,7 @@
     <!-- 用户反馈 -->
     <div class="card">
       <h3>用户反馈</h3>
-      <el-radio-group v-model="fbStatus" size="small" style="margin-bottom: 12px" @change="loadFeedback">
+      <el-radio-group v-model="fbStatus" size="small" style="margin-bottom: 12px" @change="onFbStatusChange">
         <el-radio-button value="">全部</el-radio-button>
         <el-radio-button value="pending">待处理</el-radio-button>
         <el-radio-button value="resolved">已处理</el-radio-button>
@@ -55,6 +55,12 @@
             <el-button type="primary" size="small" @click="handleFeedback(f)">回复</el-button>
           </div>
         </div>
+        <el-pagination
+          v-if="fbTotal > fbPageSize"
+          background layout="prev, pager, next" small
+          :total="fbTotal" :page-size="fbPageSize" :current-page="fbPage"
+          style="margin-top: 8px; justify-content: center"
+          @current-change="onFbPage" />
       </div>
     </div>
 
@@ -73,6 +79,12 @@ const annList = ref([])
 const fbStatus = ref('')
 const feedback = ref([])
 const fbLoading = ref(false)
+const fbPage = ref(1)
+const fbPageSize = 20
+const fbTotal = ref(0)
+
+function onFbStatusChange() { fbPage.value = 1; loadFeedback() }
+function onFbPage(p) { fbPage.value = p; loadFeedback() }
 
 function fbStatusText(s) {
   return { pending: '待处理', adopted: '已采纳', planned: '已排期', done: '已完成', rejected: '已拒绝' }[s] || s
@@ -81,10 +93,11 @@ function fbStatusText(s) {
 async function loadFeedback() {
   fbLoading.value = true
   try {
-    const params = {}
+    const params = { page: fbPage.value, page_size: fbPageSize }
     if (fbStatus.value) params.status = fbStatus.value
     const data = await apiAdminFeedback(params)
     feedback.value = (data.items || []).map((f) => ({ ...f, _next: 'adopted', _reply: '' }))
+    fbTotal.value = data.total || 0
   } finally {
     fbLoading.value = false
   }

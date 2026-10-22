@@ -171,6 +171,35 @@ def test_trips_and_events(client):
     assert g["total"] == 2 and g["categories"][0]["name"] == "工作"
 
 
+def test_trips_and_events_pagination(client):
+    """旅游/大事件都按 page/page_size 分页，返回 has_more 供前端触底加载。"""
+    token = register(client, "trip_page")
+    for i in range(23):
+        client.post("/api/trips", headers=auth(token), json={
+            "destinations": [f"城{i}"],
+            "start_date": (date.today() - timedelta(days=i + 1)).isoformat(),
+            "end_date": (date.today() - timedelta(days=i)).isoformat()})
+        client.post("/api/events", headers=auth(token), json={
+            "title": f"事件{i}",
+            "event_date": (date.today() - timedelta(days=i + 1)).isoformat(),
+            "category": "工作"})
+
+    p1 = client.get("/api/trips?page=1&page_size=10", headers=auth(token)).json()["data"]
+    p2 = client.get("/api/trips?page=2&page_size=10", headers=auth(token)).json()["data"]
+    p3 = client.get("/api/trips?page=3&page_size=10", headers=auth(token)).json()["data"]
+    assert p1["total"] == 23 and p1["has_more"] is True
+    assert len(p1["items"]) == 10 and len(p3["items"]) == 3 and p3["has_more"] is False
+    assert len({t["id"] for t in p1["items"] + p2["items"] + p3["items"]}) == 23
+    # 统计口径是全部，不是当前页
+    assert p1["trip_count"] == 23 and p1["city_count"] == 23
+
+    e1 = client.get("/api/events?page=1&page_size=10", headers=auth(token)).json()["data"]
+    e3 = client.get("/api/events?page=3&page_size=10", headers=auth(token)).json()["data"]
+    assert e1["total"] == 23 and e1["has_more"] is True
+    assert sum(len(g["items"]) for g in e1["groups"]) == 10
+    assert len(e3["groups"]) > 0 and e3["has_more"] is False
+
+
 # ---------- 手札流：索引与主表一致性 ----------
 def test_journal_feed_matches_records(client):
     token = register(client, "feed_user")

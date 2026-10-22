@@ -2,7 +2,7 @@
 import json
 from datetime import date
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlmodel import Session, select
 
 from ..database import get_session
@@ -45,19 +45,27 @@ def event_out(session: Session, e: LifeEvent, with_media: bool = True) -> dict:
 
 
 @router.get("")
-def listing(session: Session = Depends(get_session),
+def listing(page: int = Query(default=1, ge=1),
+            page_size: int = Query(default=20, ge=1, le=50),
+            session: Session = Depends(get_session),
             user: User = Depends(get_current_user)):
+    """按年份分组的时间线；分页时同一年的记录可能落在相邻两页，由前端合并。"""
     rows = session.exec(select(LifeEvent)
                         .where(LifeEvent.user_id == user.id)
                         .where(LifeEvent.status == "normal")).all()
     items = [event_out(session, e, with_media=False) for e in rows]
     items.sort(key=lambda x: x["event_date"], reverse=True)
+
+    total = len(items)
+    start = (page - 1) * page_size
     groups: dict[str, list[dict]] = {}
-    for it in items:
+    for it in items[start:start + page_size]:
         groups.setdefault(it["event_date"][:4], []).append(it)
     return ok({"groups": [{"year": y, "count": len(v), "items": v}
                           for y, v in sorted(groups.items(), reverse=True)],
-               "total": len(items), "categories": PRESET_CATEGORIES,
+               "total": total, "page": page, "page_size": page_size,
+               "has_more": start + page_size < total,
+               "categories": PRESET_CATEGORIES,
                "photo_limit": config_service.get_int("media_max_per_event")})
 
 
