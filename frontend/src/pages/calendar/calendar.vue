@@ -183,24 +183,27 @@
     </block>
 
     <view style="height: 40rpx"></view>
+    <BackTop :scroll-top="pageScroll" />
     <!-- #ifdef H5 --><CustomTab current="/pages/calendar/calendar" /><!-- #endif -->
   </view>
 </template>
 
 <script setup>
 import { computed, ref } from 'vue'
-import { onLoad, onShow, onReachBottom, onPullDownRefresh } from '@dcloudio/uni-app'
+import { onLoad, onShow, onReachBottom, onPullDownRefresh, onPageScroll } from '@dcloudio/uni-app'
 import { apiCalendar, apiDividends } from '@/api'
 import { userStore } from '@/store/user'
 import { MARKETS, marketMap, badgeClass, currencyMap } from '@/utils/constants'
 import WebLayout from '@/components/WebLayout.vue'
 import CustomTab from '@/components/CustomTab.vue'
+import BackTop from '@/components/BackTop.vue'
 
 const now = new Date()
 const tab = ref('calendar')
 const year = ref(now.getFullYear())
 const month = ref(now.getMonth() + 1)
 const selectedDay = ref(null)
+const pageScroll = ref(0)
 const data = ref({ days: {} })
 
 // ---------- 大功能切换 ----------
@@ -377,6 +380,7 @@ onShow(() => { tab.value === 'calendar' ? load() : (rList.value.length ? refresh
 onPullDownRefresh(() => { tab.value === 'calendar' ? load() : refreshRecords() })
 // 记录列表触底翻页（仅记录 tab 生效）
 onReachBottom(() => { if (tab.value === 'records') loadMoreRecords() })
+onPageScroll((e) => { pageScroll.value = e.scrollTop })
 </script>
 
 <style scoped>

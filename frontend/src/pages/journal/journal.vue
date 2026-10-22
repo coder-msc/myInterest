@@ -152,24 +152,27 @@
     </view>
 
     <view style="height: 40rpx"></view>
+    <BackTop :scroll-top="pageScroll" :lift="130" />
     <!-- #ifdef H5 --><CustomTab current="/pages/journal/journal" /><!-- #endif -->
   </view>
 </template>
 
 <script setup>
 import { computed, reactive, ref } from 'vue'
-import { onShow, onLoad, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app'
+import { onShow, onLoad, onPullDownRefresh, onReachBottom, onPageScroll } from '@dcloudio/uni-app'
 import { apiJournalHome, apiJournalFeed } from '@/api'
 import { mediaUrl } from '@/utils/config'
 import { userStore } from '@/store/user'
 import WebLayout from '@/components/WebLayout.vue'
 import CustomTab from '@/components/CustomTab.vue'
+import BackTop from '@/components/BackTop.vue'
 
 const home = reactive({
   counts: {}, unread: 0, top_day: null, asset_card: null, month_footprints: 0,
   month_summary: { expense: 0, income: 0, balance: 0, has_prev: false, expense_delta: 0 },
 })
 const feed = ref([])
+const pageScroll = ref(0)
 const loading = ref(false)
 const loadingMore = ref(false)
 const hasMore = ref(false)
@@ -325,6 +328,7 @@ onPullDownRefresh(() => {
   loadFeed(true)
 })
 onReachBottom(loadMore)
+onPageScroll((e) => { pageScroll.value = e.scrollTop })
 </script>
 
 <style scoped>

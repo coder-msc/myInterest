@@ -4,7 +4,7 @@
 
     <!-- 顶部可横向滑动的分段：后续想加「纪念物 / 健康打卡」等大项，只需往 segments 里加一行 -->
     <scroll-view class="seg-scroll" scroll-x :scroll-into-view="scrollTo"
-                 :show-scrollbar="false" scroll-with-animation>
+                 :show-scrollbar="false" scroll-with-animation enable-flex>
       <view class="seg-inner">
         <view
           v-for="(s, i) in segments"
@@ -397,13 +397,15 @@
       </view>
     </view>
 
+    <BackTop :scroll-top="pageScroll" />
+
     <!-- #ifdef H5 --><CustomTab current="/pages/worth/worth" /><!-- #endif -->
   </view>
 </template>
 
 <script setup>
 import { computed, nextTick, reactive, ref } from 'vue'
-import { onShow, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app'
+import { onShow, onPullDownRefresh, onReachBottom, onPageScroll } from '@dcloudio/uni-app'
 import {
   apiCountdowns, apiUpdateCountdown,
   apiTrips, apiCreateTrip, apiUpdateTrip,
@@ -413,6 +415,7 @@ import {
 import { mediaUrl } from '@/utils/config'
 import WebLayout from '@/components/WebLayout.vue'
 import CustomTab from '@/components/CustomTab.vue'
+import BackTop from '@/components/BackTop.vue'
 import CountdownSheet from '@/components/CountdownSheet.vue'
 import HealthPanel from '@/components/HealthPanel.vue'
 
@@ -427,6 +430,7 @@ const segments = [
 
 const tab = ref('countdown')
 const scrollTo = ref('')
+const pageScroll = ref(0)
 const healthRef = ref(null)
 const cdLoading = ref(false)
 const tripLoading = ref(false)
@@ -1080,6 +1084,7 @@ onPullDownRefresh(async () => {
   }
 })
 // 触底加载：旅游/大事件各自追加下一页，健康面板自己决定加载哪一段
+onPageScroll((e) => { pageScroll.value = e.scrollTop })
 onReachBottom(() => {
   if (tab.value === 'trip') return loadMoreTrips()
   if (tab.value === 'event') return loadMoreEvents()
@@ -1101,19 +1106,39 @@ onReachBottom(() => {
 }
 /* H5 下隐藏横向滚动条，滑动仍是原生手感 */
 .seg-scroll ::-webkit-scrollbar { display: none; width: 0; height: 0; }
-.seg-inner { display: inline-flex; gap: 14rpx; padding: 2rpx; }
+/* H5 的 scroll-view 内层容器默认 block 且宽度被压到可视宽，胶囊会被挤成多行；
+   这里让它按内容真实宽度铺开，超出的部分交给 scroll-view 横向滚动 */
+.seg-scroll :deep(.uni-scroll-view-content) {
+  display: inline-block; width: max-content; min-width: 100%;
+  white-space: nowrap;
+}
+.seg-inner {
+  display: inline-flex; align-items: center; gap: 12rpx;
+  padding: 2rpx 24rpx 2rpx 2rpx;     /* 右侧留白，最后一个胶囊不贴边 */
+}
 .seg-pill {
   display: inline-flex; align-items: center; gap: 8rpx;
-  padding: 14rpx 30rpx; border-radius: 9999rpx;
+  flex: 0 0 auto;                    /* 关键：屏幕再窄也不压缩胶囊，改为横向滚动 */
+  white-space: nowrap;
+  padding: 13rpx 26rpx; border-radius: 9999rpx;
   background: #fff; border: 1rpx solid var(--line2);
-  color: var(--ink2); font-size: 25rpx; font-weight: 500;
+  color: var(--ink2); font-size: 24rpx; font-weight: 500;
+  line-height: 1.2;
   transition: background-color .18s ease, color .18s ease, border-color .18s ease;
 }
 .seg-pill.on {
   background: var(--brand); border-color: var(--brand);
   color: #fff; font-weight: 600;
 }
-.sp-emoji { font-size: 26rpx; }
+.sp-emoji { font-size: 25rpx; line-height: 1.2; }
+.sp-label { white-space: nowrap; }
+
+/* 小屏（iPhone SE 这类 320~375）再收一点，五个分段尽量不用滑也能看全 */
+@media (max-width: 380px) {
+  .seg-inner { gap: 10rpx; }
+  .seg-pill { padding: 12rpx 20rpx; font-size: 23rpx; gap: 6rpx; }
+  .sp-emoji { font-size: 23rpx; }
+}
 
 /* 内容区：切换分段时的位移动画（向左滑出 → 从右侧进） */
 .seg-body { min-height: 200rpx; will-change: transform, opacity; }

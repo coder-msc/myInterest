@@ -61,6 +61,7 @@
     </view>
 
     <view style="height: 180rpx"></view>
+    <BackTop :scroll-top="pageScroll" />
 
     <!-- #ifdef H5 --><CustomTab current="/pages/discover/discover" /><!-- #endif -->
   </view>
@@ -68,11 +69,13 @@
 
 <script setup>
 import { computed, nextTick, onMounted, ref } from 'vue'
+import { onPageScroll } from '@dcloudio/uni-app'
 import { groupedTools } from '@/utils/tools'
 import { apiCountdowns } from '@/api'
 import WebLayout from '@/components/WebLayout.vue'
 import CustomTab from '@/components/CustomTab.vue'
 import TreeholePanel from '@/components/TreeholePanel.vue'
+import BackTop from '@/components/BackTop.vue'
 
 const segments = [
   { key: 'tools', label: '工具', emoji: '🔧' },
@@ -80,6 +83,7 @@ const segments = [
 ]
 
 const tab = ref('tools')
+const pageScroll = ref(0)
 const treeholeReady = ref(false)
 const slideClass = ref('')
 
@@ -104,6 +108,8 @@ onMounted(async () => {
     upcoming.value = (d.items || []).filter(i => !i.is_past).slice(0, 2)
   } catch (e) { /* 提示失败不影响入口 */ }
 })
+
+onPageScroll((e) => { pageScroll.value = e.scrollTop })
 
 function playSlide(dir) {
   slideClass.value = ''

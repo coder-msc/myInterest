@@ -43,16 +43,18 @@
     </view>
 
     <view style="height: 60rpx"></view>
+    <BackTop :scroll-top="pageScroll" />
   </view>
 </template>
 
 <script setup>
 import { ref } from 'vue'
-import { onShow, onPullDownRefresh, onReachBottom } from '@dcloudio/uni-app'
+import { onShow, onPullDownRefresh, onReachBottom, onPageScroll } from '@dcloudio/uni-app'
 import {
   apiNotifications, apiReadNotification, apiReadAllNotifications, apiDeleteNotification,
 } from '@/api'
 import WebLayout from '@/components/WebLayout.vue'
+import BackTop from '@/components/BackTop.vue'
 
 const items = ref([])
 const unread = ref(0)
@@ -60,6 +62,7 @@ const loading = ref(false)
 const loadingMore = ref(false)
 const hasMore = ref(false)
 const page = ref(1)
+const pageScroll = ref(0)
 
 function shortTime(s) {
   if (!s) return ''
@@ -129,6 +132,7 @@ function removeMsg(m) {
 onShow(() => load(true))
 onPullDownRefresh(() => load(true))
 onReachBottom(loadMore)
+onPageScroll((e) => { pageScroll.value = e.scrollTop })
 </script>
 
 <style scoped>
