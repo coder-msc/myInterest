@@ -92,6 +92,8 @@ const openId = ref(null)
 const page = ref(1)
 const hasMore = ref(false)
 const loading = ref(false)
+const reqSeq = ref(0)
+const sumSeq = ref(0)
 const netSum = ref(0)
 const pendSum = ref(0)
 
@@ -110,7 +112,10 @@ function fmt(n) {
 function sym(c) { return currencyMap[c]?.symbol || '' }
 
 async function load(reset = true) {
-  if (loading.value) return
+  // 只有「加载更多」需要防重入；重置加载必须允许打断上一次请求，
+  // 否则快速切筛选时新条件会被 loading 直接吞掉，列表停在旧条件数据上。
+  if (!reset && loading.value) return
+  const seq = ++reqSeq.value
   if (reset) {
     page.value = 1
     list.value = []
@@ -125,15 +130,17 @@ async function load(reset = true) {
     // v8：账户跟随 + 币种过滤
     Object.assign(params, filterParams())
     const data = await apiDividends(params)
+    if (seq !== reqSeq.value) return
     list.value = reset ? data.items : [...list.value, ...data.items]
     total.value = data.total
     hasMore.value = list.value.length < data.total
   } finally {
-    loading.value = false
+    if (seq === reqSeq.value) loading.value = false
   }
 }
 
 async function loadSummary() {
+  const seq = ++sumSeq.value
   const params = { page: 1, page_size: 999 }
   if (status.value) params.status = status.value
   if (year.value) params.year = year.value
@@ -141,6 +148,7 @@ async function loadSummary() {
   // v8：账户跟随（币种转换仅在总览页生效）
   Object.assign(params, filterParams())
   const data = await apiDividends(params)
+  if (seq !== sumSeq.value) return
   netSum.value = data.items
     .filter(d => d.status === 'confirmed')
     .reduce((s, d) => s + (d.net_cny || 0), 0)

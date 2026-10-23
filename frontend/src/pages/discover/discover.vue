@@ -143,7 +143,7 @@ function onTouchEnd(e) {
   color: var(--ink2); background: #fff; border: 1rpx solid var(--line2);
   transition: all 0.18s;
 }
-.seg-pill.on { background: #FDF1E7; color: var(--brand); border-color: #F3CDB3; font-weight: 600; }
+.seg-pill.on { background: var(--brand-sel); color: var(--brand-d); border-color: var(--brand-bd); font-weight: 600; }
 
 .seg-body { animation: none; }
 .slide-in-right { animation: slideInRight 0.26s cubic-bezier(0.22, 0.61, 0.36, 1); }

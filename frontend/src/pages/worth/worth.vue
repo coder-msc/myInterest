@@ -427,7 +427,7 @@ import AssetsPanel from '@/components/AssetsPanel.vue'
 
 /** 顶部大项。新增模块时在这里加一项，并在下方加对应的内容块即可。 */
 const segments = [
-  { key: 'health', label: '健康', emoji: '🌿' },
+  { key: 'health', label: '健康', emoji: '💪' },
   { key: 'todo', label: '待办', emoji: '✅' },
   { key: 'countdown', label: '日子', emoji: '🎯' },
   { key: 'trip', label: '旅游', emoji: '🧳' },
@@ -1291,13 +1291,13 @@ onReachBottom(() => {
   padding: 10rpx 22rpx; border-radius: 9999rpx; font-size: 23rpx;
   background: var(--bg); border: 1rpx solid var(--line2); color: var(--ink2);
 }
-.cat-chip.on { background: var(--brand-l); border-color: #F3CDB3; color: var(--brand-d); font-weight: 600; }
+.cat-chip.on { background: var(--brand-sel); border-color: var(--brand-bd); color: var(--brand-d); font-weight: 600; }
 .opt-chips { display: flex; flex-wrap: wrap; gap: 12rpx; }
 .opt-chip {
   padding: 10rpx 22rpx; border-radius: 9999rpx; font-size: 23rpx;
   background: var(--bg); border: 1rpx solid var(--line2); color: var(--ink2);
 }
-.opt-chip.on { background: var(--brand-l); border-color: #F3CDB3; color: var(--brand-d); font-weight: 600; }
+.opt-chip.on { background: var(--brand-sel); border-color: var(--brand-bd); color: var(--brand-d); font-weight: 600; }
 .emoji-chip { font-size: 28rpx; padding: 8rpx 18rpx; }
 .rule-tip { display: block; font-size: 20rpx; color: var(--ink3); margin-top: 12rpx; line-height: 1.6; }
 
@@ -1345,7 +1345,7 @@ onReachBottom(() => {
   padding: 10rpx 22rpx; border-radius: 9999rpx; background: #fff;
   border: 1rpx solid var(--line2); color: var(--ink2); font-size: 22rpx;
 }
-.qd-chip.on { background: var(--brand-l); border-color: #F3CDB3; color: var(--brand-d); font-weight: 600; }
+.qd-chip.on { background: var(--brand-sel); border-color: var(--brand-bd); color: var(--brand-d); font-weight: 600; }
 
 .todo-sum { display: flex; flex-wrap: wrap; align-items: center; gap: 14rpx; padding: 0 6rpx 18rpx; }
 .sum-open { font-size: 22rpx; color: var(--ink3); }

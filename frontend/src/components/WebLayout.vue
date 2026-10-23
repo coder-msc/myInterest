@@ -119,7 +119,7 @@ onShow(() => {
   transition: all 0.15s; white-space: nowrap;
 }
 .nav-item:hover { background: #F6EFE7; color: #B85C2E; }
-.nav-item.active { background: #FDF1E7; color: #B85C2E; font-weight: 600; }
+.nav-item.active { background: var(--brand-sel); color: var(--brand-d); font-weight: 600; }
 .topbar-right { display: flex; align-items: center; gap: 16px; }
 .user-box { display: flex; align-items: center; gap: 10px; cursor: pointer; }
 .avatar {

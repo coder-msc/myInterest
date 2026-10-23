@@ -343,7 +343,9 @@ function exportData() {
         const blob = new Blob([text], { type: 'application/json' })
         const a = document.createElement('a')
         a.href = URL.createObjectURL(blob)
-        a.download = `journal-${new Date().toISOString().slice(0, 10)}.json`
+        const d = new Date()
+        const stamp = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+        a.download = `journal-${stamp}.json`
         a.click()
         URL.revokeObjectURL(a.href)
         uni.showToast({ title: '已导出', icon: 'none' })
@@ -617,7 +619,7 @@ async function doDelete() {
   padding: 24rpx 16rpx; border-bottom: 1rpx solid var(--line2);
 }
 .acct-row:last-child { border-bottom: none; }
-.acct-row.on { background: var(--brand-l); }
+.acct-row.on { background: var(--brand-sel); box-shadow: inset 3rpx 0 0 var(--brand); }
 .acct-row.archived { opacity: 0.5; }
 .acct-dot { width: 16rpx; height: 16rpx; border-radius: 50%; flex-shrink: 0; }
 .acct-name { flex: 1; font-size: 28rpx; color: var(--ink); }

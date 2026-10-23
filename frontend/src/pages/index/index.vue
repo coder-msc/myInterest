@@ -165,6 +165,7 @@ const enhanced = ref({})
 const registry = ref([])
 const selectedMetrics = ref([])
 const trend = ref({ months: [], amounts: [] })
+const loadSeq = ref(0)
 const curVisible = ref(false)
 const upcomingCount = ref(0)
 const soonHot = ref(0)          // 7 天内到账笔数
@@ -226,8 +227,11 @@ const avgHeight = computed(() => barHeight(avgAmount.value))
 /** 点选的柱子索引 */
 const selIdx = ref(-1)
 function pickBar(i) { selIdx.value = selIdx.value === i ? -1 : i }
-/** 当前月份 YYYY-MM，用于柱状图高亮 */
-const curMonth = new Date().toISOString().slice(0, 7)
+/** 当前月份 YYYY-MM，用于柱状图高亮（按本地月份，不用 UTC） */
+const curMonth = (() => {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+})()
 /** 回本进度 = 累计收息 / 净投入 */
 const recoverPct = computed(() => {
   const e = enhanced.value
@@ -287,6 +291,7 @@ function goHoldings() {
 
 // ---------- 加载 ----------
 async function load() {
+  const seq = ++loadSeq.value
   try {
     // v8：账户跟随 + 币种过滤（metrics 与账户/币种无关）
     const fp = filterParams()
@@ -296,6 +301,8 @@ async function load() {
       apiMonthlyTrend('12m', fp),
       apiUpcoming(),
     ])
+    // 切账户时丢弃过期响应，避免旧账户数据覆盖新账户
+    if (seq !== loadSeq.value) return
     enhanced.value = enh
     registry.value = fm.registry
     selectedMetrics.value = fm.selected

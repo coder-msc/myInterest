@@ -159,7 +159,7 @@ onLoad(load)
   border-bottom: 1rpx solid #f5f5f5;
 }
 .metric-row:last-child { border-bottom: none; }
-.metric-row.selected { background: #fafafa; }
+.metric-row.selected { background: #EEF2FA; box-shadow: inset 4rpx 0 0 #1e3a8a; }
 .metric-row:active { background: #f0f0f0; }
 
 .metric-num {

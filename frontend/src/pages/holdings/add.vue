@@ -107,7 +107,14 @@ import { onLoad } from '@dcloudio/uni-app'
 import { apiCreateHolding, apiSecurities } from '@/api'
 import { FREQS, marketMap, currencyMap, badgeClass } from '@/utils/constants'
 
-const today = new Date().toISOString().slice(0, 10)
+/** 本地日期：toISOString 是 UTC，东八区凌晨会算成前一天 */
+function localToday() {
+  const d = new Date()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${d.getFullYear()}-${m}-${day}`
+}
+const today = localToday()
 const form = reactive({
   market: '', code: '', name: '', currency: '',
   freq: 'unknown', account: '',

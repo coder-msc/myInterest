@@ -153,7 +153,14 @@ const tab = ref('lots')
 const openId = ref(null)
 const showLot = ref(false)
 const saving = ref(false)
-const today = new Date().toISOString().slice(0, 10)
+/** 本地日期：避免 toISOString 在东八区凌晨偏移到前一天 */
+function localToday() {
+  const d = new Date()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${d.getFullYear()}-${m}-${day}`
+}
+const today = localToday()
 const lotForm = reactive({ trade_date: today, direction: 'buy', shares: '', price: '', fee: '' })
 
 const dirLabels = DIRS.map(d => d.label)

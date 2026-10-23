@@ -225,7 +225,7 @@ onMounted(() => {
   flex: 1; text-align: center; padding: 14rpx 0; border-radius: 14rpx;
   font-size: 24rpx; color: var(--ink2); background: var(--line2);
 }
-.th-tab.on { background: #FDF1E7; color: var(--brand); font-weight: 600; }
+.th-tab.on { background: var(--brand-sel); border-color: var(--brand-bd); color: var(--brand-d); font-weight: 600; }
 .th-badge { font-size: 18rpx; margin-left: 6rpx; }
 
 .th-empty { padding: 60rpx 20rpx; text-align: center; }

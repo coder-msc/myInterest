@@ -28,6 +28,9 @@ page {
   --brand: #D97742;
   --brand-d: #B85C2E;
   --brand-l: #FDF1E7;
+  /* 选中态：比 --brand-l 更实一点，避免在米白底上看不出边界 */
+  --brand-sel: #FBE3D1;
+  --brand-bd: #E5A070;
   --gold: #E8A33D;
   --ok: #3F8F6D;
   --ok-l: #EAF5F0;

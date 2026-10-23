@@ -78,7 +78,14 @@ const props = defineProps({
 })
 const emit = defineEmits(['close', 'saved', 'deleted'])
 
-const today = new Date().toISOString().slice(0, 10)
+/** 本地日期：toISOString 是 UTC，东八区凌晨会算成前一天 */
+function localToday() {
+  const d = new Date()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${d.getFullYear()}-${m}-${day}`
+}
+const today = localToday()
 const saving = ref(false)
 const form = reactive({
   name: '', date: today, repeat_rule: 'yearly', remind_offsets: [7, 0],
@@ -178,7 +185,7 @@ function remove() {
   padding: 10rpx 22rpx; border-radius: 9999rpx; font-size: 23rpx;
   background: var(--bg); border: 1rpx solid var(--line2); color: var(--ink2);
 }
-.opt-chip.on { background: var(--brand-l); border-color: #F3CDB3; color: var(--brand-d); font-weight: 600; }
+.opt-chip.on { background: var(--brand-sel); border-color: var(--brand-bd); color: var(--brand-d); font-weight: 600; }
 .emoji-chip { font-size: 28rpx; padding: 8rpx 18rpx; }
 .rule-tip { display: block; font-size: 20rpx; color: var(--ink3); margin-top: 12rpx; line-height: 1.6; }
 

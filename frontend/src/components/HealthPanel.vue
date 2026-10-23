@@ -31,22 +31,22 @@
             <block v-if="c">
               <text :class="['cal-day', c.today ? 'today' : '']">{{ c.day }}</text>
               <view class="cal-marks">
-                <view v-if="c.cycle" class="mk mk-period"></view>
-                <view v-else-if="c.predictedPeriod" class="mk mk-period pre"></view>
-                <view v-if="c.ovulation" class="mk mk-ovu"></view>
-                <view v-if="c.intimacy" class="mk mk-intimacy"></view>
-                <view v-if="c.sleep" :class="['mk', 'mk-sleep', sleepTone(c.sleep.quality)]"></view>
+                <view v-if="c.cycle" class="mk-ic mk-drop"></view>
+                <view v-else-if="c.predictedPeriod" class="mk-ic mk-drop pre"></view>
+                <view v-if="c.ovulation" class="mk-ic mk-ovu"><view class="ovu-dot"></view></view>
+                <text v-if="c.intimacy" class="mk-ic mk-heart">♥</text>
+                <text v-if="c.sleep" :class="['mk-ic', 'mk-z', sleepTone(c.sleep.quality)]">Z</text>
               </view>
             </block>
           </view>
         </view>
 
         <view class="cal-legend">
-          <view class="lg"><view class="mk mk-period"></view><text>经期</text></view>
-          <view class="lg"><view class="mk mk-period pre"></view><text>预计</text></view>
-          <view class="lg"><view class="mk mk-ovu"></view><text>排卵</text></view>
-          <view class="lg"><view class="mk mk-intimacy"></view><text>亲密</text></view>
-          <view class="lg"><view class="mk mk-sleep good"></view><text>睡眠</text></view>
+          <view class="lg"><view class="mk-ic mk-drop"></view><text>经期</text></view>
+          <view class="lg"><view class="mk-ic mk-drop pre"></view><text>预计</text></view>
+          <view class="lg"><view class="mk-ic mk-ovu"><view class="ovu-dot"></view></view><text>排卵</text></view>
+          <view class="lg"><text class="mk-ic mk-heart">♥</text><text>亲密</text></view>
+          <view class="lg"><text class="mk-ic mk-z good">Z</text><text>睡眠</text></view>
           <view class="lg"><view class="lg-fertile"></view><text>易孕</text></view>
         </view>
       </view>
@@ -940,7 +940,7 @@ loadOverview()
   height: 62rpx; border-radius: 9999rpx; background: #fff;
   border: 1rpx solid var(--line2); color: var(--ink2); font-size: 24rpx;
 }
-.hs-item.on { background: var(--brand-l); border-color: #F3CDB3; color: var(--brand-d); font-weight: 600; }
+.hs-item.on { background: var(--brand-sel); border-color: var(--brand-bd); color: var(--brand-d); font-weight: 600; }
 .hs-emoji { font-size: 24rpx; }
 
 .privacy-bar {
@@ -970,7 +970,7 @@ loadOverview()
 .cal-title { font-size: 28rpx; font-weight: 600; color: var(--ink); }
 .cal-back {
   margin-left: auto; font-size: 20rpx; color: var(--brand-d);
-  background: var(--brand-l); padding: 6rpx 16rpx; border-radius: 9999rpx;
+  background: var(--brand-sel); padding: 6rpx 16rpx; border-radius: 9999rpx;
 }
 .cal-week { display: flex; padding: 2rpx 0 6rpx; }
 .cw { flex: 1; text-align: center; font-size: 19rpx; color: var(--ink3); }
@@ -980,30 +980,54 @@ loadOverview()
   display: flex; flex-direction: column; align-items: center; gap: 4rpx;
   padding-top: 12rpx; border-radius: 12rpx;
 }
-.cal-cell.fertile { background: #FDF3E6; }
-.cal-cell.sel { background: var(--brand-l); box-shadow: inset 0 0 0 2rpx var(--brand); }
+/* 易孕期：淡薰衣草底——冷暖对比足够看出来，又不和暖橙的主题色、选中描边抢眼 */
+.cal-cell.fertile { background: #EFE9FA; }
+/* 选中：不用与主题相近的浅橙底，改为深棕橙描边 + 白底 + 粗体日期，
+   与「今天」的实心橙圆、易孕期的淡紫底都能拉开层次 */
+.cal-cell.sel {
+  background: #FFFDFA;
+  box-shadow: inset 0 0 0 3rpx var(--brand-d), 0 2rpx 8rpx rgba(184, 92, 46, 0.18);
+}
+.cal-cell.sel .cal-day { color: var(--brand-d); font-weight: 700; }
+.cal-cell.sel .cal-day.today { color: #fff; }
 .cal-day { font-size: 24rpx; color: var(--ink); line-height: 1; }
 .cal-day.today {
   width: 40rpx; height: 40rpx; border-radius: 50%; background: var(--brand);
   color: #fff; font-size: 22rpx; font-weight: 600;
   display: flex; align-items: center; justify-content: center;
 }
-.cal-marks { height: 14rpx; display: flex; align-items: center; justify-content: center; gap: 4rpx; }
-.mk { width: 8rpx; height: 8rpx; border-radius: 50%; }
-.mk-period { width: 10rpx; height: 10rpx; border-radius: 50%; background: var(--danger); }
-.mk-period.pre { background: transparent; border: 1rpx solid var(--danger); opacity: .75; }
-.mk-ovu { background: transparent; border: 2rpx solid var(--gold); }
-.mk-intimacy { background: #E48FA0; }
-.mk-sleep.good { background: var(--ok); }
-.mk-sleep.mid { background: var(--info); }
-.mk-sleep.bad { background: var(--warn); }
+.cal-marks { height: 24rpx; display: flex; align-items: center; justify-content: center; gap: 6rpx; }
+.mk-ic { display: flex; align-items: center; justify-content: center; }
+/* 经期：血滴形（方形圆角旋转 45°），比圆点更像「经期」 */
+.mk-drop {
+  width: 13rpx; height: 13rpx; flex-shrink: 0;
+  border-radius: 50% 50% 50% 0; transform: rotate(-45deg);
+  background: var(--danger);
+}
+.mk-drop.pre { background: transparent; border: 1rpx solid var(--danger); opacity: .75; }
+/* 排卵：金色圆环套一个小点，像「卵泡」 */
+.mk-ovu {
+  width: 17rpx; height: 17rpx; border-radius: 50%; box-sizing: border-box;
+  border: 2rpx solid var(--gold); flex-shrink: 0;
+}
+.ovu-dot { width: 6rpx; height: 6rpx; border-radius: 50%; background: var(--gold); }
+/* 亲密：红心；睡眠：Z 字 */
+.mk-heart { font-size: 24rpx; line-height: 24rpx; color: #E0556B; }
+.mk-z { font-size: 24rpx; line-height: 24rpx; font-weight: 700; font-style: italic; }
+.mk-z.good { color: var(--ok); }
+.mk-z.mid { color: var(--info); }
+.mk-z.bad { color: var(--warn); }
 
 .cal-legend {
   display: flex; flex-wrap: wrap; align-items: center; gap: 12rpx 18rpx;
   border-top: 1rpx solid var(--line2); margin-top: 8rpx; padding: 12rpx 8rpx 2rpx;
 }
 .lg { display: flex; align-items: center; gap: 6rpx; font-size: 18rpx; color: var(--ink3); }
-.lg-fertile { width: 16rpx; height: 16rpx; border-radius: 4rpx; background: #FDF3E6; border: 1rpx solid #F1D8B6; }
+/* 图例里图标略收小，避免比旁边的 18rpx 文字还高一截 */
+.lg .mk-heart, .lg .mk-z { font-size: 20rpx; line-height: 20rpx; }
+.lg .mk-drop { width: 11rpx; height: 11rpx; }
+.lg .mk-ovu { width: 15rpx; height: 15rpx; }
+.lg-fertile { width: 16rpx; height: 16rpx; border-radius: 4rpx; background: #EFE9FA; border: 1rpx solid #D3C6EC; }
 
 .cal-sum { display: flex; align-items: center; flex-wrap: wrap; gap: 8rpx 10rpx; padding: 0 4rpx 14rpx; }
 .cs-title { font-size: 20rpx; color: var(--ink3); }
@@ -1015,7 +1039,7 @@ loadOverview()
 .day-card { background: #fff; border: 1rpx solid var(--line2); border-radius: 20rpx; padding: 22rpx; }
 .dc-head { display: flex; align-items: center; gap: 10rpx; margin-bottom: 10rpx; }
 .dc-date { font-size: 26rpx; font-weight: 600; color: var(--ink); }
-.dc-today { font-size: 18rpx; color: var(--brand-d); background: var(--brand-l); padding: 3rpx 12rpx; border-radius: 8rpx; }
+.dc-today { font-size: 18rpx; color: var(--brand-d); background: var(--brand-sel); padding: 3rpx 12rpx; border-radius: 8rpx; font-weight: 600; }
 .dc-empty { font-size: 22rpx; color: var(--ink3); padding: 8rpx 0 14rpx; }
 .dc-row { display: flex; align-items: flex-start; gap: 14rpx; padding: 14rpx 0; border-top: 1rpx solid var(--line2); }
 .dc-icon { width: 34rpx; font-size: 26rpx; }
@@ -1161,7 +1185,7 @@ loadOverview()
   font-size: 22rpx; color: var(--ink2); background: var(--line2);
   padding: 10rpx 22rpx; border-radius: 9999rpx;
 }
-.pick-chip.on { background: var(--brand-l); color: var(--brand-d); font-weight: 600; }
+.pick-chip.on { background: var(--brand-sel); border-color: var(--brand-bd); color: var(--brand-d); font-weight: 600; }
 .pick { flex: 1; }
 .clear { font-size: 23rpx; color: var(--ink3); padding-left: 18rpx; }
 .sleep-preview {

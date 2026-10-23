@@ -311,7 +311,7 @@ onMounted(load)
   padding: 10rpx 22rpx; border-radius: 9999rpx; font-size: 23rpx;
   background: var(--bg); border: 1rpx solid var(--line2); color: var(--ink2);
 }
-.opt-chip.on { background: #EEF3F8; border-color: #C4D6E6; color: #456B92; font-weight: 600; }
+.opt-chip.on { background: #DFEAF5; border-color: #8FB3D4; color: #2E5C86; font-weight: 600; }
 
 .submit { margin-top: 28rpx; background: #5B7FA6; }
 .del-link { text-align: center; color: var(--danger); font-size: 24rpx; padding: 24rpx 0 0; }

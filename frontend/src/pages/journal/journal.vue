@@ -448,7 +448,7 @@ onPageScroll((e) => { pageScroll.value = e.scrollTop })
   background: #fff; border: 1rpx solid var(--line2); border-radius: 9999rpx;
   font-size: 24rpx; color: var(--ink2);
 }
-.filter.on { background: var(--brand-l); border-color: #F3CDB3; color: var(--brand-d); font-weight: 600; }
+.filter.on { background: var(--brand-sel); border-color: var(--brand-bd); color: var(--brand-d); font-weight: 600; }
 
 /* 时间线 */
 .feed { display: flex; flex-direction: column; }

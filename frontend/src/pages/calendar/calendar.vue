@@ -205,6 +205,7 @@ const month = ref(now.getMonth() + 1)
 const selectedDay = ref(null)
 const pageScroll = ref(0)
 const data = ref({ days: {} })
+const reqSeq = ref(0)
 
 // ---------- 大功能切换 ----------
 function setTab(t) {
@@ -261,12 +262,18 @@ function hasDiv(day) {
 
 async function load() {
   selectedDay.value = null
+  const seq = ++reqSeq.value
+  const y = year.value
+  const m = month.value
   // v8：账户跟随（币种转换仅在总览页生效，日历页按 CNY 显示）
   const params = {}
   if (userStore.currentAccount && userStore.currentAccount !== '__all__') {
     params.account = userStore.currentAccount
   }
-  data.value = await apiCalendar(year.value, month.value, params)
+  const res = await apiCalendar(y, m, params)
+  // 连点月份箭头时丢弃过期响应，避免旧月份覆盖新月份
+  if (seq !== reqSeq.value || y !== year.value || m !== month.value) return
+  data.value = res
   // 当前月自动聚焦最近一次待到账日（>= 今天），让用户一进来就看到"钱什么时候来"
   if (isCurrentMonth.value) {
     const today = now.getDate()
@@ -296,6 +303,8 @@ const rOpenId = ref(null)
 const rPage = ref(1)
 const rHasMore = ref(false)
 const rLoading = ref(false)
+const rReqSeq = ref(0)
+const rSumSeq = ref(0)
 const rNet = ref(0)
 const rPend = ref(0)
 
@@ -309,7 +318,9 @@ function filterParams() {
 }
 
 async function loadRecords(reset = true) {
-  if (rLoading.value) return
+  // 重置加载允许打断上一次请求，否则快速切筛选会被 loading 直接吞掉
+  if (!reset && rLoading.value) return
+  const seq = ++rReqSeq.value
   if (reset) {
     rPage.value = 1
     rList.value = []
@@ -323,21 +334,24 @@ async function loadRecords(reset = true) {
     if (rMarket.value) params.market = rMarket.value
     Object.assign(params, filterParams())
     const res = await apiDividends(params)
+    if (seq !== rReqSeq.value) return
     rList.value = reset ? res.items : [...rList.value, ...res.items]
     rTotal.value = res.total
     rHasMore.value = rList.value.length < res.total
   } finally {
-    rLoading.value = false
+    if (seq === rReqSeq.value) rLoading.value = false
   }
 }
 
 async function loadSummary() {
+  const seq = ++rSumSeq.value
   const params = { page: 1, page_size: 999 }
   if (rStatus.value) params.status = rStatus.value
   if (rYear.value) params.year = rYear.value
   if (rMarket.value) params.market = rMarket.value
   Object.assign(params, filterParams())
   const res = await apiDividends(params)
+  if (seq !== rSumSeq.value) return
   // 后端已将各币种统一换算为 net_cny，直接求和
   rNet.value = res.items
     .filter(d => d.status === 'confirmed')
@@ -436,7 +450,7 @@ onPageScroll((e) => { pageScroll.value = e.scrollTop })
 }
 .day-cell.blank { visibility: hidden; }
 .day-cell.has-div { background: #f6f8fb; }
-.day-cell.sel { background: #eff6ff; box-shadow: inset 0 0 0 2rpx #93c5fd; }
+.day-cell.sel { background: #DBEAFE; box-shadow: inset 0 0 0 2rpx #2563EB; }
 .d-num {
   width: 52rpx; height: 52rpx; line-height: 52rpx; text-align: center;
   font-size: 28rpx; color: #475569; border-radius: 50%;
