@@ -15,7 +15,7 @@
       <view :class="['seg-item', tab === 'list' ? 'on' : '']" @click="tab = 'list'">
         <text>📋</text><text>流水</text>
       </view>
-      <view :class="['seg-item', tab === 'stats' ? 'on' : '']" @click="switchStats">
+      <view :class="['seg-item', tab === 'stats' ? 'on' : '']" @click="tab = 'stats'">
         <text>📊</text><text>统计</text>
       </view>
     </view>
@@ -23,7 +23,7 @@
     <!-- ===== 月汇总 ===== -->
     <view class="sum-card">
       <view class="sc-main">
-        <text class="sc-label">本月支出</text>
+        <text class="sc-label">本月支出<text v-if="summary.count" class="sc-count"> · {{ summary.count }} 笔</text></text>
         <text class="sc-expense">¥{{ money(summary.expense) }}</text>
         <text v-if="summary.has_prev" class="sc-delta">
           {{ summary.expense_delta > 0 ? '比上月多花' : '比上月少花' }}
@@ -65,7 +65,10 @@
         <view v-for="d in days" :key="d.date" class="day-block">
           <view class="day-head">
             <text class="dh-date">{{ dayLabel(d.date) }}</text>
-            <text class="dh-sum">支出 ¥{{ money(dayExpense(d)) }}</text>
+            <view class="dh-sum-wrap">
+              <text v-if="dayExpense(d) > 0" class="dh-sum">支出 ¥{{ money(dayExpense(d)) }}</text>
+              <text v-if="dayIncome(d) > 0" class="dh-sum income">收入 ¥{{ money(dayIncome(d)) }}</text>
+            </view>
           </view>
           <view class="rec-list">
             <view v-for="r in d.items" :key="r.id" class="rec"
@@ -82,6 +85,8 @@
           </view>
         </view>
       </view>
+
+      <view v-if="truncated" class="list-note">本月记录超过 500 笔，这里只显示最近 500 笔。</view>
     </block>
 
     <!-- ===== 统计 ===== -->
@@ -109,7 +114,7 @@
               <view class="trend-bar" :style="{ height: barH(t.expense) + 'rpx' }"></view>
             </view>
             <text class="trend-label">{{ t.month.slice(5) }}月</text>
-            <text class="trend-val">{{ t.expense ? money(t.expense) : '0' }}</text>
+            <text class="trend-val">{{ t.expense ? shortMoney(t.expense) : '0' }}</text>
           </view>
         </view>
       </view>
@@ -134,7 +139,7 @@
         <!-- 金额 -->
         <view class="amount-row">
           <text class="amount-sym">¥</text>
-          <input class="amount-input" type="digit" v-model="form.amount" placeholder="0.00" focus />
+          <input class="amount-input" type="digit" v-model="form.amount" placeholder="0.00" focus @confirm="save" />
         </view>
 
         <!-- 分类 -->
@@ -145,9 +150,27 @@
             <text class="cc-emoji">{{ c.emoji }}</text>
             <text class="cc-name">{{ c.name }}</text>
           </view>
-          <view class="cat-cell add" @click="addCategory">
-            <text class="cc-emoji">＋</text>
-            <text class="cc-name">新增</text>
+          <view class="cat-cell add" :class="addingCat ? 'on' : ''" @click="toggleAddCategory">
+            <text class="cc-emoji">{{ addingCat ? '×' : '＋' }}</text>
+            <text class="cc-name">{{ addingCat ? '收起' : '新增' }}</text>
+          </view>
+        </view>
+
+        <!-- 新增分类：用内嵌面板代替 showModal，避免和弹层抢层级、也方便选图标 -->
+        <view v-if="addingCat" class="cat-add">
+          <scroll-view class="emoji-row" scroll-x :show-scrollbar="false">
+            <view class="emoji-inner">
+              <text v-for="e in emojiChoices" :key="e"
+                    :class="['emoji-opt', newCatEmoji === e ? 'on' : '']"
+                    @click="newCatEmoji = e">{{ e }}</text>
+            </view>
+          </scroll-view>
+          <view class="ca-row">
+            <input class="ca-input" v-model="newCatName" maxlength="10"
+                   placeholder="分类名，最多 10 字" confirm-type="done" @confirm="confirmAddCategory" />
+            <view :class="['ca-ok', addingCatBusy ? 'loading' : '']" @click="confirmAddCategory">
+              {{ addingCatBusy ? '添加中' : '添加' }}
+            </view>
           </view>
         </view>
 
@@ -195,9 +218,11 @@ const loading = ref(false)
 const saving = ref(false)
 const sheetVisible = ref(false)
 const editingId = ref(null)
+const reqSeq = ref(0)
+const truncated = ref(false)
 
 const month = ref(currentMonth())
-const summary = reactive({ expense: 0, income: 0, balance: 0, has_prev: false, expense_delta: 0 })
+const summary = reactive({ expense: 0, income: 0, balance: 0, count: 0, has_prev: false, expense_delta: 0 })
 const days = ref([])
 const categories = ref([])
 const catStats = ref([])
@@ -205,11 +230,28 @@ const trend = ref([])
 
 const barColors = ['#D97742', '#E8A33D', '#3F8F6D', '#5B7FA6', '#C0555F', '#B08BC0', '#C9A227']
 
-const today = new Date().toISOString().slice(0, 10)
+/** 本地日期：不用 toISOString，东八区凌晨会算成前一天 */
+function localDate(offset = 0) {
+  const d = new Date()
+  d.setDate(d.getDate() + offset)
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${d.getFullYear()}-${m}-${day}`
+}
+
+/** 常驻 tab 页跨零点后仍要能选到「今天」 */
+const today = ref(localDate())
 const form = reactive({
   direction: 'expense', amount: '', category: '其他', account: '',
-  occurred_on: today, note: '',
+  occurred_on: localDate(), note: '',
 })
+
+/** 新增分类：内嵌面板状态（不用 showModal：H5 弹窗 z-index 低于记一笔弹层，会藏在后面） */
+const addingCat = ref(false)
+const addingCatBusy = ref(false)
+const newCatName = ref('')
+const newCatEmoji = ref('📦')
+const emojiChoices = ['📦', '🍜', '🚇', '🏠', '🛒', '🎁', '🎮', '💊', '📚', '🐱', '✈️', '🎬']
 
 const monthLabel = computed(() => {
   const [y, m] = month.value.split('-')
@@ -225,19 +267,27 @@ function currentMonth() {
 function money(n) {
   return Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
+/** 图表里用短数字：1.2万，避免 6 列挤在一起 */
+function shortMoney(n) {
+  const v = Number(n || 0)
+  if (v < 10000) return money(v)
+  const w = v / 10000
+  return w.toFixed(w >= 100 ? 0 : 1).replace(/\.0$/, '') + '万'
+}
 function catEmoji(name) {
   const c = categories.value.find(x => x.name === name)
   return c ? c.emoji : '📦'
 }
 function dayLabel(d) {
-  const todayStr = new Date().toISOString().slice(0, 10)
-  if (d === todayStr) return '今天 · ' + d.slice(5)
-  const y = new Date(Date.now() - 86400000).toISOString().slice(0, 10)
-  if (d === y) return '昨天 · ' + d.slice(5)
+  if (d === localDate()) return '今天 · ' + d.slice(5)
+  if (d === localDate(-1)) return '昨天 · ' + d.slice(5)
   return d.slice(5).replace('-', '月') + '日'
 }
 function dayExpense(d) {
   return d.items.filter(r => r.direction === 'expense').reduce((a, r) => a + r.amount, 0)
+}
+function dayIncome(d) {
+  return d.items.filter(r => r.direction === 'income').reduce((a, r) => a + r.amount, 0)
 }
 function barH(v) { return Math.max(4, (v / maxTrend.value) * 180) }
 
@@ -249,28 +299,35 @@ function shiftMonth(delta) {
   load()
 }
 
+/** 流水与统计一起取：分类构成条不再依赖先点一次「统计」 */
 async function load() {
+  const seq = ++reqSeq.value
+  const m = month.value
   loading.value = true
   try {
-    const data = await apiLedger({ month: month.value })
-    Object.assign(summary, data.summary || {})
+    const [data, stats] = await Promise.all([
+      apiLedger({ month: m, limit: 500 }),
+      apiLedgerStats({ month: m }),
+    ])
+    // 连点月份时丢弃过期响应，避免旧月份覆盖新月份
+    if (seq !== reqSeq.value) return
+    Object.assign(summary, stats.summary || data.summary || {})
     days.value = data.days || []
+    truncated.value = (data.items || []).length >= 500
     categories.value = data.categories || []
-    if (data.last_category) form.category = data.last_category.name
+    catStats.value = stats.categories || []
+    trend.value = stats.trend || []
+    // 只在没在编辑时同步「上次使用的分类」，避免刷新打断正在填的表单
+    if (data.last_category && !sheetVisible.value && !editingId.value) form.category = data.last_category.name
   } finally {
-    loading.value = false
+    if (seq === reqSeq.value) loading.value = false
   }
 }
 
-async function switchStats() {
-  tab.value = 'stats'
-  const data = await apiLedgerStats({ month: month.value })
-  catStats.value = data.categories || []
-  trend.value = data.trend || []
-  Object.assign(summary, data.summary || {})
-}
-
 function openSheet(r) {
+  // 每次打开都收起「新增分类」面板，避免残留上次输入
+  addingCat.value = false
+  newCatName.value = ''
   if (r) {
     editingId.value = r.id
     form.direction = r.direction
@@ -286,7 +343,7 @@ function openSheet(r) {
   form.direction = 'expense'
   form.amount = ''
   form.account = ''
-  form.occurred_on = today
+  form.occurred_on = today.value
   form.note = ''
   const last = categories.value.find(c => c.name === form.category)
   if (!last) form.category = categories.value[0]?.name || '其他'
@@ -296,8 +353,9 @@ function openSheet(r) {
 function onDate(e) { form.occurred_on = e.detail.value }
 
 async function save() {
+  if (saving.value) return
   const amount = Number(form.amount)
-  if (!amount || amount <= 0) {
+  if (!Number.isFinite(amount) || amount <= 0) {
     return uni.showToast({ title: '金额得大于 0', icon: 'none' })
   }
   if (!form.category) {
@@ -314,7 +372,6 @@ async function save() {
     else await apiCreateLedger(payload)
     sheetVisible.value = false
     uni.showToast({ title: editingId.value ? '改好了' : '又活过一天 +1', icon: 'none' })
-    if (tab.value === 'stats') switchStats()
     await load()
   } catch (e) { /* toast 已统一 */ } finally {
     saving.value = false
@@ -352,25 +409,39 @@ function removeCurrent() {
   })
 }
 
-function addCategory() {
-  uni.showModal({
-    title: '新增分类',
-    editable: true,
-    placeholderText: '分类名（最多 10 字）',
-    success: async (res) => {
-      if (!res.confirm || !res.content) return
-      try {
-        const c = await apiAddLedgerCategory(res.content.trim(), '📦')
-        categories.value.push(c)
-        form.category = c.name
-      } catch (e) { /* toast 已统一 */ }
-    },
-  })
+function toggleAddCategory() {
+  addingCat.value = !addingCat.value
+  if (addingCat.value) {
+    newCatName.value = ''
+    newCatEmoji.value = '📦'
+  }
+}
+
+async function confirmAddCategory() {
+  if (addingCatBusy.value) return
+  const name = newCatName.value.trim()
+  if (!name) return uni.showToast({ title: '给分类起个名', icon: 'none' })
+  addingCatBusy.value = true
+  try {
+    const c = await apiAddLedgerCategory(name, newCatEmoji.value)
+    categories.value.push(c)
+    form.category = c.name
+    addingCat.value = false
+    newCatName.value = ''
+    uni.showToast({ title: '分类加好了', icon: 'none' })
+  } catch (e) { /* toast 已统一 */ } finally {
+    addingCatBusy.value = false
+  }
 }
 
 onPageScroll((e) => { pageScroll.value = e.scrollTop })
 onShow(() => {
-  if (tab.value === 'stats') switchStats()
+  // 常驻 tab 页：跨零点后把「今天」和表单默认日期推到新的一天
+  const d = localDate()
+  if (d !== today.value) {
+    today.value = d
+    if (!sheetVisible.value) form.occurred_on = d
+  }
   load()
 })
 onPullDownRefresh(async () => {
@@ -389,7 +460,7 @@ onPullDownRefresh(async () => {
 .page { padding: 24rpx; }
 
 .month-nav { display: flex; align-items: center; gap: 12rpx; margin-bottom: 20rpx; }
-.mn-arrow { font-size: 40rpx; color: var(--ink2); padding: 0 10rpx; }
+.mn-arrow { font-size: 40rpx; color: var(--ink2); padding: 0 10rpx; line-height: 60rpx; }
 .mn-arrow.disabled { color: #D9CFC4; }
 .mn-label { font-size: 30rpx; font-weight: 700; color: var(--ink); }
 .mn-add {
@@ -397,6 +468,7 @@ onPullDownRefresh(async () => {
   background: var(--brand); color: #fff; font-size: 24rpx;
   box-shadow: 0 6rpx 14rpx rgba(185, 92, 46, 0.22);
 }
+.mn-add:active { opacity: 0.86; }
 
 /* 汇总 */
 .sum-card {
@@ -405,7 +477,9 @@ onPullDownRefresh(async () => {
 }
 .sc-main { flex: 1.3; display: flex; flex-direction: column; gap: 6rpx; }
 .sc-label { font-size: 22rpx; color: var(--ink3); }
-.sc-expense { font-size: 52rpx; font-weight: 700; color: var(--ink); letter-spacing: 0.5rpx; }
+.sc-count { color: var(--ink3); }
+.sc-expense { font-size: 52rpx; font-weight: 700; color: var(--ink); letter-spacing: 0.5rpx;
+  font-variant-numeric: tabular-nums; }
 .sc-delta { font-size: 22rpx; color: var(--warn); }
 .sc-side { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 18rpx;
   border-left: 1rpx dashed var(--line); padding-left: 24rpx; }
@@ -427,18 +501,26 @@ onPullDownRefresh(async () => {
 
 /* 流水 */
 .day-block { margin-bottom: 26rpx; }
-.day-head { display: flex; align-items: center; justify-content: space-between; padding: 0 6rpx 12rpx; }
+.day-head { display: flex; align-items: center; justify-content: space-between; padding: 0 6rpx 12rpx; gap: 12rpx; }
 .dh-date { font-size: 24rpx; font-weight: 600; color: var(--ink2); }
-.dh-sum { font-size: 21rpx; color: var(--ink3); }
+.dh-sum-wrap { display: flex; align-items: center; gap: 14rpx; flex-shrink: 0; }
+.dh-sum { font-size: 21rpx; color: var(--ink3); font-variant-numeric: tabular-nums; }
+.dh-sum.income { color: var(--ok); }
 .rec-list { background: #fff; border: 1rpx solid var(--line2); border-radius: 22rpx; overflow: hidden; }
 .rec { display: flex; align-items: center; gap: 18rpx; padding: 22rpx 24rpx; border-bottom: 1rpx solid var(--line2); }
+.rec:active { background: var(--bg); }
 .rec:last-child { border-bottom: none; }
 .rec-emoji { font-size: 34rpx; width: 48rpx; text-align: center; }
 .rec-main { flex: 1; display: flex; flex-direction: column; gap: 4rpx; min-width: 0; }
 .rec-title { font-size: 27rpx; color: var(--ink); }
 .rec-sub { font-size: 20rpx; color: var(--ink3); }
-.rec-amount { font-size: 28rpx; font-weight: 600; color: var(--ink); }
+.rec-amount { font-size: 28rpx; font-weight: 600; color: var(--ink); font-variant-numeric: tabular-nums; }
 .rec-amount.ok { color: var(--ok); }
+
+.list-note {
+  text-align: center; font-size: 20rpx; color: var(--ink3);
+  padding: 20rpx 0 0;
+}
 
 .empty-btn {
   display: inline-block; margin-top: 28rpx; padding: 16rpx 40rpx;
@@ -452,7 +534,7 @@ onPullDownRefresh(async () => {
 .sr-bar { flex: 1; height: 12rpx; background: var(--line2); border-radius: 9999rpx; overflow: hidden; }
 .sr-fill { height: 100%; background: var(--brand); border-radius: 9999rpx; }
 .sr-pct { width: 76rpx; text-align: right; font-size: 20rpx; color: var(--ink3); }
-.sr-amount { width: 150rpx; text-align: right; font-size: 22rpx; color: var(--ink); }
+.sr-amount { width: 150rpx; text-align: right; font-size: 22rpx; color: var(--ink); font-variant-numeric: tabular-nums; }
 
 .trend { display: flex; align-items: flex-end; justify-content: space-between; height: 280rpx; padding-top: 20rpx; }
 .trend-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8rpx; }
@@ -480,10 +562,35 @@ onPullDownRefresh(async () => {
   display: flex; flex-direction: column; align-items: center; gap: 6rpx;
   background: var(--bg); border: 1rpx solid var(--line2); border-radius: 16rpx;
 }
-.cat-cell.on { background: var(--brand-l); border-color: #F3CDB3; }
+.cat-cell.on { background: var(--brand-sel); border-color: var(--brand-bd); }
+.cat-cell.on .cc-name { color: var(--brand-d); font-weight: 600; }
 .cat-cell.add { border-style: dashed; }
+.cat-cell.add.on { border-style: solid; background: var(--bg); border-color: var(--line); }
 .cc-emoji { font-size: 34rpx; }
 .cc-name { font-size: 20rpx; color: var(--ink2); }
+
+/* 内嵌新增分类面板 */
+.cat-add {
+  margin: 2rpx 0 14rpx; padding: 16rpx;
+  background: var(--bg); border: 1rpx solid var(--line2); border-radius: 16rpx;
+}
+.emoji-row { width: 100%; white-space: nowrap; }
+.emoji-inner { display: inline-flex; gap: 10rpx; padding: 2rpx; }
+.emoji-opt {
+  width: 64rpx; height: 64rpx; line-height: 64rpx; text-align: center;
+  font-size: 32rpx; background: #fff; border: 1rpx solid var(--line2); border-radius: 14rpx;
+}
+.emoji-opt.on { border-color: var(--brand-bd); background: var(--brand-sel); box-shadow: inset 0 0 0 2rpx var(--brand-bd); }
+.ca-row { display: flex; align-items: center; gap: 12rpx; margin-top: 14rpx; }
+.ca-input {
+  flex: 1; height: 68rpx; padding: 0 20rpx; background: #fff;
+  border: 1rpx solid var(--line2); border-radius: 14rpx; font-size: 25rpx; color: var(--ink);
+}
+.ca-ok {
+  padding: 0 28rpx; height: 68rpx; line-height: 68rpx; border-radius: 14rpx;
+  background: var(--brand); color: #fff; font-size: 25rpx;
+}
+.ca-ok.loading { opacity: 0.6; }
 
 .submit { margin-top: 32rpx; }
 .del-link { text-align: center; color: var(--danger); font-size: 24rpx; padding: 24rpx 0 0; }
