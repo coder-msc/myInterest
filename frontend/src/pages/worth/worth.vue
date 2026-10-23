@@ -427,15 +427,15 @@ import AssetsPanel from '@/components/AssetsPanel.vue'
 
 /** 顶部大项。新增模块时在这里加一项，并在下方加对应的内容块即可。 */
 const segments = [
+  { key: 'health', label: '健康', emoji: '🌿' },
+  { key: 'todo', label: '待办', emoji: '✅' },
   { key: 'countdown', label: '日子', emoji: '🎯' },
   { key: 'trip', label: '旅游', emoji: '🧳' },
-  { key: 'todo', label: '待办', emoji: '✅' },
-  { key: 'health', label: '健康', emoji: '🌿' },
   { key: 'event', label: '大事件', emoji: '🎉' },
   { key: 'assets', label: '盘点', emoji: '🏦' },
 ]
 
-const tab = ref('countdown')
+const tab = ref('health')
 const scrollTo = ref('')
 const pageScroll = ref(0)
 const healthRef = ref(null)
