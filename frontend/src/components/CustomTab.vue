@@ -16,17 +16,13 @@
 </template>
 
 <script setup>
+import TABS from '@/custom-tab-bar/tabs.json'
+
 const props = defineProps({
   current: { type: String, default: '' },
 })
 
-const tabs = [
-  { path: '/pages/journal/journal', label: '手札', emoji: '🏠' },
-  { path: '/pages/ledger/ledger', label: '账本', emoji: '💰' },
-  { path: '/pages/worth/worth', label: '值得记', emoji: '🎯' },
-  { path: '/pages/discover/discover', label: '发现', emoji: '🔍' },
-  { path: '/pages/mine/mine', label: '我的', emoji: '👤' },
-]
+const tabs = TABS
 
 function go(path) {
   if (path === props.current) return

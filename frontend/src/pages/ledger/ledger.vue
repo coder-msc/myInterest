@@ -457,7 +457,7 @@ onPullDownRefresh(async () => {
 </script>
 
 <style scoped>
-.page { padding: 24rpx; }
+.page { padding: 24rpx; padding-bottom: calc(120rpx + env(safe-area-inset-bottom)); }
 
 .month-nav { display: flex; align-items: center; gap: 12rpx; margin-bottom: 20rpx; }
 .mn-arrow { font-size: 40rpx; color: var(--ink2); padding: 0 10rpx; line-height: 60rpx; }

@@ -184,7 +184,7 @@
 
     <view style="height: 40rpx"></view>
     <BackTop :scroll-top="pageScroll" />
-    <!-- #ifdef H5 --><CustomTab current="/pages/calendar/calendar" /><!-- #endif -->
+    <CustomTab current="/pages/calendar/calendar" />
   </view>
 </template>
 
@@ -400,6 +400,9 @@ onPageScroll((e) => { pageScroll.value = e.scrollTop })
 </script>
 
 <style scoped>
+/* 底部固定导航占位 */
+.page { padding-bottom: calc(120rpx + env(safe-area-inset-bottom)); }
+
 /* 大功能 segment（与持仓页同款） */
 .seg-wrap { display: flex; padding: 20rpx 24rpx 4rpx; }
 .seg {

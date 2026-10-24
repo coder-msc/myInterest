@@ -133,7 +133,7 @@ function onTouchEnd(e) {
 </script>
 
 <style scoped>
-.page { padding: 24rpx; }
+.page { padding: 24rpx; padding-bottom: calc(120rpx + env(safe-area-inset-bottom)); }
 
 .seg-wrap { margin-bottom: 22rpx; }
 .seg-scroll { width: 100%; white-space: nowrap; }

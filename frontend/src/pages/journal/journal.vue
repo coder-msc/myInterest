@@ -399,7 +399,7 @@ onPageScroll((e) => { pageScroll.value = e.scrollTop })
 </script>
 
 <style scoped>
-.page { padding: 24rpx; }
+.page { padding: 24rpx; padding-bottom: calc(120rpx + env(safe-area-inset-bottom)); }
 
 /* 问候 */
 .hello { display: flex; align-items: center; justify-content: space-between; padding: 8rpx 4rpx 24rpx; }

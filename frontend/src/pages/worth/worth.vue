@@ -1104,7 +1104,7 @@ onReachBottom(() => {
 </script>
 
 <style scoped>
-.page { padding: 24rpx; }
+.page { padding: 24rpx; padding-bottom: calc(120rpx + env(safe-area-inset-bottom)); }
 .load-more {
   text-align: center; font-size: 22rpx; color: var(--ink3);
   padding: 20rpx 0 6rpx;

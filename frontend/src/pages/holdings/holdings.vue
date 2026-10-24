@@ -142,7 +142,7 @@
 
     <view style="height: 140rpx"></view>
     <BackTop :scroll-top="pageScroll" />
-    <!-- #ifdef H5 --><CustomTab current="/pages/holdings/holdings" /><!-- #endif -->
+    <CustomTab current="/pages/holdings/holdings" />
   </view>
 </template>
 

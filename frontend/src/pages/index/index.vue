@@ -143,7 +143,7 @@
 
     <view style="height: 40rpx"></view>
     <BackTop :scroll-top="pageScroll" />
-    <!-- #ifdef H5 --><CustomTab current="/pages/index/index" /><!-- #endif -->
+    <CustomTab current="/pages/index/index" />
   </view>
 </template>
 
@@ -155,8 +155,8 @@ import { userStore, setDisplayCurrency } from '@/store/user'
 import { fmtDisplay } from '@/utils/constants'
 // #ifdef H5
 import WebLayout from '@/components/WebLayout.vue'
-import CustomTab from '@/components/CustomTab.vue'
 // #endif
+import CustomTab from '@/components/CustomTab.vue'
 import BackTop from '@/components/BackTop.vue'
 
 // ---------- 数据 ----------
@@ -328,7 +328,7 @@ onPageScroll((e) => { pageScroll.value = e.scrollTop })
 </script>
 
 <style scoped>
-.page { padding-bottom: 30rpx; }
+.page { padding-bottom: calc(120rpx + env(safe-area-inset-bottom)); }
 
 /* ========== Hero 主卡（浅色版） ========== */
 /* 改用浅蓝渐变 + 深色文字，与下方白卡同色系过渡，避免深色突兀 */
