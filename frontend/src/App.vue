@@ -1,12 +1,11 @@
 <script>
 import { TOKEN_KEY } from './utils/config'
+import { redirectToLogin } from './utils/request'
 
 export default {
   onLaunch() {
-    const token = uni.getStorageSync(TOKEN_KEY)
-    if (!token) {
-      uni.reLaunch({ url: '/pages/login/login' })
-    }
+    // 未登录走统一跳转（内含延迟与单飞），避免 launch 阶段 webview 未就绪时 reLaunch 超时
+    if (!uni.getStorageSync(TOKEN_KEY)) redirectToLogin()
   },
 }
 </script>

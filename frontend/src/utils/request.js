@@ -6,13 +6,29 @@
  */
 import { BASE_URL, TOKEN_KEY, USER_KEY } from './config'
 
+let redirecting = false
+
 function redirectToLogin() {
+  // 单飞：启动阶段多个请求同时失效时会重复 reLaunch，导致 "reLaunch:fail timeout"
+  if (redirecting) return
   const pages = getCurrentPages()
   const route = pages.length ? pages[pages.length - 1].route : ''
-  if (route !== 'pages/login/login') {
-    setTimeout(() => uni.reLaunch({ url: '/pages/login/login' }), 300)
-  }
+  if (route === 'pages/login/login') return
+  redirecting = true
+  // 延迟到当前页面栈就绪再跳，避免 launch 阶段 webview 尚未创建
+  setTimeout(() => {
+    uni.reLaunch({
+      url: '/pages/login/login',
+      fail: () => {
+        // 偶发超时（开发者工具/启动阶段）：降级为 redirectTo，不覆盖登录页
+        uni.redirectTo({ url: '/pages/login/login' })
+      },
+      complete: () => { redirecting = false },
+    })
+  }, 300)
 }
+
+export { redirectToLogin }
 
 export function request(options) {
   const { url, method = 'GET', data = {}, auth = true, silent = false } = options
@@ -56,6 +72,7 @@ export function request(options) {
         reject(body)
       },
       fail: (err) => {
+        console.error('[req fail]', BASE_URL + url, err && err.errMsg)
         if (!silent) {
           uni.showToast({ title: '网络连接失败，请检查后端服务', icon: 'none' })
         }

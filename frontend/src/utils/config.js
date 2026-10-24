@@ -1,15 +1,18 @@
 /**
  * 环境与接口地址配置（docs/05-前端三端设计.md §2 baseUrl 策略）
  * - H5 生产：走同域相对路径，/api 由 Caddy 反代到后端（mobile.icefun.cn）
- * - 小程序：同域相对路径（经配置的合法域名/代理）
- * - 真机调试：如需改地址，把 BASE_URL 改成局域网 IP 或 https 域名
+ * - 小程序：不支持相对路径，必须是完整域名
+ * - 当前阶段（本地联调）：dev / build 均指向本机后端；提审发布前把下面的
+ *   BASE_URL 换成 https://mobile.icefun.cn
+ * - 真机调试：127.0.0.1 不通，改成电脑的局域网 IP（同一 WiFi）
  */
 // #ifdef H5
 // 生产走同域相对路径：/api 由 Caddy 反代到后端（mobile.icefun.cn）
 export const BASE_URL = ''
 // #endif
-// #ifndef H5
-export const BASE_URL = ''
+// #ifdef MP-WEIXIN
+// 开发者工具需勾选「详情 → 本地设置 → 不校验合法域名」
+export const BASE_URL = 'http://127.0.0.1:8000'
 // #endif
 
 export const TOKEN_KEY = 'xi_token'
