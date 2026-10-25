@@ -33,11 +33,11 @@
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
+import { ref } from 'vue'
 import { onShow } from '@dcloudio/uni-app'
 import { apiSettings, apiSaveSettings } from '@/api'
 import { CURRENCIES } from '@/utils/constants'
-import { setVisibleCurrencies, userStore } from '@/store/user'
+import { setVisibleCurrencies } from '@/store/user'
 import WebLayout from '@/components/WebLayout.vue'
 
 const selected = ref(['CNY', 'USD', 'HKD'])

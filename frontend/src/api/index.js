@@ -1,4 +1,4 @@
-/** API 模块：与 PC 端 api/index.js 对齐 */
+/** API 模块：H5 / 小程序 / 运营后台共用 */
 import { get, post, patch, del, put, upload } from '@/utils/request'
 
 // ---------- 认证 ----------
@@ -22,28 +22,17 @@ export const apiDeleteMe = () => del('/api/auth/me')
 // ---------- 持仓 ----------
 export const apiHoldings = (params = {}) => get('/api/holdings', params)
 export const apiHoldingDetail = (id) => get(`/api/holdings/${id}`)
-export const apiHolding = (id) => get(`/api/holdings/${id}`)
 export const apiCreateHolding = (payload) => post('/api/holdings', payload)
-export const apiUpdateHolding = (id, payload) => patch(`/api/holdings/${id}`, payload)
-export const apiDeleteHolding = (id) => del(`/api/holdings/${id}`)
 
 // ---------- 批次 ----------
 export const apiLots = (holdingId) => get(`/api/holdings/${holdingId}/lots`)
 export const apiCreateLot = (holdingId, payload) =>
   post(`/api/holdings/${holdingId}/lots`, payload)
-export const apiCreateLotsBatch = (holdingId, lots) =>
-  post(`/api/holdings/${holdingId}/lots/batch`, { lots })
-export const apiUpdateLot = (lotId, payload) => patch(`/api/lots/${lotId}`, payload)
-export const apiDeleteLot = (lotId) => del(`/api/lots/${lotId}`)
 
 // ---------- 分红（v0.3 纯实时计算，无落表） ----------
 export const apiDividends = (params = {}) => get('/api/dividends', params)
-// 详情：后端从落表 id 改成 schedule_id + holding_id 组合 query params
-export const apiDividendDetail = (scheduleId, holdingId) =>
-  get('/api/dividends/detail', { schedule_id: scheduleId, holding_id: holdingId })
 
 // ---------- 统计 / 日历 / 设置 ----------
-export const apiSummary = () => get('/api/stats/summary')
 export const apiEnhancedSummary = (params = {}) => get('/api/stats/enhanced-summary', params)
 export const apiDashboardMetrics = () => get('/api/stats/dashboard-metrics')
 export const apiSaveDashboardMetrics = (selected) => put('/api/stats/dashboard-metrics', { selected })
@@ -57,14 +46,7 @@ export const apiCalendar = (year, month, params = {}) => get('/api/calendar', { 
 
 // ---------- 预案（用户端） ----------
 export const apiUpcoming = () => get('/api/schedules/upcoming')
-export const apiSchedules = (params) => get('/api/schedules', params)
 export const apiSecurities = (params) => get('/api/schedules/securities', params)
-export const apiSubmitSchedule = (payload) => post('/api/schedules', payload)
-
-// ---------- 公告 / 反馈 ----------
-export const apiAnnouncements = () => get('/api/announcements')
-export const apiMyFeedback = () => get('/api/feedback/me')
-export const apiCreateFeedback = (content) => post('/api/feedback', { content })
 
 // ---------- 设置 ----------
 export const apiSettings = () => get('/api/settings')
@@ -79,27 +61,18 @@ export const apiAccountsMeta = (accounts_meta) => put('/api/accounts/meta', { ac
 // ---------- 手札流 ----------
 export const apiJournalHome = (params = {}) => get('/api/journal/home', params)
 export const apiJournalFeed = (params = {}) => get('/api/journal/feed', params)
-export const apiJournalSearch = (q) => get('/api/journal/search', { q })
-export const apiJournalCounts = () => get('/api/journal/counts')
 export const apiJournalStats = () => get('/api/journal/stats')
-export const apiJournalModules = () => get('/api/journal/modules')
-export const apiRebuildIndex = () => post('/api/journal/rebuild-index')
 
 // ---------- 账本 ----------
 export const apiLedger = (params = {}) => get('/api/ledger', params)
 export const apiLedgerStats = (params = {}) => get('/api/ledger/stats', params)
-export const apiLedgerDetail = (id) => get(`/api/ledger/${id}`)
 export const apiCreateLedger = (payload) => post('/api/ledger', payload)
 export const apiUpdateLedger = (id, payload) => patch(`/api/ledger/${id}`, payload)
 export const apiDeleteLedger = (id) => del(`/api/ledger/${id}`)
-export const apiLedgerCategories = () => get('/api/ledger/categories')
 export const apiAddLedgerCategory = (name, emoji) => post('/api/ledger/categories', { name, emoji })
-export const apiDeleteLedgerCategory = (id) => del(`/api/ledger/categories/${id}`)
 
 // ---------- 日子（倒计时） ----------
 export const apiCountdowns = (params = {}) => get('/api/countdowns', params)
-export const apiCountdown = (id) => get(`/api/countdowns/${id}`)
-export const apiCountdownPreview = (id) => get(`/api/countdowns/${id}/preview`)
 export const apiCreateCountdown = (payload) => post('/api/countdowns', payload)
 export const apiUpdateCountdown = (id, payload) => patch(`/api/countdowns/${id}`, payload)
 export const apiDeleteCountdown = (id) => del(`/api/countdowns/${id}`)
@@ -143,7 +116,6 @@ export const apiDeleteEvent = (id) => del(`/api/events/${id}`)
 
 // ---------- 家庭资产 ----------
 export const apiAssets = () => get('/api/assets')
-export const apiAssetTrend = () => get('/api/assets/trend')
 export const apiCreateAssetItem = (payload) => post('/api/assets/items', payload)
 export const apiUpdateAssetItem = (id, payload) => patch(`/api/assets/items/${id}`, payload)
 export const apiDeleteAssetItem = (id) => del(`/api/assets/items/${id}`)
@@ -155,10 +127,6 @@ export const apiUploadMedia = (filePath, ownerType = 'unanchored', ownerId = nul
     owner_type: ownerType,
     ...(ownerId ? { owner_id: String(ownerId) } : {}),
   })
-export const apiUnanchoredMedia = () => get('/api/media/unanchored')
-export const apiAttachMedia = (asset_ids, owner_type, owner_id) =>
-  post('/api/media/attach', { asset_ids, owner_type, owner_id })
-export const apiDeleteMedia = (id) => del(`/api/media/${id}`)
 
 // ---------- 提醒中心 ----------
 export const apiNotifications = (params = {}) => get('/api/notifications', params)

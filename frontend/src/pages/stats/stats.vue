@@ -135,7 +135,7 @@
 import { computed, ref } from 'vue'
 import { onShow, onPageScroll } from '@dcloudio/uni-app'
 import { apiByMarket, apiTopHoldings, apiYieldRanking, apiMonthlyTrend, apiForecast } from '@/api'
-import { MARKETS, marketMap, currencyMap, badgeClass, moneyWith } from '@/utils/constants'
+import { marketMap, currencyMap, badgeClass, moneyWith } from '@/utils/constants'
 import { userStore } from '@/store/user'
 import WebLayout from '@/components/WebLayout.vue'
 import BackTop from '@/components/BackTop.vue'

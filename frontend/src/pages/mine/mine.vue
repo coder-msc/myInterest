@@ -234,7 +234,7 @@
 import { computed, reactive, ref } from 'vue'
 import { onLoad, onShow, onPageScroll } from '@dcloudio/uni-app'
 import {
-  apiRates, apiSettings, apiSaveSettings, apiLogout,
+  apiRates, apiSettings, apiLogout,
   apiSendCode, apiBindEmail, apiMe, apiAccounts, apiAccountsMeta,
   apiUpdateProfile, apiUnbindEmail, apiDeleteMe,
   apiJournalStats, apiUnreadCount, apiExportFull,
