@@ -194,10 +194,15 @@
 
 <script setup>
 import { nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import {
+  ElButton, ElDatePicker, ElDialog, ElDropdown, ElDropdownItem, ElDropdownMenu,
+  ElForm, ElFormItem, ElIcon, ElInput, ElInputNumber, ElMessage, ElMessageBox,
+  ElOption, ElPagination, ElRadioButton, ElRadioGroup, ElSelect, ElTable,
+  ElTableColumn, ElTag, vLoading,
+} from '@/utils/admin-ui'
 import { ArrowDown } from '@element-plus/icons-vue'
-import { apiAdminSchedules, apiAdminCreateSchedule, apiAdminApproveSchedule, apiAdminRejectSchedule, apiAdminCrawl, apiCrawlStatus, apiAdminBatchApprove, apiAdminSecurities } from '../../api'
-import { MARKETS, marketMap } from '../../utils/constants'
+import { apiAdminSchedules, apiAdminCreateSchedule, apiAdminApproveSchedule, apiAdminRejectSchedule, apiAdminCrawl, apiCrawlStatus, apiAdminBatchApprove, apiAdminSecurities } from '@/api'
+import { MARKETS, marketMap } from '@/utils/constants'
 
 const market = ref('all')        // 'all' | 'a_share' | 'us_stock' | 'hk_stock' | 'fund'
 const status = ref('pending')

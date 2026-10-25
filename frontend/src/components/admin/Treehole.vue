@@ -62,10 +62,13 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { ElMessage } from 'element-plus'
+import {
+  ElButton, ElDialog, ElInput, ElMessage, ElPagination, ElRadioButton,
+  ElRadioGroup, ElTag, vLoading,
+} from '@/utils/admin-ui'
 import {
   apiAdminTreehole, apiAdminApproveTreehole, apiAdminRejectTreehole, apiAdminHideTreehole,
-} from '../../api'
+} from '@/api'
 
 const status = ref('pending')
 const items = ref([])

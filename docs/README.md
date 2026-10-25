@@ -26,7 +26,7 @@
 
 ## v1.1 更新摘要
 
-- PC 独立端 `frontend-pc`（Vue3 + Vite + Element Plus，对齐原型图，含管理后台）
+- 运营后台（Vue3 + Element Plus）并入 uni-app 工程，作为仅 H5 注册的 `pages/admin/admin` 页面，小程序构建自动排除；原独立工程 `frontend-pc` 已删除
 - 美股数据源接入 Alpha Vantage（`XI_AV_API_KEY` 环境变量，白名单 5 只）
 - 批量录入/审核 API（批次/分红/预案三处，见 04 §十二）
 - `scripts/seed_demo.py` 演示数据脚本（10 只股票，19 批次，22 分红，9 预案）

@@ -180,3 +180,52 @@ export const apiCreateTreeholePost = (content) => post('/api/treehole', { conten
 export const apiDeleteTreeholePost = (id) => del(`/api/treehole/${id}`)
 export const apiReportTreeholePost = (id, reason) =>
   post(`/api/treehole/${id}/report`, { reason })
+
+// ================= 管理后台（仅 H5 管理台使用） =================
+export const apiAdminOverview = () => get('/api/admin/stats/overview')
+export const apiAdminUsers = (params) => get('/api/admin/users', params)
+export const apiAdminUserData = (id) => get(`/api/admin/users/${id}/data`)
+export const apiAdminBanUser = (id) => post(`/api/admin/users/${id}/ban`)
+export const apiAdminUnbanUser = (id) => post(`/api/admin/users/${id}/unban`)
+export const apiAdminSchedules = (params) => get('/api/admin/schedules', params)
+export const apiAdminCreateSchedule = (payload) => post('/api/admin/schedules', payload)
+export const apiAdminApproveSchedule = (id) => post(`/api/admin/schedules/${id}/approve`)
+export const apiAdminRejectSchedule = (id, reason) =>
+  post(`/api/admin/schedules/${id}/reject`, { reason })
+export const apiAdminBatchApprove = (ids, action, reason) =>
+  post('/api/admin/schedules/batch-approve', { ids, action, reason })
+export const apiAdminCrawl = (market, code) => {
+  const q = []
+  if (market) q.push(`market=${encodeURIComponent(market)}`)
+  if (code) q.push(`code=${encodeURIComponent(code)}`)
+  return post(`/api/admin/schedules/crawl${q.length ? `?${q.join('&')}` : ''}`)
+}
+export const apiCrawlStatus = () => get('/api/admin/schedules/crawl/status')
+export const apiAdminSecurities = (params) => get('/api/admin/securities', params)
+export const apiAdminCreateSecurity = (payload) => post('/api/admin/securities', payload)
+export const apiAdminToggleCrawlEnabled = (id, enabled) =>
+  patch(`/api/admin/securities/${id}/crawl-enabled?enabled=${enabled}`, {})
+export const apiAdminRates = (params) => get('/api/admin/rates', params)
+export const apiAdminCreateRate = (payload) => post('/api/admin/rates', payload)
+export const apiAdminRefreshRates = () => post('/api/admin/rates/refresh')
+export const apiAdminTaxRules = () => get('/api/admin/tax-rules')
+export const apiAdminUpdateTaxRule = (id, payload) => put(`/api/admin/tax-rules/${id}`, payload)
+export const apiAdminCreateAnnouncement = (payload) => post('/api/admin/announcements', payload)
+export const apiAdminAnnouncements = (params) => get('/api/admin/announcements', params)
+export const apiAdminUpdateAnnouncement = (id, payload) =>
+  patch(`/api/admin/announcements/${id}`, payload)
+export const apiAdminFeedback = (params) => get('/api/admin/feedback', params)
+export const apiAdminHandleFeedback = (id, payload) =>
+  patch(`/api/admin/feedback/${id}`, payload)
+export const apiAdminLogs = (params) => get('/api/admin/logs', params)
+export const apiAdminTreehole = (params) => get('/api/admin/treehole', params)
+export const apiAdminApproveTreehole = (id) => post(`/api/admin/treehole/${id}/approve`)
+export const apiAdminRejectTreehole = (id, reason) =>
+  post(`/api/admin/treehole/${id}/reject`, { reason })
+export const apiAdminHideTreehole = (id, reason) =>
+  post(`/api/admin/treehole/${id}/hide`, { reason })
+export const apiAdminConfig = () => get('/api/admin/config')
+export const apiAdminUpdateConfig = (items) => put('/api/admin/config', { items })
+export const apiAdminResetConfig = (key) => del(`/api/admin/config/${key}`)
+export const apiAdminTestMail = (to) => post('/api/admin/test-mail', { to })
+export const apiAdminTestNotify = () => post('/api/admin/notify/test')

@@ -102,12 +102,14 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { apiAdminUsers, apiAdminUserData, apiAdminBanUser, apiAdminUnbanUser } from '../../api'
-import { marketMap, fmtCNY } from '../../utils/constants'
-import { useUserStore } from '../../store/user'
+import {
+  ElButton, ElDialog, ElInput, ElMessage, ElMessageBox, ElOption, ElPagination,
+  ElSelect, ElTable, ElTableColumn, ElTag, vLoading,
+} from '@/utils/admin-ui'
+import { apiAdminUsers, apiAdminUserData, apiAdminBanUser, apiAdminUnbanUser } from '@/api'
+import { marketMap, fmtCNY } from '@/utils/constants'
+import { userStore } from '@/store/user'
 
-const userStore = useUserStore()
 const canOperate = computed(() => userStore.user?.role === 'super_admin')
 
 const list = ref([])

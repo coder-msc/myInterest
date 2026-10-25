@@ -98,9 +98,12 @@
 
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
-import { ElMessage } from 'element-plus'
-import { apiAdminSecurities, apiAdminCreateSecurity, apiAdminToggleCrawlEnabled } from '../../api'
-import { MARKETS, marketMap } from '../../utils/constants'
+import {
+  ElButton, ElDialog, ElForm, ElFormItem, ElInput, ElMessage, ElOption, ElPagination,
+  ElRadioButton, ElRadioGroup, ElSelect, ElSwitch, ElTable, ElTableColumn, vLoading,
+} from '@/utils/admin-ui'
+import { apiAdminSecurities, apiAdminCreateSecurity, apiAdminToggleCrawlEnabled } from '@/api'
+import { MARKETS, marketMap } from '@/utils/constants'
 
 const FREQ_TEXT = {
   monthly: '月派', quarterly: '季派', semi_annual: '半年派',

@@ -172,13 +172,16 @@
 
 <script setup>
 import { onMounted, reactive, ref, computed } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import {
+  ElButton, ElDatePicker, ElDialog, ElForm, ElFormItem, ElInput, ElInputNumber,
+  ElMessage, ElMessageBox, ElOption, ElPagination, ElSelect, ElSwitch,
+  ElTable, ElTableColumn, ElTag, vLoading,
+} from '@/utils/admin-ui'
 import { apiAdminRates, apiAdminCreateRate, apiAdminRefreshRates, apiAdminTaxRules, apiAdminUpdateTaxRule,
-  apiAdminConfig, apiAdminUpdateConfig, apiAdminResetConfig, apiAdminTestNotify } from '../../api'
-import { marketMap } from '../../utils/constants'
-import { useUserStore } from '../../store/user'
+  apiAdminConfig, apiAdminUpdateConfig, apiAdminResetConfig, apiAdminTestNotify } from '@/api'
+import { marketMap } from '@/utils/constants'
+import { userStore } from '@/store/user'
 
-const userStore = useUserStore()
 // 仅超级管理员可写系统参数；普通管理员进来只读
 const canWrite = computed(() => userStore.user?.role === 'super_admin')
 

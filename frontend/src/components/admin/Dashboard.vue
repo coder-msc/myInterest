@@ -58,10 +58,10 @@
       <div class="card">
         <h3>快捷操作</h3>
         <div class="quick-btns">
-          <el-button @click="$router.push('/admin/schedules')">预案审核</el-button>
-          <el-button @click="$router.push('/admin/users')">用户管理</el-button>
-          <el-button @click="$router.push('/admin/config')">汇率税率</el-button>
-          <el-button @click="$router.push('/admin/notice')">发公告</el-button>
+          <el-button @click="go('schedules')">预案审核</el-button>
+          <el-button @click="go('users')">用户管理</el-button>
+          <el-button @click="go('config')">汇率税率</el-button>
+          <el-button @click="go('notice')">发公告</el-button>
         </div>
         <p class="hint-text">安全提示：管理员对用户业务数据只读，所有写操作均记录操作日志</p>
       </div>
@@ -71,9 +71,13 @@
 
 <script setup>
 import { onMounted, onUnmounted, ref } from 'vue'
-import { ElMessage } from 'element-plus'
-import { apiAdminOverview, apiAdminCrawl } from '../../api'
-import { useEchart } from '../../utils/echart'
+import { ElButton, ElMessage, vLoading } from '@/utils/admin-ui'
+import { apiAdminOverview, apiAdminCrawl } from '@/api'
+import { useEchart } from '@/utils/echart'
+
+// 快捷操作跳转到管理台的其他面板（由 admin.vue 处理切换）
+const emit = defineEmits(['go'])
+function go(panel) { emit('go', panel) }
 
 const ov = ref({})
 const loading = ref(false)

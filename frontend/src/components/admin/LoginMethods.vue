@@ -104,11 +104,12 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
-import { apiAdminConfig, apiAdminUpdateConfig, apiAdminResetConfig, apiAdminTestMail } from '../../api'
-import { useUserStore } from '../../store/user'
+import {
+  ElButton, ElInput, ElInputNumber, ElMessage, ElMessageBox, ElSwitch, ElTag, vLoading,
+} from '@/utils/admin-ui'
+import { apiAdminConfig, apiAdminUpdateConfig, apiAdminResetConfig, apiAdminTestMail } from '@/api'
+import { userStore } from '@/store/user'
 
-const userStore = useUserStore()
 const canWrite = computed(() => userStore.user?.role === 'super_admin')
 
 // 配置表单

@@ -61,11 +61,9 @@
 - [ ] `cd backend && python -m venv .venv && source .venv/bin/activate`
 - [ ] `pip install -r requirements.txt`
 - [ ] `cd frontend && npm install`
-- [ ] `cd frontend-pc && npm install`
 
 ### 3.2 前端构建（非开发模式跑 dev）
-- [ ] 移动端 H5：`npm run build:h5` → 产物在 `frontend/dist/build/h5/`
-- [ ] PC 端：`npm run build` → 产物在 `frontend-pc/dist/`
+- [ ] H5（含 PC 运营后台）：`npm run build:h5` → 产物在 `frontend/dist/build/h5/`
 - [ ] 微信小程序：HBuilderX 或 `npm run build:mp-weixin`，用微信开发者工具上传
 
 ### 3.3 后端环境变量（**关键，不可漏**）
@@ -116,18 +114,9 @@ XI_AV_API_KEY=<你的 Alpha Vantage Key>
 
 ```caddyfile
 你的域名.com {
-    # PC 端静态托管
-    handle /pc/* {
-        root * /opt/myinvesttools/frontend-pc/dist
-        uri strip_prefix /pc
-        file_server
-        try_files {path} /index.html
-    }
-
-    # 移动端 H5 静态托管
-    handle /m/* {
+    # H5（含 PC 运营后台）静态托管，站点根路径部署
+    handle {
         root * /opt/myinvesttools/frontend/dist/build/h5
-        uri strip_prefix /m
         file_server
         try_files {path} /index.html
     }
@@ -135,18 +124,6 @@ XI_AV_API_KEY=<你的 Alpha Vantage Key>
     # API 反代到后端
     handle /api/* {
         reverse_proxy 127.0.0.1:8000
-    }
-
-    # 后台（如用 sqladmin）
-    handle /admin/* {
-        reverse_proxy 127.0.0.1:8000
-    }
-
-    # 根路径默认到 PC 端
-    handle {
-        root * /opt/myinvesttools/frontend-pc/dist
-        file_server
-        try_files {path} /index.html
     }
 }
 ```
@@ -157,8 +134,7 @@ XI_AV_API_KEY=<你的 Alpha Vantage Key>
 - [ ] 浏览器访问 `https://你的域名.com`，证书自动签发
 
 ### 5.2 前端 baseURL 调整
-- [ ] `frontend/src/utils/config.js`：移动端 baseURL 改为 `https://你的域名.com/api`
-- [ ] `frontend-pc/vite.config.js`：生产构建走同源 `/api`，无需改
+- [ ] `frontend/src/utils/config.js`：H5 走同域相对路径（保持 `BASE_URL = ''`），小程序填完整 HTTPS 域名
 - [ ] 微信小程序：后台「开发管理」配置 request 合法域名
 
 ---

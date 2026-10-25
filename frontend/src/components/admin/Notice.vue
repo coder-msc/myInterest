@@ -77,11 +77,14 @@
 
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
-import { ElMessage } from 'element-plus'
+import {
+  ElButton, ElCheckbox, ElInput, ElMessage, ElOption, ElPagination,
+  ElRadioButton, ElRadioGroup, ElSelect, ElTag, vLoading,
+} from '@/utils/admin-ui'
 import {
   apiAdminCreateAnnouncement, apiAdminAnnouncements, apiAdminUpdateAnnouncement,
   apiAdminFeedback, apiAdminHandleFeedback,
-} from '../../api'
+} from '@/api'
 
 const annSaving = ref(false)
 const annForm = reactive({ title: '', content: '', publish: true })

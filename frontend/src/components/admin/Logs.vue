@@ -37,7 +37,10 @@
 
 <script setup>
 import { onMounted, ref } from 'vue'
-import { apiAdminLogs } from '../../api'
+import {
+  ElOption, ElPagination, ElSelect, ElTable, ElTableColumn, ElTag, vLoading,
+} from '@/utils/admin-ui'
+import { apiAdminLogs } from '@/api'
 
 const ACTIONS = [
   { value: 'schedule.create', label: '预案录入' },

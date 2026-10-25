@@ -75,7 +75,14 @@
     {
       "path": "pages/index/metrics",
       "style": { "navigationBarTitleText": "指标设置" }
+    },
+    // #ifdef H5
+    // 运营后台仅 H5 端注册：小程序构建不会打包本页面及其 Element Plus 依赖
+    {
+      "path": "pages/admin/admin",
+      "style": { "navigationStyle": "custom", "navigationBarTitleText": "运营后台" }
     }
+    // #endif
   ],
   "tabBar": {
     "custom": true,

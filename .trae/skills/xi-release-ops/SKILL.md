@@ -5,9 +5,11 @@ description: Deploy and troubleshoot the xi backend and WeChat mini program — 
 
 # 纯牛马人生手札 发布与线上运维
 
-三端结构：`backend/`（FastAPI，8000）、`frontend/`（uni-app，H5 + mp-weixin）、`frontend-pc/`（Vue3 + Element Plus）。
+两端结构：`backend/`（FastAPI，8000）、`frontend/`（uni-app，H5 + mp-weixin，含 H5-only 运营后台）。
 
-线上映射：`www.icefun.cn` → `frontend-pc` 构建产物，`mobile.icefun.cn` → H5 构建产物，两者 `/api/*` 均反代到本机 `127.0.0.1:8000`；同机还有 eatWhat 占 8001，不要动。
+线上映射：`www.icefun.cn` 与 `mobile.icefun.cn` 都部署 `frontend/dist/build/h5`（同一份产物，站点根路径），`/api/*` 反代到本机 `127.0.0.1:8000`；同机还有 eatWhat 占 8001，不要动。
+
+运营后台是 `frontend/src/pages/admin/admin.vue`，只在 H5 注册（`pages.json` 里用 `#ifdef H5` 包裹），小程序构建不打包该页面及其 Element Plus/ECharts 依赖。入口在「我的」页，仅管理员且窗口 ≥768px 可见。（原独立工程 `frontend-pc` 已合并删除。）
 
 ## 一、更新后端
 

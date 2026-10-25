@@ -74,6 +74,17 @@
         </view>
         <text class="m-arrow">›</text>
       </view>
+      <!-- #ifdef H5 -->
+      <!-- 运营后台仅 PC 宽屏展示：管理台页面只在 H5 注册，小程序端不打包 -->
+      <view v-if="isAdmin && isDesktop" class="menu-row" @click="goAdmin">
+        <text class="m-ic">🛠️</text>
+        <view class="m-main">
+          <text class="m-label">运营后台</text>
+          <text class="m-sub-text">预案审核 · 用户 · 配置 · 公告 · 日志</text>
+        </view>
+        <text class="m-arrow">›</text>
+      </view>
+      <!-- #endif -->
     </view>
 
     <!-- v8：账户切换弹窗（含账户管理） -->
@@ -327,6 +338,19 @@ function go(url) {
     fail: () => uni.switchTab({ url, fail: () => uni.showToast({ title: '页面未就绪', icon: 'none' }) }),
   })
 }
+
+// #ifdef H5
+// 运营后台入口：仅 PC 宽屏可见（手机上不暴露管理功能）
+const isDesktop = ref(false)
+function checkDesktop() {
+  isDesktop.value = typeof window !== 'undefined' && window.innerWidth >= 768
+}
+checkDesktop()
+if (typeof window !== 'undefined') window.addEventListener('resize', checkDesktop)
+function goAdmin() {
+  uni.navigateTo({ url: '/pages/admin/admin' })
+}
+// #endif
 
 // 导出全部数据（JSON，由后端直接下发给浏览器/小程序保存）
 function exportData() {
