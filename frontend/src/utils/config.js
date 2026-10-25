@@ -11,8 +11,9 @@
 export const BASE_URL = ''
 // #endif
 // #ifdef MP-WEIXIN
-// 开发者工具需勾选「详情 → 本地设置 → 不校验合法域名」
-export const BASE_URL = 'http://127.0.0.1:8000'
+// 生产环境：小程序不支持相对路径，必须是完整 HTTPS 域名
+// 本地联调时临时改回 http://127.0.0.1:8000，并在开发者工具勾选「不校验合法域名」
+export const BASE_URL = 'https://mobile.icefun.cn'
 // #endif
 
 export const TOKEN_KEY = 'xi_token'

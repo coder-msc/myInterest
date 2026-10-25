@@ -1,9 +1,17 @@
 // 微信小程序自定义 tabBar（原生组件）
 // uni-app 不会编译本目录下的 .vue，只能放原生 wxml/wxss/js，编译时原样拷到产物目录。
 // pages.json 里 tabBar.custom = true 时，微信要求必须有 custom-tab-bar/index 组件。
-// tab 列表统一放在同目录的 tabs.json：这里用 require，H5 的 CustomTab.vue 用 import，
-// 两端只有这一份数据源（pages.json 的 tabBar.list 是微信框架必需的配置，仍需同步）。
-const TABS = require('./tabs.json')
+// 注意：本目录被 uni-app 原样拷进产物，不参与打包，因此这里不能 require('./tabs.json')
+// —— 微信原生运行时不支持加载 JSON 模块，会导致自定义 tabBar 整体不渲染（底部栏空白）。
+// 所以列表在此内联；H5 端 CustomTab.vue 读的是同目录 tabs.json，
+// 以及 pages.json 的 tabBar.list，三处改动需同步。
+const TABS = [
+  { path: '/pages/journal/journal', label: '手札', emoji: '🏠' },
+  { path: '/pages/ledger/ledger', label: '账本', emoji: '💰' },
+  { path: '/pages/worth/worth', label: '值得记', emoji: '🎯' },
+  { path: '/pages/discover/discover', label: '发现', emoji: '🔍' },
+  { path: '/pages/mine/mine', label: '我的', emoji: '👤' },
+]
 
 Component({
   data: {
