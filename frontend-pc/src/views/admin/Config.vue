@@ -1,13 +1,11 @@
 <template>
   <div>
-    <h1 class="page-title">汇率与税率配置</h1>
-
     <!-- 汇率大数字卡片 -->
     <div class="rate-cards">
       <div class="card rate-card" v-for="cur in ['USD', 'HKD']" :key="cur">
         <div class="rate-head">
           <h3>{{ curName[cur] }} 汇率</h3>
-          <el-button size="small" :loading="refreshing && cur === 'USD'" @click="refreshRates">🔄 自动获取</el-button>
+          <el-button v-if="canWrite" size="small" :loading="refreshing" @click="refreshRates">🔄 自动获取</el-button>
         </div>
         <div class="rate-big">
           <span class="rate-num">{{ latestRate(cur) || '-' }}</span>
@@ -21,7 +19,7 @@
     <div class="card mt20">
       <div class="card-head">
         <h3>汇率明细</h3>
-        <el-button @click="addRateDlg = true">+ 手动录入</el-button>
+        <el-button v-if="canWrite" @click="openAddRate">+ 手动录入</el-button>
       </div>
       <el-table :data="rates" v-loading="rateLoading" style="width: 100%">
         <el-table-column label="货币对" width="140">
@@ -34,6 +32,11 @@
         <el-table-column prop="source" label="数据源" width="140" />
         <el-table-column prop="created_at" label="录入时间" width="180" />
       </el-table>
+      <div class="pager">
+        <el-pagination background layout="total, prev, pager, next"
+                       :total="rateTotal" :page-size="ratePageSize" :current-page="ratePage"
+                       @current-change="onRatePage" />
+      </div>
     </div>
 
     <!-- 税率规则 -->
@@ -61,7 +64,8 @@
         </el-table-column>
         <el-table-column label="操作" width="150" fixed="right">
           <template #default="{ row }">
-            <template v-if="editing === row.id">
+            <span v-if="!canWrite" class="text-muted">只读</span>
+            <template v-else-if="editing === row.id">
               <el-button link type="success" @click="saveTax(row)">保存</el-button>
               <el-button link @click="editing = null">取消</el-button>
             </template>
@@ -74,7 +78,9 @@
           </template>
         </el-table-column>
       </el-table>
-      <p class="hint-text">税率变更需超级管理员权限，修改后自动重算相关分红税费</p>
+      <p class="hint-text">
+        {{ canWrite ? '税率变更需超级管理员权限，修改后自动重算相关分红税费' : '当前角色为管理员，税率只读；修改需超级管理员' }}
+      </p>
     </div>
 
     <!-- 系统参数（元数据驱动：后端 config_service.SPECS 定义，前端按 type 渲染） -->
@@ -290,20 +296,48 @@ async function resetCfg(item) {
 }
 
 const rateForm = reactive({ base: 'USD', rate: undefined, rate_date: '' })
+const ratePage = ref(1)
+const ratePageSize = 50
+const rateTotal = ref(0)
+const latestMap = ref({})
+
+function todayStr() {
+  const d = new Date()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${d.getFullYear()}-${m}-${day}`
+}
+
+function openAddRate() {
+  rateForm.base = 'USD'
+  rateForm.rate = undefined
+  rateForm.rate_date = todayStr()
+  addRateDlg.value = true
+}
+
+function onRatePage(p) { ratePage.value = p; loadRates() }
 
 function latestRate(cur) {
-  const r = rates.value.find((x) => x.base === cur)
+  const r = latestMap.value[cur]
   return r ? Number(r.rate).toFixed(4) : null
 }
 function latestDate(cur) {
-  const r = rates.value.find((x) => x.base === cur)
+  const r = latestMap.value[cur]
   return r ? (r.rate_date || r.created_at?.slice(0, 16)) : null
 }
 
 async function loadRates() {
   rateLoading.value = true
   try {
-    rates.value = (await apiAdminRates()).items || []
+    const data = await apiAdminRates({ page: ratePage.value, page_size: ratePageSize })
+    rates.value = data.items || []
+    rateTotal.value = data.total || 0
+    // 大数字卡片始终取最新一条，翻页时保留首次加载结果
+    if (ratePage.value === 1) {
+      const map = {}
+      for (const r of rates.value) if (!map[r.base]) map[r.base] = r
+      latestMap.value = map
+    }
   } finally { rateLoading.value = false }
 }
 async function loadTax() {
@@ -318,17 +352,20 @@ async function refreshRates() {
   try {
     await apiAdminRefreshRates()
     ElMessage.success('汇率已刷新')
+    ratePage.value = 1
     loadRates()
   } catch (e) { /* toast 已统一 */ } finally { refreshing.value = false }
 }
 
 async function saveRate() {
   if (!rateForm.rate) return ElMessage.warning('请填写汇率')
+  if (!rateForm.rate_date) return ElMessage.warning('请选择生效日期')
   saving.value = true
   try {
     await apiAdminCreateRate({ ...rateForm, rate: Number(rateForm.rate), rate_date: rateForm.rate_date })
     ElMessage.success('汇率已录入')
     addRateDlg.value = false
+    ratePage.value = 1
     loadRates()
   } catch (e) { /* toast 已统一 */ } finally { saving.value = false }
 }
@@ -374,6 +411,8 @@ onMounted(() => { loadRates(); loadTax(); loadConfig() })
 .badge { font-size: 12px; padding: 2px 8px; border-radius: 4px; font-weight: 500; }
 .bold { font-weight: 600; }
 .hint-text { font-size: 12px; color: #94a3b8; margin-top: 12px; }
+.pager { display: flex; justify-content: flex-end; padding-top: 12px; }
+.text-muted { color: #94a3b8; }
 .cfg-group { margin-bottom: 8px; }
 .cfg-group-title { font-size: 13px; font-weight: 600; color: #0f766e; margin: 14px 0 6px;
   padding-left: 8px; border-left: 3px solid #14b8a6; }

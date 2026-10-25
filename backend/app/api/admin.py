@@ -157,7 +157,7 @@ def admin_list_users(keyword: str | None = None, status: str | None = None,
 
 
 @router.get("/users/{user_id}/data")
-def admin_user_data(user_id: int, session: Session = Depends(get_session),
+def admin_user_data(user_id: int, request: Request, session: Session = Depends(get_session),
                     admin: User = Depends(get_admin_user)):
     """该用户持仓/分红只读汇总（客服排查，docs/06 §3.3）。"""
     target = session.get(User, user_id)
@@ -169,7 +169,7 @@ def admin_user_data(user_id: int, session: Session = Depends(get_session),
         dividend_service.list_user_dividends(
             session, user_id, year=None, market=None, want_batches=False),
         key=lambda d: d.get("pay_date") or "", reverse=True)
-    return ok({
+    payload = {
         "user": {
             "id": target.id, "username": target.username,
             "email": target.email if admin.role == "super_admin"
@@ -185,7 +185,11 @@ def admin_user_data(user_id: int, session: Session = Depends(get_session),
             "tax": d["tax"], "net_amount": d["net_amount"],
             "currency": d["currency"], "status": d["status"],
         } for d in divs],
-    })
+    }
+    _log(session, admin, request, "user.view_data", "user", target.id,
+         {"username": target.username})
+    session.commit()
+    return ok(payload)
 
 
 @router.post("/users/{user_id}/ban")
@@ -711,6 +715,23 @@ def content_stripped(body: AnnouncementCreate) -> str:
     return body.content.strip()
 
 
+@router.get("/announcements")
+def admin_list_announcements(status: str | None = None, page: int = 1, page_size: int = 20,
+                             session: Session = Depends(get_session),
+                             admin: User = Depends(get_admin_user)):
+    """后台公告列表：含草稿/已下线（前台接口只返回已发布）。"""
+    stmt = select(Announcement)
+    if status:
+        stmt = stmt.where(Announcement.status == status)
+    total = session.exec(select(func.count()).select_from(stmt.subquery())).one()
+    rows = session.exec(
+        stmt.order_by(Announcement.created_at.desc(), Announcement.id.desc())  # type: ignore
+        .offset((page - 1) * page_size).limit(page_size)
+    ).all()
+    return ok({"items": [_announcement_out(a) for a in rows],
+               "total": total, "page": page, "page_size": page_size})
+
+
 @router.patch("/announcements/{aid}")
 def update_announcement(aid: int, body: AnnouncementUpdate, request: Request,
                         session: Session = Depends(get_session),
@@ -861,12 +882,15 @@ def hide_treehole(pid: int, body: TreeholeRejectIn, request: Request,
 
 # ---------- 11.7 操作日志（只读）----------
 @router.get("/logs")
-def admin_list_logs(admin_id: int | None = None, page: int = 1, page_size: int = 20,
+def admin_list_logs(admin_id: int | None = None, action: str | None = None,
+                    page: int = 1, page_size: int = 20,
                     session: Session = Depends(get_session),
                     admin: User = Depends(get_admin_user)):
     stmt = select(AdminOperationLog)
     if admin_id is not None:
         stmt = stmt.where(AdminOperationLog.admin_id == admin_id)
+    if action:
+        stmt = stmt.where(AdminOperationLog.action == action)
     rows = list(session.exec(
         stmt.order_by(AdminOperationLog.created_at.desc(),
                       AdminOperationLog.id.desc())).all())  # type: ignore

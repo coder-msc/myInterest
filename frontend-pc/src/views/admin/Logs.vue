@@ -1,7 +1,7 @@
 <template>
   <div class="card">
     <div class="toolbar">
-      <el-select v-model="action" placeholder="全部操作" style="width: 160px" clearable @change="load">
+      <el-select v-model="action" placeholder="全部操作" style="width: 180px" clearable @change="onFilterChange">
         <el-option v-for="a in ACTIONS" :key="a.value" :label="a.label" :value="a.value" />
       </el-select>
       <span class="text-muted">所有后台写操作自动留痕，不可篡改</span>
@@ -40,14 +40,29 @@ import { onMounted, ref } from 'vue'
 import { apiAdminLogs } from '../../api'
 
 const ACTIONS = [
+  { value: 'schedule.create', label: '预案录入' },
   { value: 'schedule.approve', label: '预案通过' },
+  { value: 'schedule.batch_approve', label: '预案批量审核' },
   { value: 'schedule.reject', label: '预案驳回' },
+  { value: 'schedule.crawl', label: '手动爬取' },
+  { value: 'security.create', label: '新增证券' },
+  { value: 'security.crawl_enabled', label: '爬虫白名单变更' },
+  { value: 'rate.update', label: '汇率录入' },
+  { value: 'rate.refresh', label: '汇率刷新' },
+  { value: 'tax_rule.update', label: '税率变更' },
+  { value: 'config.update', label: '配置修改' },
+  { value: 'config.reset', label: '配置重置' },
+  { value: 'test_mail', label: '测试发信' },
+  { value: 'notify.test', label: '飞书通知测试' },
+  { value: 'announcement.create', label: '发布公告' },
+  { value: 'announcement.update', label: '公告更新' },
+  { value: 'feedback.handle', label: '处理反馈' },
+  { value: 'user.view_data', label: '查看用户数据' },
   { value: 'user.ban', label: '封禁用户' },
   { value: 'user.unban', label: '解封用户' },
-  { value: 'user.view_data', label: '查看用户数据' },
-  { value: 'rate.update', label: '汇率变更' },
-  { value: 'tax_rule.update', label: '税率变更' },
-  { value: 'announcement.create', label: '发布公告' },
+  { value: 'treehole.approve', label: '树洞通过' },
+  { value: 'treehole.reject', label: '树洞拒绝' },
+  { value: 'treehole.hide', label: '树洞下架' },
 ]
 
 const list = ref([])
@@ -58,12 +73,11 @@ const pageSize = 20
 const total = ref(0)
 
 function actionText(a) {
-  const found = ACTIONS.find((x) => a.startsWith(x.value.split('.')[0]) && a === x.value)
-  return found?.label || a
+  return ACTIONS.find((x) => x.value === a)?.label || a
 }
 function tagType(a) {
-  if (a.includes('ban') || a.includes('reject')) return 'danger'
-  if (a.includes('approve') || a.includes('announcement')) return 'success'
+  if (a.includes('ban') || a.includes('reject') || a.includes('hide')) return 'danger'
+  if (a.includes('approve') || a.includes('create') || a.includes('refresh') || a.includes('update')) return 'success'
   return 'info'
 }
 function detailText(d) {
@@ -86,6 +100,8 @@ async function load() {
 }
 
 function onPage(p) { page.value = p; load() }
+
+function onFilterChange() { page.value = 1; load() }
 
 onMounted(load)
 </script>

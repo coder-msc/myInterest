@@ -15,11 +15,16 @@
         </div>
       </div>
       <div class="ann-history">
-        <div class="ann-hist-title">历史公告</div>
+        <div class="ann-hist-title">历史公告（最近 50 条）</div>
         <div v-if="!annList.length" class="empty-tip small">暂无公告</div>
         <div v-for="a in annList" :key="a.id" class="ann-hist-row">
           <span class="ann-hist-name">{{ a.title }}</span>
-          <span class="ann-hist-date">{{ a.created_at?.slice(0, 10) }}</span>
+          <el-tag size="small" :type="annStatusType(a.status)">{{ annStatusText(a.status) }}</el-tag>
+          <span class="ann-hist-date">{{ (a.published_at || a.created_at)?.slice(0, 10) }}</span>
+          <el-button link :type="a.status === 'published' ? 'danger' : 'success'"
+                     @click="toggleAnnStatus(a)">
+            {{ a.status === 'published' ? '下线' : '发布' }}
+          </el-button>
         </div>
       </div>
     </div>
@@ -30,7 +35,10 @@
       <el-radio-group v-model="fbStatus" size="small" style="margin-bottom: 12px" @change="onFbStatusChange">
         <el-radio-button value="">全部</el-radio-button>
         <el-radio-button value="pending">待处理</el-radio-button>
-        <el-radio-button value="resolved">已处理</el-radio-button>
+        <el-radio-button value="adopted">已采纳</el-radio-button>
+        <el-radio-button value="planned">已排期</el-radio-button>
+        <el-radio-button value="done">已完成</el-radio-button>
+        <el-radio-button value="rejected">已拒绝</el-radio-button>
       </el-radio-group>
       <div v-loading="fbLoading">
         <div v-if="!feedback.length" class="empty-tip">暂无反馈</div>
@@ -70,7 +78,10 @@
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
-import { apiAdminCreateAnnouncement, apiAdminFeedback, apiAdminHandleFeedback, apiAnnouncements } from '../../api'
+import {
+  apiAdminCreateAnnouncement, apiAdminAnnouncements, apiAdminUpdateAnnouncement,
+  apiAdminFeedback, apiAdminHandleFeedback,
+} from '../../api'
 
 const annSaving = ref(false)
 const annForm = reactive({ title: '', content: '', publish: true })
@@ -88,6 +99,12 @@ function onFbPage(p) { fbPage.value = p; loadFeedback() }
 
 function fbStatusText(s) {
   return { pending: '待处理', adopted: '已采纳', planned: '已排期', done: '已完成', rejected: '已拒绝' }[s] || s
+}
+function annStatusText(s) {
+  return { draft: '草稿', published: '已发布', offline: '已下线' }[s] || s
+}
+function annStatusType(s) {
+  return { draft: 'info', published: 'success', offline: 'warning' }[s] || 'info'
 }
 
 async function loadFeedback() {
@@ -119,9 +136,19 @@ async function createAnn() {
 
 async function loadAnnouncements() {
   try {
-    const data = await apiAnnouncements()
-    annList.value = data.items || data || []
-  } catch (e) { /* ignore */ }
+    const data = await apiAdminAnnouncements({ page: 1, page_size: 50 })
+    annList.value = data.items || []
+  } catch (e) { /* toast 已统一 */ }
+}
+
+// 草稿/已下线 → 发布；已发布 → 下线
+async function toggleAnnStatus(a) {
+  const next = a.status === 'published' ? 'offline' : 'published'
+  try {
+    await apiAdminUpdateAnnouncement(a.id, { status: next })
+    ElMessage.success(next === 'published' ? '公告已发布' : '公告已下线')
+    loadAnnouncements()
+  } catch (e) { /* toast 已统一 */ }
 }
 
 async function handleFeedback(f) {
@@ -152,8 +179,9 @@ onMounted(() => { loadFeedback(); loadAnnouncements() })
 .ann-hint { font-size: 12px; }
 .ann-history { margin-top: 16px; border-top: 1px solid #f1f5f9; padding-top: 12px; }
 .ann-hist-title { font-size: 12px; font-weight: 500; color: #64748b; margin-bottom: 8px; }
-.ann-hist-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; }
-.ann-hist-name { color: #334155; }
+.ann-hist-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; font-size: 13px; border-bottom: 1px dashed #f8fafc; }
+.ann-hist-name { flex: 1; color: #334155; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ann-hist-date { font-size: 12px; color: #94a3b8; }
 .text-muted { color: #64748b; }
+@media (max-width: 1200px) { .two-col { grid-template-columns: 1fr; } }
 </style>

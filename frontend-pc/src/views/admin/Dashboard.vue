@@ -136,7 +136,11 @@ async function crawl() {
   crawling.value = true
   try {
     const r = await apiAdminCrawl()
-    ElMessage.success(`爬取完成：${r.fetched || 0} 条 fetched`)
+    if (r.message) {
+      ElMessage.warning(r.message)
+    } else {
+      ElMessage.success(`爬取完成：抓取 ${r.fetched || 0} 条，新增 ${r.new_pending || 0} 条待审核`)
+    }
     load()
   } catch (e) { /* toast 已统一 */ } finally { crawling.value = false }
 }

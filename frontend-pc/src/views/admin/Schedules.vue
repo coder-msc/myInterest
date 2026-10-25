@@ -295,8 +295,8 @@ async function crawl(m = 'all') {
   try {
     const r = await apiAdminCrawl(m)
     const label = m === 'all' ? '全部市场' : marketMap[m]?.label || m
-    const extra = r.message ? `（${r.message}）` : ''
-    ElMessage.success(`${label} 爬取完成：新增 ${r.new_pending || 0} 条${extra}`)
+    if (r.message) ElMessage.warning(`${label}：${r.message}`)
+    else ElMessage.success(`${label} 爬取完成：抓取 ${r.fetched || 0} 条，新增 ${r.new_pending || 0} 条`)
     load()
   } catch (e) { /* toast 已统一 */ } finally { crawling.value = false }
 }

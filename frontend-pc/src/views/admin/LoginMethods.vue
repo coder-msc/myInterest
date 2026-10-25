@@ -1,6 +1,5 @@
 <template>
   <div>
-    <h1 class="page-title">系统参数配置</h1>
     <p class="hint-intro">
       邮箱/短信/微信三类登录与验证码参数集中配置；开关关闭后前端入口自动隐藏。
       敏感信息（密钥/授权码）脱敏显示，留空保存表示不修改。
@@ -169,7 +168,8 @@ function applyOverview() {
   loginState.sms_provider = formModel.sms_provider || 'aliyun'
   // wx_appid 非敏感项，后端回传原文，直接读表单值
   loginState.wx_appid = formModel.wx_appid || ''
-  loginState.wx = !!loginState.wx_appid
+  const wxSecretItem = configGroups.value.flatMap((g) => g.items).find((i) => i.key === 'wx_secret')
+  loginState.wx = !!loginState.wx_appid && !!(wxSecretItem?.has_value || formModel.wx_secret)
 }
 
 // 测试发信：用当前 SMTP 配置发一封测试邮件（仅 super_admin）
