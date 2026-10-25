@@ -1,42 +1,21 @@
 /**
  * 统一请求封装（docs/05 §2 契约）：
  * - 自动携带 JWT，统一解包 {code,msg,data}
- * - 未登录/token 失效（1002/1003）：清登录态并跳登录页
- * - 业务错误（如 2001 密码错误、2002 用户名已存在）：仅 toast 后端 msg
+ * - 未登录允许浏览：GET 直接返回「未登录」，页面按空态渲染，不跳登录页
+ * - 写操作（POST/PATCH/PUT/DELETE/上传）未登录时才弹「去登录」确认框
+ * - token 失效（1003）：清本地登录态并静默返回，由页面展示空态
+ * - 业务错误：仅 toast 后端 msg
  */
 import { BASE_URL, TOKEN_KEY, USER_KEY } from './config'
-
-let redirecting = false
-
-function redirectToLogin() {
-  // 单飞：启动阶段多个请求同时失效时会重复 reLaunch，导致 "reLaunch:fail timeout"
-  if (redirecting) return
-  const pages = getCurrentPages()
-  const route = pages.length ? pages[pages.length - 1].route : ''
-  if (route === 'pages/login/login') return
-  redirecting = true
-  // 延迟到当前页面栈就绪再跳，避免 launch 阶段 webview 尚未创建
-  setTimeout(() => {
-    uni.reLaunch({
-      url: '/pages/login/login',
-      fail: () => {
-        // 偶发超时（开发者工具/启动阶段）：降级为 redirectTo，不覆盖登录页
-        uni.redirectTo({ url: '/pages/login/login' })
-      },
-      complete: () => { redirecting = false },
-    })
-  }, 300)
-}
-
-export { redirectToLogin }
+import { goLogin, requireLogin } from './auth'
 
 export function request(options) {
   const { url, method = 'GET', data = {}, auth = true, silent = false } = options
 
-  // 拦截：需要登录但本地无 token → 直接跳登录，不发请求（避免启动竞态刷 401）
   const token = uni.getStorageSync(TOKEN_KEY)
   if (auth && !token) {
-    redirectToLogin()
+    // 浏览类请求不发网络请求，直接在页面展示空态；写操作才引导登录
+    if (method !== 'GET') requireLogin()
     return Promise.reject({ code: 1002, msg: '未登录' })
   }
 
@@ -55,14 +34,13 @@ export function request(options) {
         if (body.code === 0) {
           return resolve(body.data)
         }
-        // 1002 未登录 / 1003 token 失效 → 清登录态跳登录
+        // 1002 未登录 / 1003 token 失效 → 清登录态，静默交给页面渲染空态
         if ([1002, 1003].includes(body.code)) {
           uni.removeStorageSync(TOKEN_KEY)
           uni.removeStorageSync(USER_KEY)
-          if (!silent) {
+          if (body.code === 1003 && !silent) {
             uni.showToast({ title: '登录已过期，请重新登录', icon: 'none' })
           }
-          redirectToLogin()
           return reject(body)
         }
         // 其他业务错误（2001 密码错误 / 2002 已存在 / 3001 / 4001 / 4002 …）
@@ -72,9 +50,14 @@ export function request(options) {
         reject(body)
       },
       fail: (err) => {
-        console.error('[req fail]', BASE_URL + url, err && err.errMsg)
+        const msg = (err && err.errMsg) || ''
+        console.error('[req fail]', BASE_URL + url, msg)
         if (!silent) {
-          uni.showToast({ title: '网络连接失败，请检查后端服务', icon: 'none' })
+          // 域名类错误给出可执行的排查指引（体验版最常见的失败原因）
+          const tip = /domain|not in domain|url not in/i.test(msg)
+            ? '接口域名未加入微信后台白名单'
+            : '网络连接失败，请检查网络后重试'
+          uni.showToast({ title: tip, icon: 'none' })
         }
         reject(err)
       },
@@ -92,7 +75,7 @@ export const put = (url, data, opts = {}) => request({ url, method: 'PUT', data,
 export function upload(url, filePath, formData = {}) {
   const token = uni.getStorageSync(TOKEN_KEY)
   if (!token) {
-    redirectToLogin()
+    requireLogin('登录后才能上传图片')
     return Promise.reject({ code: 1002, msg: '未登录' })
   }
   return new Promise((resolve, reject) => {

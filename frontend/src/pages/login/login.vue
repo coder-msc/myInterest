@@ -38,6 +38,11 @@
         </button>
         <view class="hint">未注册的邮箱验证通过后将自动创建账号</view>
       </view>
+
+      <!-- 未登录也可先浏览：审核与体验都需要「不登录也能看功能」 -->
+      <view class="skip-row" @click="skipLogin">
+        <text class="skip-text">暂不登录，先逛逛 →</text>
+      </view>
     </view>
   </view>
 </template>
@@ -72,6 +77,24 @@ async function sendCode() {
   }
 }
 
+// 暂不登录：直接进首页浏览，任何写操作会再次引导登录
+function skipLogin() {
+  uni.reLaunch({ url: '/pages/journal/journal' })
+}
+
+// 登录后去向：从页面按需登录进来（栈内有上一页）→ 返回原页面继续操作；
+// 直接打开登录页 → 进手札首页
+function goAfterLogin() {
+  const pages = getCurrentPages()
+  if (pages.length > 1) {
+    uni.navigateBack({
+      fail: () => uni.reLaunch({ url: '/pages/journal/journal' }),
+    })
+    return
+  }
+  uni.reLaunch({ url: '/pages/journal/journal' })
+}
+
 async function submitEmail() {
   if (!emailForm.email || !emailForm.code) {
     return uni.showToast({ title: '请填写邮箱和验证码', icon: 'none' })
@@ -82,7 +105,7 @@ async function submitEmail() {
     const data = await apiEmailLogin(emailForm.email, emailForm.code)
     setAuth(data.access_token, data.user)
     uni.showToast({ title: data.is_new_user ? '注册并登录成功' : '登录成功', icon: 'success' })
-    setTimeout(() => uni.reLaunch({ url: '/pages/journal/journal' }), 400)
+    setTimeout(goAfterLogin, 400)
   } catch (e) {
     // 错误已统一处理
   } finally {
@@ -117,9 +140,12 @@ async function onWxLogin() {
     const data = await apiWxLogin(loginRes.code, nickname, avatar)
     setAuth(data.access_token, data.user)
     uni.showToast({ title: data.is_new_user ? '登录成功' : '欢迎回来', icon: 'success' })
-    // 微信新用户引导绑定邮箱（对齐 eatWhat redirect=bind）
-    const url = data.is_new_user ? '/pages/mine/mine?bind=1' : '/pages/journal/journal'
-    setTimeout(() => uni.reLaunch({ url }), 400)
+    // 微信新用户引导绑定邮箱（对齐 eatWhat redirect=bind），其余返回来源页
+    if (data.is_new_user) {
+      setTimeout(() => uni.reLaunch({ url: '/pages/mine/mine?bind=1' }), 400)
+    } else {
+      setTimeout(goAfterLogin, 400)
+    }
   } catch (e) {
     // 错误 toast 已由 request 统一处理
   } finally {
@@ -146,6 +172,8 @@ async function onWxLogin() {
 .f-label { display: block; font-size: 24rpx; color: #9C9187; margin-bottom: 12rpx; }
 .f-input { font-size: 30rpx; height: 44rpx; align-items: center; }
 .submit { margin-top: 50rpx; }
+.skip-row { text-align: center; padding: 32rpx 0 8rpx; }
+.skip-text { font-size: 26rpx; color: #9C9187; }
 
 /* 验证码行 */
 .code-field { border-bottom: none; padding-bottom: 0; }

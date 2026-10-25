@@ -4,15 +4,21 @@
 
     <!-- 用户卡（头像/昵称可点修改，参考 eatWhat 账户设置） -->
     <view class="profile-card">
-      <view class="avatar avatar-editable" @click="showAvatarPicker">
-        <text v-if="user?.avatar">{{ user.avatar }}</text>
+      <view class="avatar" :class="{ 'avatar-editable': !isGuest }" @click="isGuest ? goLogin() : showAvatarPicker()">
+        <text v-if="isGuest">👋</text>
+        <text v-else-if="user?.avatar">{{ user.avatar }}</text>
         <text v-else>{{ (user?.nickname || user?.username || '投')[0] }}</text>
       </view>
-      <view class="profile-info" @click="showNicknameEdit">
+      <view v-if="isGuest" class="profile-info">
+        <text class="nick">未登录</text>
+        <text class="profile-sub">登录后记录才只属于你自己</text>
+      </view>
+      <view v-else class="profile-info" @click="showNicknameEdit">
         <text class="nick">{{ user?.nickname || user?.username || '用户' }} <text class="edit-link">✎</text></text>
         <text v-if="isAdmin" class="admin-badge">管理员</text>
         <text class="profile-sub">数据按用户隔离 · 仅本人可见</text>
       </view>
+      <button v-if="isGuest" class="guest-login-btn" @click="goLogin">登录 / 注册</button>
     </view>
 
     <!-- 功能菜单（参考 eatWhat：emoji 图标 + 标题/副标题双行 + 大号字） -->
@@ -173,8 +179,8 @@
       </view>
     </view>
 
-    <!-- 退出登录 -->
-    <view class="logout-wrap">
+    <!-- 退出登录（访客态不显示） -->
+    <view v-if="!isGuest" class="logout-wrap">
       <view class="card logout-card" @click="logout">
         <text class="logout-ic">🚪</text>
         <text class="logout-text">退出登录</text>
@@ -240,11 +246,15 @@ import {
   apiJournalStats, apiUnreadCount, apiExportFull,
 } from '@/api'
 import { userStore, setAuth, clearAuth, syncFromSettings, setCurrentAccount } from '@/store/user'
+import { isLoggedIn, goLogin, requireLogin } from '@/utils/auth'
 import WebLayout from '@/components/WebLayout.vue'
 import CustomTab from '@/components/CustomTab.vue'
 import BackTop from '@/components/BackTop.vue'
 
 const pageScroll = ref(0)
+// 未登录访客态：显示登录卡片，写操作一律引导登录
+// 用 ref 而非 computed：登录态存在 storage 里，不是响应式数据，需在 onShow 时刷新
+const isGuest = ref(!isLoggedIn())
 
 const TYPE_LABEL = {
   ledger: '账本流水', trip: '旅游足迹', event: '大事件',
@@ -274,6 +284,9 @@ const currentAccountText = computed(() => {
 })
 
 async function load() {
+  isGuest.value = !isLoggedIn()
+  // 未登录访客：不请求任何私有接口，直接展示空态与登录入口
+  if (isGuest.value) return
   try {
     const [r, s] = await Promise.all([apiRates(), apiSettings()])
     rates.value = r.rates || {}
@@ -307,6 +320,7 @@ onLoad((options) => {
 
 // v8：账户切换
 function showAccountSwitch() {
+  if (!requireLogin('登录后才能切换投资账户')) return
   acctVisible.value = true
 }
 function pickAccount(name) {
@@ -354,6 +368,7 @@ function goAdmin() {
 
 // 导出全部数据（JSON，由后端直接下发给浏览器/小程序保存）
 function exportData() {
+  if (!requireLogin('登录后才能导出你的数据')) return
   uni.showModal({
     title: '导出我的数据',
     content: '将把全部手札记录导出为一个 JSON 文件，包含账本、足迹、日子与资产条目。',
@@ -390,6 +405,7 @@ const bindCooldown = ref(0)
 const bindForm = reactive({ email: '', code: '' })
 
 function showBindEmail() {
+  if (!requireLogin('登录后才能绑定邮箱')) return
   bindForm.email = user.value?.email || ''
   bindForm.code = ''
   bindVisible.value = true
@@ -450,6 +466,7 @@ const nickLoading = ref(false)
 const nickForm = ref('')
 
 function showAvatarPicker() {
+  if (!requireLogin('登录后才能设置头像')) return
   avatarVisible.value = true
 }
 
@@ -463,6 +480,7 @@ async function saveAvatar(em) {
 }
 
 function showNicknameEdit() {
+  if (!requireLogin('登录后才能修改昵称')) return
   nickForm.value = user.value?.nickname || user.value?.username || ''
   nickVisible.value = true
 }
@@ -547,6 +565,13 @@ async function doDelete() {
   background: #fff; border-radius: 24rpx; padding: 36rpx 32rpx;
   border: 1rpx solid var(--line2);
 }
+.guest-login-btn {
+  margin-left: auto; flex-shrink: 0;
+  background: var(--brand); color: #fff; border: none;
+  font-size: 26rpx; height: 64rpx; line-height: 64rpx;
+  padding: 0 28rpx; border-radius: 9999rpx;
+}
+.guest-login-btn::after { border: none; }
 .avatar {
   width: 96rpx; height: 96rpx; border-radius: 50%;
   background: var(--brand-l); color: var(--brand-d);

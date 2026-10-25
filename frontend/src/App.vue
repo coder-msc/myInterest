@@ -1,11 +1,8 @@
 <script>
-import { TOKEN_KEY } from './utils/config'
-import { redirectToLogin } from './utils/request'
-
 export default {
   onLaunch() {
-    // 未登录走统一跳转（内含延迟与单飞），避免 launch 阶段 webview 未就绪时 reLaunch 超时
-    if (!uni.getStorageSync(TOKEN_KEY)) redirectToLogin()
+    // 不再强制登录：未登录可直接浏览各功能模块，写操作时才按需引导登录
+    // （见 utils/auth.js 的 requireLogin）
   },
 }
 </script>
