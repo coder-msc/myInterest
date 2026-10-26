@@ -418,6 +418,7 @@ import {
   apiEvent, apiEvents, apiCreateEvent, apiUpdateEvent, apiDeleteEvent, apiUploadMedia,
 } from '@/api'
 import { mediaUrl } from '@/utils/config'
+import { requireLogin } from '@/utils/auth'
 import WebLayout from '@/components/WebLayout.vue'
 import CustomTab from '@/components/CustomTab.vue'
 import BackTop from '@/components/BackTop.vue'
@@ -841,6 +842,8 @@ function prefetch() {
 
 // ---------- 日子 ----------
 function openSheet(cd) {
+  // 新增/编辑类入口先确认登录，避免填完表单提交时才被拦
+  if (requireLogin(cd ? '登录后才能修改这个日子' : '登录后才能记日子')) return
   editingItem.value = cd || null
   sheetVisible.value = true
 }
@@ -859,6 +862,7 @@ async function togglePin(cd) {
 
 // ---------- 旅游 ----------
 function openTrip(t) {
+  if (requireLogin(t ? '登录后才能修改这趟旅行' : '登录后才能记录旅行')) return
   editingTripId.value = t ? t.id : null
   if (t) {
     tripForm.destinations = (t.destinations || []).join(', ')
@@ -929,6 +933,7 @@ function quickPickDate(e) {
 }
 
 function openTodo(t) {
+  if (requireLogin(t ? '登录后才能修改这条待办' : '登录后才能添加待办')) return
   editingTodoId.value = t ? t.id : null
   todoForm.title = t ? t.title : ''
   todoForm.due_date = t ? (t.due_date || '') : (quickDue.value || '')
@@ -985,6 +990,7 @@ function removeTodo() {
 
 // ---------- 大事件 ----------
 async function openEvent(e) {
+  if (requireLogin(e ? '登录后才能修改这个事件' : '登录后才能记录大事件')) return
   editingEventId.value = e ? e.id : null
   if (e) {
     const detail = await apiEvent(e.id)

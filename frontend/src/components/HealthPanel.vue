@@ -470,6 +470,7 @@ import {
   apiIntimacy, apiCreateIntimacy, apiUpdateIntimacy, apiDeleteIntimacy,
   apiSleep, apiCreateSleep, apiUpdateSleep, apiDeleteSleep,
 } from '@/api'
+import { requireLogin } from '@/utils/auth'
 
 const sections = [
   { key: 'calendar', label: '月历', emoji: '📅' },
@@ -783,6 +784,7 @@ defineExpose({ reload, loadMore })
 
 // ---------- 周期 ----------
 function openCycle(item, date) {
+  if (requireLogin(item ? '登录后才能修改这条经期记录' : '登录后才能记录经期')) return
   if (!cycle.value) loadCycle()   // 症状选项来自 /cycle，没进过周期段时补一次
   cycleEdit.value = item || null
   cycleForm.start_date = item ? item.start_date : (date || localDate())
@@ -835,6 +837,7 @@ function removeCycle() {
 
 // ---------- 亲密 ----------
 function openIntimacy(item, date) {
+  if (requireLogin(item ? '登录后才能修改这条亲密记录' : '登录后才能记录亲密行为')) return
   intimacyEdit.value = item || null
   intimacyForm.happen_date = item ? item.happen_date : (date || localDate())
   intimacyForm.happen_time = item ? (item.happen_time || '') : ''
@@ -878,6 +881,7 @@ function removeIntimacy() {
 
 // ---------- 睡眠 ----------
 function openSleep(item, date) {
+  if (requireLogin(item ? '登录后才能修改这条睡眠记录' : '登录后才能记录睡眠')) return
   sleepEdit.value = item || null
   sleepForm.sleep_date = item ? item.sleep_date : (date || localDate())
   sleepForm.bed_time = item ? item.bed_time : '23:30'

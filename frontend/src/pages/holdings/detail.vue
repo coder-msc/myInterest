@@ -142,6 +142,7 @@ import { onLoad, onShow, onPageScroll } from '@dcloudio/uni-app'
 import { apiHoldingDetail, apiLots, apiDividends, apiCreateLot, apiHoldingStats } from '@/api'
 import { marketMap, currencyMap, directionMap, DIRECTIONS as DIRS, badgeClass } from '@/utils/constants'
 import BackTop from '@/components/BackTop.vue'
+import { requireLogin } from '@/utils/auth'
 
 const id = ref(null)
 const pageScroll = ref(0)
@@ -192,6 +193,7 @@ onPageScroll((e) => { pageScroll.value = e.scrollTop })
 
 function toggle(did) { openId.value = openId.value === did ? null : did }
 function openLot() {
+  if (requireLogin('登录后才能添加交易记录')) return
   Object.assign(lotForm, { trade_date: today, direction: 'buy', shares: '', price: '', fee: '' })
   showLot.value = true
 }

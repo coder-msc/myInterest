@@ -155,6 +155,7 @@ import { userStore } from '@/store/user'
 import WebLayout from '@/components/WebLayout.vue'
 import CustomTab from '@/components/CustomTab.vue'
 import BackTop from '@/components/BackTop.vue'
+import { requireLogin } from '@/utils/auth'
 
 const tab = ref('holdings')
 const pageScroll = ref(0)
@@ -219,7 +220,7 @@ function pnlPct(h) {
   return (pct >= 0 ? '+' : '') + pct.toFixed(2)
 }
 
-function goAdd() { uni.navigateTo({ url: '/pages/holdings/add' }) }
+function goAdd() { if (requireLogin('登录后才能添加持仓')) return; uni.navigateTo({ url: '/pages/holdings/add' }) }
 function goDetail(id) { uni.navigateTo({ url: '/pages/holdings/detail?id=' + id }) }
 
 onShow(load)

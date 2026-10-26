@@ -49,12 +49,47 @@
 
 <script setup>
 import { reactive, ref } from 'vue'
+import { onShow, onUnload } from '@dcloudio/uni-app'
 import { apiWxLogin, apiSendCode, apiEmailLogin } from '@/api'
 import { setAuth } from '@/store/user'
 
 const loading = ref(false)
 const wxLoading = ref(false)
 const cooldown = ref(0)
+
+// 验证码冷却截止时间存本地：离开登录页再回来不会把 60 秒倒计时清零
+const CODE_DEADLINE_KEY = 'xi_code_deadline'
+let cooldownTimer = null
+
+function stopCooldown() {
+  if (cooldownTimer) { clearInterval(cooldownTimer); cooldownTimer = null }
+}
+
+function tickCooldown() {
+  stopCooldown()
+  const remain = Math.ceil(((uni.getStorageSync(CODE_DEADLINE_KEY) || 0) - Date.now()) / 1000)
+  cooldown.value = remain > 0 ? remain : 0
+  if (cooldown.value <= 0) {
+    uni.removeStorageSync(CODE_DEADLINE_KEY)
+    return
+  }
+  cooldownTimer = setInterval(() => {
+    const r = Math.ceil(((uni.getStorageSync(CODE_DEADLINE_KEY) || 0) - Date.now()) / 1000)
+    cooldown.value = r > 0 ? r : 0
+    if (cooldown.value <= 0) {
+      stopCooldown()
+      uni.removeStorageSync(CODE_DEADLINE_KEY)
+    }
+  }, 1000)
+}
+
+function startCooldown(seconds) {
+  uni.setStorageSync(CODE_DEADLINE_KEY, Date.now() + seconds * 1000)
+  tickCooldown()
+}
+
+onShow(tickCooldown)
+onUnload(stopCooldown)
 
 const emailForm = reactive({ email: '', code: '' })
 
@@ -66,19 +101,19 @@ async function sendCode() {
   try {
     await apiSendCode('email', emailForm.email, 'login')
     uni.showToast({ title: '验证码已发送', icon: 'none' })
-    // 启动 60 秒倒计时
-    cooldown.value = 60
-    const timer = setInterval(() => {
-      cooldown.value -= 1
-      if (cooldown.value <= 0) clearInterval(timer)
-    }, 1000)
+    startCooldown(60)
   } catch (e) {
     // 错误已统一处理
   }
 }
 
-// 暂不登录：直接进首页浏览，任何写操作会再次引导登录
+// 暂不登录：返回来源页（若是从页面引导而来），否则进首页浏览
 function skipLogin() {
+  const pages = getCurrentPages()
+  if (pages.length > 1) {
+    uni.navigateBack({ fail: () => uni.reLaunch({ url: '/pages/journal/journal' }) })
+    return
+  }
   uni.reLaunch({ url: '/pages/journal/journal' })
 }
 

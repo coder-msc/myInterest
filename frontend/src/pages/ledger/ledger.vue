@@ -56,9 +56,9 @@
       <view v-if="loading && !days.length" class="loading-text">牛马拉磨中…</view>
 
       <view v-else-if="!days.length" class="empty">
-        <text class="empty-title">{{ monthLabel }}还没记过账。</text>
-        <text class="empty-sub">你这个月还没花过钱 —— 除非你是在装。</text>
-        <view class="empty-btn" @click="openSheet()">记第一笔</view>
+        <text class="empty-title">{{ isGuest ? '登录后就能开始记账了。' : monthLabel + '还没记过账。' }}</text>
+        <text class="empty-sub">{{ isGuest ? '账本只保存在你自己的账号里。' : '你这个月还没花过钱 —— 除非你是在装。' }}</text>
+        <view class="empty-btn" @click="isGuest ? goLogin() : openSheet()">{{ isGuest ? '登录 / 注册' : '记第一笔' }}</view>
       </view>
 
       <view v-else class="day-list">
@@ -209,12 +209,15 @@ import {
   apiDeleteLedger, apiAddLedgerCategory,
 } from '@/api'
 import WebLayout from '@/components/WebLayout.vue'
+import { isLoggedIn, goLogin, requireLogin } from '@/utils/auth'
 import CustomTab from '@/components/CustomTab.vue'
 import BackTop from '@/components/BackTop.vue'
 
 const tab = ref('list')
 const pageScroll = ref(0)
 const loading = ref(false)
+// 访客态：未登录也能翻看，空态文案改为引导登录（微信审核要求不强制登录）
+const isGuest = ref(!isLoggedIn())
 const saving = ref(false)
 const sheetVisible = ref(false)
 const editingId = ref(null)
@@ -325,6 +328,8 @@ async function load() {
 }
 
 function openSheet(r) {
+  // 先确认登录，避免用户填完表单提交时才被拦
+  if (requireLogin(r ? '登录后才能修改这笔记录' : '登录后才能记账')) return
   // 每次打开都收起「新增分类」面板，避免残留上次输入
   addingCat.value = false
   newCatName.value = ''
@@ -410,6 +415,7 @@ function removeCurrent() {
 }
 
 function toggleAddCategory() {
+  if (!addingCat.value && requireLogin('登录后才能新增分类')) return
   addingCat.value = !addingCat.value
   if (addingCat.value) {
     newCatName.value = ''
@@ -436,6 +442,7 @@ async function confirmAddCategory() {
 
 onPageScroll((e) => { pageScroll.value = e.scrollTop })
 onShow(() => {
+  isGuest.value = !isLoggedIn()
   // 常驻 tab 页：跨零点后把「今天」和表单默认日期推到新的一天
   const d = localDate()
   if (d !== today.value) {

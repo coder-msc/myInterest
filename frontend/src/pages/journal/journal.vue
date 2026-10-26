@@ -111,9 +111,9 @@
     <view v-if="loading && !feed.length" class="loading-text">牛马拉磨中…</view>
 
     <view v-else-if="!feed.length" class="empty">
-      <text class="empty-title">{{ filterType ? '这类还没有记录。' : '这里比你的钱包还干净。' }}</text>
-      <text class="empty-sub">{{ filterType ? '换个分类看看，或者去记一条。' : '去记第一笔吧。' }}</text>
-      <view class="empty-btn" @click="openQuick('ledger')">开始记一笔</view>
+      <text class="empty-title">{{ isGuest ? '登录后，这里就是你的手札。' : (filterType ? '这类还没有记录。' : '这里比你的钱包还干净。') }}</text>
+      <text class="empty-sub">{{ isGuest ? '记录只保存在你自己的账号里。' : (filterType ? '换个分类看看，或者去记一条。' : '去记第一笔吧。') }}</text>
+      <view class="empty-btn" @click="isGuest ? goLogin() : openQuick('ledger')">{{ isGuest ? '登录 / 注册' : '开始记一笔' }}</view>
     </view>
 
     <view v-else class="feed">
@@ -191,6 +191,7 @@ import { computed, reactive, ref } from 'vue'
 import { onShow, onLoad, onPullDownRefresh, onReachBottom, onPageScroll } from '@dcloudio/uni-app'
 import { apiJournalHome, apiJournalFeed, apiTakeAssetSnapshot } from '@/api'
 import { mediaUrl } from '@/utils/config'
+import { isLoggedIn, goLogin, requireLogin } from '@/utils/auth'
 import { userStore } from '@/store/user'
 import WebLayout from '@/components/WebLayout.vue'
 import CustomTab from '@/components/CustomTab.vue'
@@ -202,6 +203,8 @@ const home = reactive({
   month_summary: { expense: 0, income: 0, balance: 0, has_prev: false, expense_delta: 0 },
 })
 const feed = ref([])
+// 访客态：未登录也能翻看，空态文案改为引导登录（微信审核要求不强制登录）
+const isGuest = ref(!isLoggedIn())
 const pageScroll = ref(0)
 const loading = ref(false)
 const loadingMore = ref(false)
@@ -333,6 +336,8 @@ async function loadMore() {
 }
 
 function openQuick(key) {
+  // 新增类入口先确认登录，避免填完表单提交时才被拦
+  if (requireLogin()) return
   quickVisible.value = false
   if (key === 'ledger') return uni.switchTab({ url: '/pages/ledger/ledger' })
   if (key === 'trip') return goWorth('trip')
@@ -362,6 +367,7 @@ function goNotifications() { uni.navigateTo({ url: '/pages/notifications/notific
 /** 首页就地盘点：固化当日净值后重拉首页，净值卡与迷你趋势一起更新 */
 async function takeSnapshot() {
   if (taking.value) return
+  if (requireLogin('登录后才能记录今天的资产盘点')) return
   taking.value = true
   try {
     await apiTakeAssetSnapshot()
@@ -379,6 +385,7 @@ function onCalendarChanged() {
 
 onLoad(() => {})
 onShow(() => {
+  isGuest.value = !isLoggedIn()
   loadHome()
   loadFeed(true)
   // 从值得记改完日子回来时刷新日历，避免还是旧数据

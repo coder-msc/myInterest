@@ -77,6 +77,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { apiCountdowns, apiTrips, apiEvents } from '@/api'
 import CountdownSheet from '@/components/CountdownSheet.vue'
+import { requireLogin } from '@/utils/auth'
 
 const emit = defineEmits(['changed'])
 
@@ -204,6 +205,8 @@ function shiftMonth(delta) {
 function select(d) { selectedDay.value = d }
 
 function openSheet(cd) {
+  // 新增/编辑日子先确认登录，避免填完表单提交时才被拦
+  if (requireLogin(cd ? '登录后才能修改这个日子' : '登录后才能记日子')) return
   editingItem.value = cd || null
   sheetVisible.value = true
 }

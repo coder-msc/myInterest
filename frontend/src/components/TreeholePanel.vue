@@ -11,7 +11,7 @@
     <view class="th-post">
       <textarea v-model="content" class="th-input" maxlength="200"
                 placeholder="今天有什么事想说出来？不超过 200 字"
-                placeholder-class="th-ph" :disabled="posting" />
+                placeholder-class="th-ph" :disabled="posting" @focus="guardGuest" />
       <view class="th-post-foot">
         <text class="th-count">{{ content.length }}/200</text>
         <text class="th-quota">今天还能发 {{ quota.remaining }} 条</text>
@@ -85,6 +85,7 @@ import {
   apiTreeholeFeed, apiTreeholeMine, apiTreeholeQuota,
   apiCreateTreeholePost, apiDeleteTreeholePost, apiReportTreeholePost,
 } from '@/api'
+import { isLoggedIn, requireLogin } from '@/utils/auth'
 
 const content = ref('')
 const posting = ref(false)
@@ -98,6 +99,12 @@ const loading = ref(false)
 const anonCode = ref('')
 
 const canPost = computed(() => content.value.trim().length >= 2 && quota.value.remaining > 0)
+
+/** 访客点输入框就提示登录，不必等写完 200 字再提交被拦 */
+function guardGuest() {
+  if (isLoggedIn()) return
+  requireLogin('登录后才能匿名发言')
+}
 
 const REPORT_REASONS = ['广告 / 引流', '辱骂或人身攻击', '违法或不良信息', '泄露他人隐私', '其他']
 
