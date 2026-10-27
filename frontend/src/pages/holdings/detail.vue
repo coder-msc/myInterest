@@ -193,7 +193,7 @@ onPageScroll((e) => { pageScroll.value = e.scrollTop })
 
 function toggle(did) { openId.value = openId.value === did ? null : did }
 function openLot() {
-  if (requireLogin('登录后才能添加交易记录')) return
+  if (!requireLogin('登录后才能添加交易记录')) return
   Object.assign(lotForm, { trade_date: today, direction: 'buy', shares: '', price: '', fee: '' })
   showLot.value = true
 }

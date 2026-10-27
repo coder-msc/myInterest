@@ -329,7 +329,7 @@ async function load() {
 
 function openSheet(r) {
   // 先确认登录，避免用户填完表单提交时才被拦
-  if (requireLogin(r ? '登录后才能修改这笔记录' : '登录后才能记账')) return
+  if (!requireLogin(r ? '登录后才能修改这笔记录' : '登录后才能记账')) return
   // 每次打开都收起「新增分类」面板，避免残留上次输入
   addingCat.value = false
   newCatName.value = ''
@@ -415,7 +415,7 @@ function removeCurrent() {
 }
 
 function toggleAddCategory() {
-  if (!addingCat.value && requireLogin('登录后才能新增分类')) return
+  if (!addingCat.value && !requireLogin('登录后才能新增分类')) return
   addingCat.value = !addingCat.value
   if (addingCat.value) {
     newCatName.value = ''

@@ -843,7 +843,7 @@ function prefetch() {
 // ---------- 日子 ----------
 function openSheet(cd) {
   // 新增/编辑类入口先确认登录，避免填完表单提交时才被拦
-  if (requireLogin(cd ? '登录后才能修改这个日子' : '登录后才能记日子')) return
+  if (!requireLogin(cd ? '登录后才能修改这个日子' : '登录后才能记日子')) return
   editingItem.value = cd || null
   sheetVisible.value = true
 }
@@ -862,7 +862,7 @@ async function togglePin(cd) {
 
 // ---------- 旅游 ----------
 function openTrip(t) {
-  if (requireLogin(t ? '登录后才能修改这趟旅行' : '登录后才能记录旅行')) return
+  if (!requireLogin(t ? '登录后才能修改这趟旅行' : '登录后才能记录旅行')) return
   editingTripId.value = t ? t.id : null
   if (t) {
     tripForm.destinations = (t.destinations || []).join(', ')
@@ -933,7 +933,7 @@ function quickPickDate(e) {
 }
 
 function openTodo(t) {
-  if (requireLogin(t ? '登录后才能修改这条待办' : '登录后才能添加待办')) return
+  if (!requireLogin(t ? '登录后才能修改这条待办' : '登录后才能添加待办')) return
   editingTodoId.value = t ? t.id : null
   todoForm.title = t ? t.title : ''
   todoForm.due_date = t ? (t.due_date || '') : (quickDue.value || '')
@@ -990,7 +990,7 @@ function removeTodo() {
 
 // ---------- 大事件 ----------
 async function openEvent(e) {
-  if (requireLogin(e ? '登录后才能修改这个事件' : '登录后才能记录大事件')) return
+  if (!requireLogin(e ? '登录后才能修改这个事件' : '登录后才能记录大事件')) return
   editingEventId.value = e ? e.id : null
   if (e) {
     const detail = await apiEvent(e.id)
@@ -1157,8 +1157,10 @@ onReachBottom(() => {
   .sp-emoji { font-size: 23rpx; }
 }
 
-/* 内容区：切换分段时的位移动画（向左滑出 → 从右侧进） */
-.seg-body { min-height: 200rpx; will-change: transform, opacity; }
+/* 内容区：切换分段时的位移动画（向左滑出 → 从右侧进）
+   注意：这里不能加 will-change: transform —— 它会让 .seg-body 成为固定定位的包含块，
+   HealthPanel / AssetsPanel 的 .sheet-mask 就不再贴住视口，弹层会错位、✕ 点了没反应 */
+.seg-body { min-height: 200rpx; }
 .slide-in-right { animation: slideInRight .26s cubic-bezier(.22, .61, .36, 1) both; }
 .slide-in-left { animation: slideInLeft .26s cubic-bezier(.22, .61, .36, 1) both; }
 @keyframes slideInRight {

@@ -184,7 +184,7 @@ async function load() {
 
 function openItem(it, cat) {
   // 盘点录入属于写操作，先确认登录
-  if (requireLogin(it ? '登录后才能修改这项资产' : '登录后才能录入资产')) return
+  if (!requireLogin(it ? '登录后才能修改这项资产' : '登录后才能录入资产')) return
   if (it) {
     editingId.value = it.id
     form.category = it.category
@@ -242,7 +242,7 @@ function removeCurrent() {
 
 async function takeSnapshot() {
   if (taking.value) return
-  if (requireLogin('登录后才能记录今天的资产盘点')) return
+  if (!requireLogin('登录后才能记录今天的资产盘点')) return
   taking.value = true
   try {
     await apiTakeAssetSnapshot()

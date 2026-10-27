@@ -135,7 +135,9 @@ uni-tabbar, .uni-tabbar, .uni-tabbar-bottom, .custom-tab-bar { display: none !im
 
 /* 底部弹层通用 */
 .sheet-mask {
-  position: fixed; inset: 0; background: rgba(47, 42, 38, 0.42);
+  /* 不用 inset 简写：部分微信内置内核较老的机型不支持，会导致蒙层尺寸不对、点 ✕ 无响应 */
+  position: fixed; top: 0; right: 0; bottom: 0; left: 0;
+  background: rgba(47, 42, 38, 0.42);
   z-index: 1000; display: flex; align-items: flex-end;
 }
 .sheet {
@@ -143,12 +145,19 @@ uni-tabbar, .uni-tabbar, .uni-tabbar-bottom, .custom-tab-bar { display: none !im
   padding: 36rpx 32rpx calc(36rpx + env(safe-area-inset-bottom));
   box-sizing: border-box; max-height: 88vh; overflow-y: auto;
 }
+/* 头部吸顶：表单变长后 ✕ 仍固定在弹层顶部，不会随内容滚出视野 */
 .sheet-head {
   display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 28rpx;
+  margin-bottom: 28rpx; padding: 8rpx 0 16rpx;
+  position: sticky; top: 0; z-index: 3; background: #fff;
 }
 .sheet-title { font-size: 34rpx; font-weight: 700; color: var(--ink); }
-.sheet-close { font-size: 36rpx; color: var(--ink3); padding: 0 8rpx; }
+/* 点击热区扩到 88rpx（约 44px），避免长表单里点不准 ✕ */
+.sheet-close {
+  font-size: 36rpx; color: var(--ink3);
+  display: flex; align-items: center; justify-content: center;
+  width: 88rpx; height: 88rpx; margin: -20rpx -12rpx -20rpx 0;
+}
 
 /* 表单 */
 .field { padding: 20rpx 0; border-bottom: 1rpx solid var(--line2); }

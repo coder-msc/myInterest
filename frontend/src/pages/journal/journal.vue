@@ -337,7 +337,7 @@ async function loadMore() {
 
 function openQuick(key) {
   // 新增类入口先确认登录，避免填完表单提交时才被拦
-  if (requireLogin()) return
+  if (!requireLogin()) return
   quickVisible.value = false
   if (key === 'ledger') return uni.switchTab({ url: '/pages/ledger/ledger' })
   if (key === 'trip') return goWorth('trip')
@@ -367,7 +367,7 @@ function goNotifications() { uni.navigateTo({ url: '/pages/notifications/notific
 /** 首页就地盘点：固化当日净值后重拉首页，净值卡与迷你趋势一起更新 */
 async function takeSnapshot() {
   if (taking.value) return
-  if (requireLogin('登录后才能记录今天的资产盘点')) return
+  if (!requireLogin('登录后才能记录今天的资产盘点')) return
   taking.value = true
   try {
     await apiTakeAssetSnapshot()

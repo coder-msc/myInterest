@@ -220,7 +220,7 @@ function pnlPct(h) {
   return (pct >= 0 ? '+' : '') + pct.toFixed(2)
 }
 
-function goAdd() { if (requireLogin('登录后才能添加持仓')) return; uni.navigateTo({ url: '/pages/holdings/add' }) }
+function goAdd() { if (!requireLogin('登录后才能添加持仓')) return; uni.navigateTo({ url: '/pages/holdings/add' }) }
 function goDetail(id) { uni.navigateTo({ url: '/pages/holdings/detail?id=' + id }) }
 
 onShow(load)
