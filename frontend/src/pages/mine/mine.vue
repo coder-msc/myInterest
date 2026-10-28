@@ -247,6 +247,7 @@ import {
 } from '@/api'
 import { userStore, setAuth, clearAuth, syncFromSettings, setCurrentAccount } from '@/store/user'
 import { isLoggedIn, goLogin, requireLogin } from '@/utils/auth'
+import { watchMask } from '@/utils/tabbar'
 import WebLayout from '@/components/WebLayout.vue'
 import CustomTab from '@/components/CustomTab.vue'
 import BackTop from '@/components/BackTop.vue'
@@ -523,6 +524,8 @@ function confirmUnbind() {
 
 // ---------- 注销账户（双确认：警告 → 输入「确认注销」，参考 eatWhat） ----------
 const deleteVisible = ref(false)
+// 任一头像/邮箱/昵称/注销对话框打开时收起小程序自定义 tabBar
+watchMask(() => acctVisible.value || bindVisible.value || avatarVisible.value || nickVisible.value || deleteVisible.value)
 const deleteStep = ref(1)
 const deleteConfirmText = ref('')
 const deleteLoading = ref(false)

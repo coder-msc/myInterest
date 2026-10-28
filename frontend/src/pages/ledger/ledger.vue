@@ -212,6 +212,7 @@ import WebLayout from '@/components/WebLayout.vue'
 import { isLoggedIn, goLogin, requireLogin } from '@/utils/auth'
 import CustomTab from '@/components/CustomTab.vue'
 import BackTop from '@/components/BackTop.vue'
+import { watchMask } from '@/utils/tabbar'
 
 const tab = ref('list')
 const pageScroll = ref(0)
@@ -223,6 +224,8 @@ const sheetVisible = ref(false)
 const editingId = ref(null)
 const reqSeq = ref(0)
 const truncated = ref(false)
+// 打开记账弹层时收起小程序自定义 tabBar，否则弹层底部被 tabBar 压住
+watchMask(() => sheetVisible.value)
 
 const month = ref(currentMonth())
 const summary = reactive({ expense: 0, income: 0, balance: 0, count: 0, has_prev: false, expense_delta: 0 })

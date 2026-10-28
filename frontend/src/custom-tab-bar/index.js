@@ -17,6 +17,8 @@ Component({
   data: {
     current: '',
     list: TABS,
+    // 页面里打开弹层/对话框时置 true，由 utils/tabbar.js 通过 setData 控制
+    maskHidden: false,
   },
   methods: {
     // 按页面栈同步高亮

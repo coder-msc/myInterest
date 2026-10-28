@@ -471,6 +471,7 @@ import {
   apiSleep, apiCreateSleep, apiUpdateSleep, apiDeleteSleep,
 } from '@/api'
 import { requireLogin } from '@/utils/auth'
+import { watchMask } from '@/utils/tabbar'
 
 const sections = [
   { key: 'calendar', label: '月历', emoji: '📅' },
@@ -510,6 +511,8 @@ function shortDate(iso) {
 
 const sec = ref('calendar')
 const sheet = ref('')
+// 打开健康弹层时收起小程序自定义 tabBar，否则弹层底部被 tabBar 压住
+watchMask(() => !!sheet.value)
 const saving = ref(false)
 const loading = reactive({ cycle: false, intimacy: false, sleep: false })
 const loadingMore = reactive({ intimacy: false, sleep: false })

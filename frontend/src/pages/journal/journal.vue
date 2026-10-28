@@ -193,6 +193,7 @@ import { apiJournalHome, apiJournalFeed, apiTakeAssetSnapshot } from '@/api'
 import { mediaUrl } from '@/utils/config'
 import { isLoggedIn, goLogin, requireLogin } from '@/utils/auth'
 import { userStore } from '@/store/user'
+import { watchMask } from '@/utils/tabbar'
 import WebLayout from '@/components/WebLayout.vue'
 import CustomTab from '@/components/CustomTab.vue'
 import BackTop from '@/components/BackTop.vue'
@@ -214,6 +215,8 @@ const filterType = ref('')
 const quickVisible = ref(false)
 const taking = ref(false)
 const calRef = ref(null)
+// 打开「记点什么」弹层时收起小程序自定义 tabBar，否则弹层底部被 tabBar 压住
+watchMask(() => quickVisible.value)
 
 const filters = [
   { value: '', label: '全部' },

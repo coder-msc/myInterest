@@ -118,6 +118,7 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
 import { requireLogin } from '@/utils/auth'
+import { watchMask } from '@/utils/tabbar'
 import {
   apiAssets, apiCreateAssetItem, apiUpdateAssetItem,
   apiDeleteAssetItem, apiTakeAssetSnapshot,
@@ -127,6 +128,8 @@ const saving = ref(false)
 const taking = ref(false)
 const sheetVisible = ref(false)
 const editingId = ref(null)
+// 打开资产弹层时收起小程序自定义 tabBar，否则弹层底部被 tabBar 压住
+watchMask(() => sheetVisible.value)
 
 const groups = ref([])
 const investmentMeta = ref(null)

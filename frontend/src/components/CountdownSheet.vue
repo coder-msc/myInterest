@@ -71,12 +71,15 @@
 <script setup>
 import { reactive, ref, watch } from 'vue'
 import { apiCreateCountdown, apiUpdateCountdown, apiDeleteCountdown } from '@/api'
+import { watchMask } from '@/utils/tabbar'
 
 const props = defineProps({
   visible: { type: Boolean, default: false },
   item: { type: Object, default: null },
 })
 const emit = defineEmits(['close', 'saved', 'deleted'])
+// 打开日子弹层时收起小程序自定义 tabBar，否则弹层底部被 tabBar 压住
+watchMask(() => props.visible)
 
 /** 本地日期：toISOString 是 UTC，东八区凌晨会算成前一天 */
 function localToday() {

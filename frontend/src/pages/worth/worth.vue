@@ -425,6 +425,7 @@ import BackTop from '@/components/BackTop.vue'
 import CountdownSheet from '@/components/CountdownSheet.vue'
 import HealthPanel from '@/components/HealthPanel.vue'
 import AssetsPanel from '@/components/AssetsPanel.vue'
+import { watchMask } from '@/utils/tabbar'
 
 /** 顶部大项。新增模块时在这里加一项，并在下方加对应的内容块即可。 */
 const segments = [
@@ -576,6 +577,8 @@ const eventCats = ref([])
 const eventPhotoLimit = ref(9)
 const eventSheet = ref(false)
 const editingEventId = ref(null)
+// 任一弹层打开时收起小程序自定义 tabBar，避免弹层底部被 tabBar 压住
+watchMask(() => sheetVisible.value || tripSheet.value || todoSheet.value || eventSheet.value)
 const eventForm = reactive({
   title: '', event_date: today.value, category: '里程碑', emoji: '🏆',
   mood: '', content: '', photos: [],
