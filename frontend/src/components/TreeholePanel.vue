@@ -3,8 +3,8 @@
     <!-- 说明 -->
     <view class="th-hero">
       <text class="th-hero-title">说出来，就好了。</text>
-      <text class="th-hero-sub">匿名发言 · 先审后发 · 通过后其他人才能看到</text>
-      <text class="th-hero-code">{{ anonCode }} · 这是你在树洞的名字</text>
+      <text class="th-hero-sub">写完就存进你自己的账号，不会公开给其他人看到</text>
+      <text class="th-hero-code">{{ anonCode }} · 仅你自己可见</text>
     </view>
 
     <!-- 发布 -->
@@ -21,47 +21,16 @@
       </view>
     </view>
 
-    <!-- 分段：大家说的 / 我的发言 -->
-    <view class="th-tabs">
-      <view :class="['th-tab', tab === 'feed' ? 'on' : '']" @click="switchTab('feed')">大家说的</view>
-      <view :class="['th-tab', tab === 'mine' ? 'on' : '']" @click="switchTab('mine')">
-        我的发言<text v-if="mine.length" class="th-badge">{{ mine.length }}</text>
-      </view>
-    </view>
-
-    <!-- 大家说的 -->
-    <block v-if="tab === 'feed'">
-      <view v-if="loading && !feed.length" class="th-empty">正在翻墙上的字…</view>
-      <view v-else-if="!feed.length" class="th-empty">
-        <text class="th-empty-emoji">🌳</text>
-        <text class="th-empty-text">树洞还空着，第一个说话的人最有勇气。</text>
-      </view>
-
-      <view v-for="p in feed" :key="p.id" class="th-card">
-        <view class="th-card-head">
-          <text class="th-code">{{ p.anon_code }}</text>
-          <text class="th-time">{{ p.created_at.slice(5, 16) }}</text>
-        </view>
-        <text class="th-content">{{ p.content }}</text>
-        <view class="th-card-foot">
-          <text class="th-report" @click="report(p)">举报</text>
-        </view>
-      </view>
-
-      <view v-if="feed.length && hasMore" class="th-more" @click="loadMore">
-        {{ loading ? '加载中…' : '再看一些' }}
-      </view>
-    </block>
-
-    <!-- 我的发言 -->
-    <block v-else>
+    <!-- 我的发言（树洞只对自己可见，不提供公开信息流） -->
+    <view class="th-mine-title">我的发言</view>
+    <block>
       <view v-if="!mine.length" class="th-empty">
         <text class="th-empty-emoji">📝</text>
         <text class="th-empty-text">你还没在树洞里说过话。</text>
       </view>
       <view v-for="p in mine" :key="p.id" class="th-card">
         <view class="th-card-head">
-          <text :class="['th-status', 'st-' + p.status]">{{ p.status_text }}</text>
+          <text class="th-status st-approved">仅自己可见</text>
           <text class="th-time">{{ p.created_at.slice(5, 16) }}</text>
         </view>
         <text class="th-content">{{ p.content }}</text>
@@ -74,7 +43,7 @@
 
     <view class="th-notice">
       <text class="th-notice-title">✳️ 发言前请知悉</text>
-      <text class="th-notice-text">树洞只接受纯文字，不支持图片与评论。请勿发布广告、辱骂、人身信息或违法内容，违反将被拒绝或下架。被举报 3 次会先隐藏等待复核。</text>
+      <text class="th-notice-text">树洞只接受纯文字，不支持图片与评论。内容只保存在你的账号里，不会公开。请勿发布违法内容。</text>
     </view>
   </view>
 </template>
@@ -82,20 +51,15 @@
 <script setup>
 import { computed, onMounted, ref } from 'vue'
 import {
-  apiTreeholeFeed, apiTreeholeMine, apiTreeholeQuota,
-  apiCreateTreeholePost, apiDeleteTreeholePost, apiReportTreeholePost,
+  apiTreeholeMine, apiTreeholeQuota,
+  apiCreateTreeholePost, apiDeleteTreeholePost,
 } from '@/api'
 import { isLoggedIn, requireLogin } from '@/utils/auth'
 
 const content = ref('')
 const posting = ref(false)
-const tab = ref('feed')
-const feed = ref([])
 const mine = ref([])
 const quota = ref({ used: 0, limit: 3, remaining: 3 })
-const hasMore = ref(false)
-const nextBefore = ref(null)
-const loading = ref(false)
 const anonCode = ref('')
 
 const canPost = computed(() => content.value.trim().length >= 2 && quota.value.remaining > 0)
@@ -104,22 +68,6 @@ const canPost = computed(() => content.value.trim().length >= 2 && quota.value.r
 function guardGuest() {
   if (isLoggedIn()) return
   requireLogin('登录后才能匿名发言')
-}
-
-const REPORT_REASONS = ['广告 / 引流', '辱骂或人身攻击', '违法或不良信息', '泄露他人隐私', '其他']
-
-async function loadFeed(before) {
-  loading.value = true
-  try {
-    const d = await apiTreeholeFeed(before ? { before_id: before, limit: 20 } : { limit: 20 })
-    const items = d.items || []
-    feed.value = before ? feed.value.concat(items) : items
-    hasMore.value = !!d.has_more
-    nextBefore.value = d.next_before
-    if (d.anon_code) anonCode.value = d.anon_code
-  } catch (e) { /* 统一 toast */ } finally {
-    loading.value = false
-  }
 }
 
 async function loadMine() {
@@ -136,17 +84,6 @@ async function loadQuota() {
   } catch (e) { /* 统一 toast */ }
 }
 
-function loadMore() {
-  if (loading.value || !nextBefore.value) return
-  loadFeed(nextBefore.value)
-}
-
-function switchTab(key) {
-  if (tab.value === key) return
-  tab.value = key
-  if (key === 'mine') loadMine()
-}
-
 async function submit() {
   if (posting.value) return
   if (!canPost.value) {
@@ -158,24 +95,11 @@ async function submit() {
   try {
     await apiCreateTreeholePost(content.value.trim())
     content.value = ''
-    uni.showToast({ title: '已提交，等待审核', icon: 'none' })
-    await Promise.all([loadQuota(), loadMine(), loadFeed()])
-    tab.value = 'mine'
+    uni.showToast({ title: '已保存，仅自己可见', icon: 'none' })
+    await Promise.all([loadQuota(), loadMine()])
   } catch (e) { /* 统一 toast */ } finally {
     posting.value = false
   }
-}
-
-function report(p) {
-  uni.showActionSheet({
-    itemList: REPORT_REASONS,
-    success: async (res) => {
-      try {
-        await apiReportTreeholePost(p.id, REPORT_REASONS[res.tapIndex])
-        uni.showToast({ title: '已收到举报，我们会尽快复核', icon: 'none' })
-      } catch (e) { /* 统一 toast */ }
-    },
-  })
 }
 
 function remove(p) {
@@ -194,7 +118,6 @@ function remove(p) {
 }
 
 onMounted(() => {
-  loadFeed()
   loadMine()
   loadQuota()
 })
@@ -211,6 +134,7 @@ onMounted(() => {
 .th-hero-title { display: block; font-size: 30rpx; font-weight: 700; color: var(--ink); }
 .th-hero-sub { display: block; font-size: 20rpx; color: var(--ink3); margin-top: 8rpx; line-height: 1.6; }
 .th-hero-code { display: block; font-size: 20rpx; color: #6C5B8E; margin-top: 10rpx; }
+.th-mine-title { display: block; font-size: 26rpx; font-weight: 700; color: var(--ink); margin: 4rpx 0 14rpx; }
 
 .th-post { background: #fff; border: 1rpx solid var(--line2); border-radius: 22rpx; padding: 22rpx; margin-bottom: 22rpx; }
 .th-input {

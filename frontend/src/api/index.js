@@ -140,14 +140,11 @@ export const apiRecycleBin = () => get('/api/recycle-bin')
 export const apiRestoreRecycle = (type, id) => post(`/api/recycle-bin/${type}/${id}/restore`)
 export const apiExportFull = () => get('/api/export/full')
 
-// ---------- 树洞（发现 · 公共频道） ----------
-export const apiTreeholeFeed = (params = {}) => get('/api/treehole', params)
+// ---------- 树洞（仅自己可见的私人记录） ----------
 export const apiTreeholeMine = () => get('/api/treehole/mine')
 export const apiTreeholeQuota = () => get('/api/treehole/quota')
 export const apiCreateTreeholePost = (content) => post('/api/treehole', { content })
 export const apiDeleteTreeholePost = (id) => del(`/api/treehole/${id}`)
-export const apiReportTreeholePost = (id, reason) =>
-  post(`/api/treehole/${id}/report`, { reason })
 
 // ================= 管理后台（仅 H5 管理台使用） =================
 export const apiAdminOverview = () => get('/api/admin/stats/overview')
