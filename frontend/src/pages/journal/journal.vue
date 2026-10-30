@@ -548,9 +548,10 @@ onPageScroll((e) => { pageScroll.value = e.scrollTop })
 .fab-plus { font-size: 54rpx; line-height: 1; margin-top: -4rpx; }
 
 /* 快捷新增 */
-.quick-grid { display: flex; flex-wrap: wrap; gap: 18rpx; }
+/* 小程序 rpx 取整会让「两列刚好 100%」溢出换行，故留 3% 余量并交给 space-between 分配间隙 */
+.quick-grid { display: flex; flex-wrap: wrap; justify-content: space-between; row-gap: 18rpx; }
 .quick-cell {
-  width: calc(50% - 9rpx); box-sizing: border-box;
+  width: 48.5%; box-sizing: border-box;
   background: var(--bg); border: 1rpx solid var(--line2); border-radius: 20rpx;
   padding: 26rpx 22rpx; display: flex; flex-direction: column; gap: 6rpx;
 }

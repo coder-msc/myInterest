@@ -34,10 +34,7 @@
                 <view v-if="c.cycle" class="mk-ic mk-drop"></view>
                 <view v-else-if="c.predictedPeriod" class="mk-ic mk-drop pre"></view>
                 <view v-if="c.ovulation" class="mk-ic mk-ovu"><view class="ovu-dot"></view></view>
-                <!-- 小程序端不展示亲密记录：内容敏感，个人主体审核风险高 -->
-                <!-- #ifndef MP-WEIXIN -->
                 <text v-if="c.intimacy" class="mk-ic mk-heart">♥</text>
-                <!-- #endif -->
                 <text v-if="c.sleep" :class="['mk-ic', 'mk-z', sleepTone(c.sleep.quality)]">Z</text>
               </view>
             </block>
@@ -48,9 +45,7 @@
           <view class="lg"><view class="mk-ic mk-drop"></view><text>经期</text></view>
           <view class="lg"><view class="mk-ic mk-drop pre"></view><text>预计</text></view>
           <view class="lg"><view class="mk-ic mk-ovu"><view class="ovu-dot"></view></view><text>排卵</text></view>
-          <!-- #ifndef MP-WEIXIN -->
           <view class="lg"><text class="mk-ic mk-heart">♥</text><text>亲密</text></view>
-          <!-- #endif -->
           <view class="lg"><text class="mk-ic mk-z good">Z</text><text>睡眠</text></view>
           <view class="lg"><view class="lg-fertile"></view><text>易孕</text></view>
         </view>
@@ -59,9 +54,7 @@
       <view class="cal-sum">
         <text class="cs-title">{{ calMonth === thisMonth ? '本月' : '当月' }}</text>
         <text class="cs-item">经期 {{ calStats.cycle_days }} 天</text>
-        <!-- #ifndef MP-WEIXIN -->
         <text class="cs-item">亲密 {{ calStats.intimacy_count }} 次</text>
-        <!-- #endif -->
         <text class="cs-item">睡眠 {{ calStats.sleep_count }} 天</text>
         <text v-if="calStats.sleep_count" class="cs-item">平均 {{ minutesText(calStats.avg_minutes) }}</text>
         <text v-if="calData.predicted" class="cs-item">
@@ -79,9 +72,7 @@
         <!-- 快捷新增放最上面：记录再多也不会被压到底部 -->
         <view v-if="canAddOnSelected" class="dc-add">
           <text class="dca" @click="openCycle(null, selectedCell.date)">＋ 经期</text>
-          <!-- #ifndef MP-WEIXIN -->
           <text class="dca" @click="openIntimacy(null, selectedCell.date)">＋ 亲密</text>
-          <!-- #endif -->
           <text class="dca" @click="openSleep(null, selectedCell.date)">＋ 睡眠</text>
         </view>
         <view v-else class="dc-future">未来的日期只能看预测，当天到了再记录。</view>
@@ -101,7 +92,6 @@
             <text class="dc-edit">编辑</text>
           </view>
 
-          <!-- #ifndef MP-WEIXIN -->
           <view v-for="it in (selectedCell.intimacy ? selectedCell.intimacy.items : [])"
                 :key="it.id" class="dc-row" @click="openIntimacy(it)">
             <text class="dc-icon">💞</text>
@@ -114,7 +104,6 @@
             </view>
             <text class="dc-edit">编辑</text>
           </view>
-          <!-- #endif -->
 
           <view v-if="selectedCell.sleep" class="dc-row" @click="openSleep(selectedCell.sleep)">
             <text class="dc-icon">😴</text>
@@ -198,7 +187,6 @@
       </block>
     </block>
 
-    <!-- #ifndef MP-WEIXIN -->
     <!-- ================= 亲密 ================= -->
     <block v-else-if="sec === 'intimacy'">
       <view class="privacy-bar">🔒 只有你自己能看到，不会出现在手札流里</view>
@@ -259,7 +247,6 @@
         <text v-else>加载更多</text>
       </view>
     </block>
-    <!-- #endif -->
 
     <!-- ================= 睡眠 ================= -->
     <block v-else>
@@ -368,7 +355,6 @@
       </view>
     </view>
 
-    <!-- #ifndef MP-WEIXIN -->
     <!-- ================= 表单：亲密 ================= -->
     <view v-if="sheet === 'intimacy'" class="sheet-mask" @touchstart.stop @click="sheet = ''">
       <view class="sheet" @click.stop>
@@ -420,7 +406,6 @@
         <view v-if="intimacyEdit" class="del-link" @click="removeIntimacy">删除这条</view>
       </view>
     </view>
-    <!-- #endif -->
 
     <!-- ================= 表单：睡眠 ================= -->
     <view v-if="sheet === 'sleep'" class="sheet-mask" @touchstart.stop @click="sheet = ''">
@@ -491,10 +476,7 @@ import { watchMask } from '@/utils/tabbar'
 const sections = [
   { key: 'calendar', label: '月历', emoji: '📅' },
   { key: 'cycle', label: '周期', emoji: '🩸' },
-  // 小程序端不上线「亲密」：内容敏感，个人主体小程序审核风险高
-  // #ifndef MP-WEIXIN
   { key: 'intimacy', label: '亲密', emoji: '💞' },
-  // #endif
   { key: 'sleep', label: '睡眠', emoji: '😴' },
 ]
 const weeks = ['日', '一', '二', '三', '四', '五', '六']
